@@ -8,53 +8,62 @@ import { Card } from '../components/ui/Card';
 import { Progress } from '../components/ui/Progress';
 import { BookOpen, Award, Target } from 'lucide-react';
 export function DashboardPage() {
-  const {
-    user
-  } = useAuth();
+  const { user } = useAuth();
   // Mock data
-  const planItems = [{
+  const planItems = [
+  {
     id: '1',
     subject: 'General Psychology',
     count: 8,
     type: 'questions' as const,
     completed: false
-  }, {
+  },
+  {
     id: '2',
     subject: 'Abnormal Psychology',
     count: 10,
     type: 'questions' as const,
     completed: false
-  }, {
+  },
+  {
     id: '3',
     subject: 'Ethics (RA 10029)',
     count: 7,
     type: 'questions' as const,
     completed: true
-  }, {
+  },
+  {
     id: '4',
     subject: 'Flashcard Review',
     count: 10,
     type: 'flashcards' as const,
     completed: false
   }];
-  const topics = [{
+
+  const topics = [
+  {
     name: 'General Psychology',
     progress: 45,
     color: 'blue'
-  }, {
+  },
+  {
     name: 'Abnormal Psychology',
     progress: 30,
     color: 'purple'
-  }, {
+  },
+  {
     name: 'Psychological Assessment',
     progress: 15,
     color: 'amber'
-  }, {
+  },
+  {
     name: 'Industrial Psychology',
     progress: 60,
     color: 'green'
   }];
-  return <AppLayout>
+
+  return (
+    <AppLayout>
       <div className="space-y-8">
         {/* Welcome Section */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -98,9 +107,13 @@ export function DashboardPage() {
 
           {/* Column 3: Topic Progress */}
           <div className="md:col-span-2 lg:col-span-1">
-            <Card title="Topic Mastery" description="Your progress across board subjects">
+            <Card
+              title="Topic Mastery"
+              description="Your progress across board subjects">
+
               <div className="space-y-6">
-                {topics.map(topic => <div key={topic.name}>
+                {topics.map((topic) =>
+                <div key={topic.name}>
                     <div className="flex justify-between mb-2">
                       <span className="text-sm font-medium text-slate-700">
                         {topic.name}
@@ -109,8 +122,13 @@ export function DashboardPage() {
                         {topic.progress}%
                       </span>
                     </div>
-                    <Progress value={topic.progress} variant={topic.progress > 50 ? 'success' : 'default'} size="sm" />
-                  </div>)}
+                    <Progress
+                    value={topic.progress}
+                    variant={topic.progress > 50 ? 'success' : 'default'}
+                    size="sm" />
+
+                  </div>
+                )}
 
                 <button className="w-full mt-4 text-sm text-teal-600 font-medium hover:text-teal-700 flex items-center justify-center gap-1">
                   View all topics <BookOpen className="h-3 w-3" />
@@ -120,5 +138,6 @@ export function DashboardPage() {
           </div>
         </div>
       </div>
-    </AppLayout>;
+    </AppLayout>);
+
 }

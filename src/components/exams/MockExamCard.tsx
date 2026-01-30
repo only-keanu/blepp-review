@@ -19,14 +19,17 @@ export function MockExamCard({
   durationMinutes,
   bestScore
 }: MockExamCardProps) {
-  return <Card className="hover:border-teal-200 transition-colors">
+  return (
+    <Card className="hover:border-teal-200 transition-colors">
       <div className="flex justify-between items-start mb-4">
         <div className="bg-teal-50 p-3 rounded-lg">
           <Trophy className="h-6 w-6 text-teal-600" />
         </div>
-        {bestScore && <span className="text-xs font-medium bg-green-100 text-green-700 px-2 py-1 rounded-full">
+        {bestScore &&
+        <span className="text-xs font-medium bg-green-100 text-green-700 px-2 py-1 rounded-full">
             Best: {bestScore}%
-          </span>}
+          </span>
+        }
       </div>
 
       <h3 className="text-lg font-bold text-slate-900 mb-2">{title}</h3>
@@ -46,5 +49,6 @@ export function MockExamCard({
       <Link to={`/dashboard/exams/take/${id}`}>
         <Button className="w-full">Start Exam</Button>
       </Link>
-    </Card>;
+    </Card>);
+
 }

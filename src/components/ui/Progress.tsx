@@ -27,16 +27,29 @@ export function Progress({
     md: 'h-2.5',
     lg: 'h-4'
   };
-  return <div className={`w-full ${className}`}>
-      {showLabel && <div className="flex justify-between mb-1">
+  return (
+    <div className={`w-full ${className}`}>
+      {showLabel &&
+      <div className="flex justify-between mb-1">
           <span className="text-sm font-medium text-slate-700">
             {percentage.toFixed(0)}%
           </span>
-        </div>}
-      <div className={`w-full bg-slate-200 rounded-full overflow-hidden ${sizes[size]}`}>
-        <div className={`${variants[variant]} h-full rounded-full transition-all duration-500 ease-out`} style={{
-        width: `${percentage}%`
-      }} role="progressbar" aria-valuenow={value} aria-valuemin={0} aria-valuemax={max} />
+        </div>
+      }
+      <div
+        className={`w-full bg-slate-200 rounded-full overflow-hidden ${sizes[size]}`}>
+
+        <div
+          className={`${variants[variant]} h-full rounded-full transition-all duration-500 ease-out`}
+          style={{
+            width: `${percentage}%`
+          }}
+          role="progressbar"
+          aria-valuenow={value}
+          aria-valuemin={0}
+          aria-valuemax={max} />
+
       </div>
-    </div>;
+    </div>);
+
 }

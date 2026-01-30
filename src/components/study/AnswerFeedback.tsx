@@ -14,14 +14,23 @@ export function AnswerFeedback({
   onNext
 }: AnswerFeedbackProps) {
   const isCorrect = selectedAnswerIndex === question.correctAnswerIndex;
-  return <div className="w-full max-w-3xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <Card className={`border-l-4 ${isCorrect ? 'border-l-green-500' : 'border-l-red-500'}`}>
+  return (
+    <div className="w-full max-w-3xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <Card
+        className={`border-l-4 ${isCorrect ? 'border-l-green-500' : 'border-l-red-500'}`}>
+
         <div className="flex items-start gap-4">
           <div className="flex-shrink-0 mt-1">
-            {isCorrect ? <CheckCircle2 className="h-6 w-6 text-green-500" /> : <XCircle className="h-6 w-6 text-red-500" />}
+            {isCorrect ?
+            <CheckCircle2 className="h-6 w-6 text-green-500" /> :
+
+            <XCircle className="h-6 w-6 text-red-500" />
+            }
           </div>
           <div>
-            <h3 className={`text-lg font-bold ${isCorrect ? 'text-green-700' : 'text-red-700'}`}>
+            <h3
+              className={`text-lg font-bold ${isCorrect ? 'text-green-700' : 'text-red-700'}`}>
+
               {isCorrect ? 'Correct!' : 'Incorrect'}
             </h3>
             <p className="mt-1 text-slate-600">
@@ -60,5 +69,6 @@ export function AnswerFeedback({
           <DifficultySelector onSelect={onNext} />
         </div>
       </Card>
-    </div>;
+    </div>);
+
 }

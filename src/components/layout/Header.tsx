@@ -6,29 +6,32 @@ import { useNavigate } from 'react-router-dom';
 interface HeaderProps {
   onMenuClick: () => void;
 }
-export function Header({
-  onMenuClick
-}: HeaderProps) {
-  const {
-    user,
-    logout
-  } = useAuth();
+export function Header({ onMenuClick }: HeaderProps) {
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
   const handleLogout = () => {
     logout();
     navigate('/auth/login');
   };
-  return <header className="sticky top-0 z-30 h-16 bg-white border-b border-slate-200 shadow-sm">
+  return (
+    <header className="sticky top-0 z-30 h-16 bg-white border-b border-slate-200 shadow-sm">
       <div className="flex items-center justify-between h-full px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-4">
-          <button onClick={onMenuClick} className="p-2 text-slate-500 hover:bg-slate-100 rounded-md lg:hidden">
+          <button
+            onClick={onMenuClick}
+            className="p-2 text-slate-500 hover:bg-slate-100 rounded-md lg:hidden">
+
             <Menu className="h-6 w-6" />
           </button>
 
           {/* Search bar - hidden on mobile */}
           <div className="hidden md:flex items-center relative">
             <Search className="absolute left-3 h-4 w-4 text-slate-400" />
-            <input type="text" placeholder="Search topics or questions..." className="pl-9 pr-4 py-1.5 w-64 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent" />
+            <input
+              type="text"
+              placeholder="Search topics or questions..."
+              className="pl-9 pr-4 py-1.5 w-64 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent" />
+
           </div>
         </div>
 
@@ -49,7 +52,11 @@ export function Header({
             </div>
             <div className="relative group">
               <button className="flex items-center gap-2 focus:outline-none">
-                <img src={user?.avatarUrl} alt={user?.fullName} className="h-9 w-9 rounded-full border border-slate-200 bg-slate-100" />
+                <img
+                  src={user?.avatarUrl}
+                  alt={user?.fullName}
+                  className="h-9 w-9 rounded-full border border-slate-200 bg-slate-100" />
+
               </button>
 
               {/* Dropdown menu */}
@@ -60,7 +67,10 @@ export function Header({
                   </p>
                   <p className="text-xs text-slate-500">{user?.email}</p>
                 </div>
-                <button onClick={handleLogout} className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2">
+                <button
+                  onClick={handleLogout}
+                  className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2">
+
                   <LogOut className="h-4 w-4" />
                   Sign out
                 </button>
@@ -69,5 +79,6 @@ export function Header({
           </div>
         </div>
       </div>
-    </header>;
+    </header>);
+
 }

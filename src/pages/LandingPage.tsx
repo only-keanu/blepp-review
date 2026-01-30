@@ -1,9 +1,17 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
-import { BookOpen, Brain, Clock, BarChart3, CheckCircle2, Shield } from 'lucide-react';
+import {
+  BookOpen,
+  Brain,
+  Clock,
+  BarChart3,
+  CheckCircle2,
+  Shield } from
+'lucide-react';
 export function LandingPage() {
-  return <div className="min-h-screen bg-white">
+  return (
+    <div className="min-h-screen bg-white">
       {/* Navigation */}
       <nav className="bg-white border-b border-slate-100 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -17,7 +25,10 @@ export function LandingPage() {
               </span>
             </div>
             <div className="flex items-center gap-4">
-              <Link to="/auth/login" className="text-sm font-medium text-slate-600 hover:text-slate-900">
+              <Link
+                to="/auth/login"
+                className="text-sm font-medium text-slate-600 hover:text-slate-900">
+
                 Sign in
               </Link>
               <Link to="/auth/register">
@@ -60,7 +71,11 @@ export function LandingPage() {
                 </Button>
               </Link>
               <Link to="/auth/login">
-                <Button variant="outline" size="lg" className="w-full sm:w-auto px-8">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="w-full sm:w-auto px-8">
+
                   View Demo
                 </Button>
               </Link>
@@ -85,9 +100,21 @@ export function LandingPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <FeatureCard icon={<Brain className="h-6 w-6 text-teal-600" />} title="AI Question Generator" description="Upload your PDF reviewers and let our AI create board-style multiple choice questions instantly." />
-            <FeatureCard icon={<Clock className="h-6 w-6 text-teal-600" />} title="Spaced Repetition" description="Smart algorithms schedule reviews at the perfect time so you never forget what you've learned." />
-            <FeatureCard icon={<BarChart3 className="h-6 w-6 text-teal-600" />} title="Readiness Analytics" description="Track your performance by topic and know exactly when you're ready to take the board exam." />
+            <FeatureCard
+              icon={<Brain className="h-6 w-6 text-teal-600" />}
+              title="AI Question Generator"
+              description="Upload your PDF reviewers and let our AI create board-style multiple choice questions instantly." />
+
+            <FeatureCard
+              icon={<Clock className="h-6 w-6 text-teal-600" />}
+              title="Spaced Repetition"
+              description="Smart algorithms schedule reviews at the perfect time so you never forget what you've learned." />
+
+            <FeatureCard
+              icon={<BarChart3 className="h-6 w-6 text-teal-600" />}
+              title="Readiness Analytics"
+              description="Track your performance by topic and know exactly when you're ready to take the board exam." />
+
           </div>
         </div>
       </div>
@@ -101,10 +128,17 @@ export function LandingPage() {
                 Designed for the Philippine Psychology Licensure Exam
               </h2>
               <ul className="space-y-4">
-                {['Covers all 4 major board subjects', 'Updated with latest RA 10029 Ethics', 'Board-style question formatting', 'Mobile-friendly for studying on the go'].map((item, i) => <li key={i} className="flex items-center gap-3">
+                {[
+                'Covers all 4 major board subjects',
+                'Updated with latest RA 10029 Ethics',
+                'Board-style question formatting',
+                'Mobile-friendly for studying on the go'].
+                map((item, i) =>
+                <li key={i} className="flex items-center gap-3">
                     <CheckCircle2 className="h-5 w-5 text-green-500 flex-shrink-0" />
                     <span className="text-slate-700">{item}</span>
-                  </li>)}
+                  </li>
+                )}
               </ul>
             </div>
             <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
@@ -210,22 +244,25 @@ export function LandingPage() {
           </div>
         </div>
       </footer>
-    </div>;
+    </div>);
+
 }
 function FeatureCard({
   icon,
   title,
   description
-}: {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-}) {
-  return <div className="bg-slate-50 p-6 rounded-xl border border-slate-100 hover:border-teal-100 hover:shadow-md transition-all">
+
+
+
+
+}: {icon: React.ReactNode;title: string;description: string;}) {
+  return (
+    <div className="bg-slate-50 p-6 rounded-xl border border-slate-100 hover:border-teal-100 hover:shadow-md transition-all">
       <div className="bg-white w-12 h-12 rounded-lg flex items-center justify-center shadow-sm mb-4">
         {icon}
       </div>
       <h3 className="text-lg font-bold text-slate-900 mb-2">{title}</h3>
       <p className="text-slate-600">{description}</p>
-    </div>;
+    </div>);
+
 }

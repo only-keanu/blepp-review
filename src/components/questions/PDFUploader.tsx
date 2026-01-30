@@ -5,9 +5,7 @@ import { Progress } from '../ui/Progress';
 interface PDFUploaderProps {
   onUploadComplete: (file: File) => void;
 }
-export function PDFUploader({
-  onUploadComplete
-}: PDFUploaderProps) {
+export function PDFUploader({ onUploadComplete }: PDFUploaderProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -48,7 +46,7 @@ export function PDFUploader({
   const simulateUpload = (file: File) => {
     setUploadProgress(0);
     const interval = setInterval(() => {
-      setUploadProgress(prev => {
+      setUploadProgress((prev) => {
         if (prev >= 100) {
           clearInterval(interval);
           onUploadComplete(file);
@@ -64,13 +62,27 @@ export function PDFUploader({
     setError(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
-  return <div className="w-full">
-      {!file ? <div className={`
+  return (
+    <div className="w-full">
+      {!file ?
+      <div
+        className={`
             border-2 border-dashed rounded-xl p-8 text-center transition-colors cursor-pointer
             ${isDragging ? 'border-teal-500 bg-teal-50' : 'border-slate-300 hover:border-teal-400 hover:bg-slate-50'}
             ${error ? 'border-red-300 bg-red-50' : ''}
-          `} onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop} onClick={() => fileInputRef.current?.click()}>
-          <input type="file" ref={fileInputRef} className="hidden" accept=".pdf" onChange={handleFileSelect} />
+          `}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        onClick={() => fileInputRef.current?.click()}>
+
+          <input
+          type="file"
+          ref={fileInputRef}
+          className="hidden"
+          accept=".pdf"
+          onChange={handleFileSelect} />
+
           <div className="bg-slate-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4">
             <Upload className="h-6 w-6 text-slate-500" />
           </div>
@@ -80,11 +92,15 @@ export function PDFUploader({
           <p className="text-slate-500 mt-1 text-sm">
             PDF files only (max 10MB)
           </p>
-          {error && <div className="mt-4 flex items-center justify-center gap-2 text-red-600 text-sm">
+          {error &&
+        <div className="mt-4 flex items-center justify-center gap-2 text-red-600 text-sm">
               <AlertCircle className="h-4 w-4" />
               {error}
-            </div>}
-        </div> : <div className="bg-white border border-slate-200 rounded-xl p-6">
+            </div>
+        }
+        </div> :
+
+      <div className="bg-white border border-slate-200 rounded-xl p-6">
           <div className="flex items-start justify-between mb-4">
             <div className="flex items-center gap-3">
               <div className="bg-red-100 p-2 rounded-lg">
@@ -97,7 +113,10 @@ export function PDFUploader({
                 </p>
               </div>
             </div>
-            <button onClick={clearFile} className="text-slate-400 hover:text-slate-600">
+            <button
+            onClick={clearFile}
+            className="text-slate-400 hover:text-slate-600">
+
               <X className="h-5 w-5" />
             </button>
           </div>
@@ -112,10 +131,14 @@ export function PDFUploader({
             <Progress value={uploadProgress} size="sm" variant="success" />
           </div>
 
-          {uploadProgress === 100 && <div className="mt-4 flex items-center gap-2 text-sm text-green-600 bg-green-50 p-3 rounded-lg">
+          {uploadProgress === 100 &&
+        <div className="mt-4 flex items-center gap-2 text-sm text-green-600 bg-green-50 p-3 rounded-lg">
               <CheckCircle2 className="h-4 w-4" />
               Ready for question generation
-            </div>}
-        </div>}
-    </div>;
+            </div>
+        }
+        </div>
+      }
+    </div>);
+
 }

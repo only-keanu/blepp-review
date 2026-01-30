@@ -16,10 +16,14 @@ export function GeneratePage() {
     alert(`Saved ${questions.length} questions to your bank!`);
     navigate('/dashboard/questions/bank');
   };
-  return <AppLayout>
+  return (
+    <AppLayout>
       <div className="max-w-3xl mx-auto space-y-8">
         <div className="flex items-center gap-4">
-          <Link to="/dashboard/questions/bank" className="p-2 hover:bg-slate-100 rounded-full text-slate-500">
+          <Link
+            to="/dashboard/questions/bank"
+            className="p-2 hover:bg-slate-100 rounded-full text-slate-500">
+
             <ArrowLeft className="h-5 w-5" />
           </Link>
           <div>
@@ -32,7 +36,8 @@ export function GeneratePage() {
           </div>
         </div>
 
-        {!file ? <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8">
+        {!file ?
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8">
             <h2 className="text-lg font-semibold text-slate-900 mb-6">
               1. Upload PDF Reviewer
             </h2>
@@ -44,17 +49,24 @@ export function GeneratePage() {
                 original text. Your materials remain private.
               </p>
             </div>
-          </div> : <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8 animate-in fade-in slide-in-from-bottom-4">
+          </div> :
+
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8 animate-in fade-in slide-in-from-bottom-4">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-lg font-semibold text-slate-900">
                 2. AI Generation
               </h2>
-              <button onClick={() => setFile(null)} className="text-sm text-slate-500 hover:text-slate-900 underline">
+              <button
+              onClick={() => setFile(null)}
+              className="text-sm text-slate-500 hover:text-slate-900 underline">
+
                 Change File
               </button>
             </div>
             <QuestionGenerator file={file} onSave={handleSaveQuestions} />
-          </div>}
+          </div>
+        }
       </div>
-    </AppLayout>;
+    </AppLayout>);
+
 }

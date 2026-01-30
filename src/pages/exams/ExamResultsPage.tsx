@@ -10,28 +10,37 @@ export function ExamResultsPage() {
     totalQuestions: 20,
     correctCount: 15,
     timeTaken: '32:45',
-    topicScores: [{
+    topicScores: [
+    {
       name: 'General Psychology',
       score: 4,
       total: 5
-    }, {
+    },
+    {
       name: 'Abnormal Psychology',
       score: 3,
       total: 5
-    }, {
+    },
+    {
       name: 'Psychological Assessment',
       score: 3,
       total: 5
-    }, {
+    },
+    {
       name: 'Industrial/Org Psych',
       score: 5,
       total: 5
     }]
+
   };
-  return <AppLayout>
+  return (
+    <AppLayout>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <Link to="/dashboard/exams" className="text-slate-500 hover:text-slate-900 flex items-center gap-2">
+          <Link
+            to="/dashboard/exams"
+            className="text-slate-500 hover:text-slate-900 flex items-center gap-2">
+
             <ArrowLeft className="h-4 w-4" />
             Back to Exams
           </Link>
@@ -57,5 +66,6 @@ export function ExamResultsPage() {
           </Link>
         </div>
       </div>
-    </AppLayout>;
+    </AppLayout>);
+
 }

@@ -5,10 +5,9 @@ import { Clock, RefreshCw, ArrowRight } from 'lucide-react';
 interface DueQuestionsWidgetProps {
   count: number;
 }
-export function DueQuestionsWidget({
-  count
-}: DueQuestionsWidgetProps) {
-  return <Card className="bg-gradient-to-br from-slate-900 to-slate-800 text-white border-none">
+export function DueQuestionsWidget({ count }: DueQuestionsWidgetProps) {
+  return (
+    <Card className="bg-gradient-to-br from-slate-900 to-slate-800 text-white border-none">
       <div className="flex flex-col h-full justify-between">
         <div className="flex justify-between items-start">
           <div className="bg-white/10 p-2 rounded-lg backdrop-blur-sm">
@@ -34,10 +33,15 @@ export function DueQuestionsWidget({
         </div>
 
         <div className="mt-6">
-          <Button variant="primary" className="w-full bg-teal-500 hover:bg-teal-400 text-white border-none" rightIcon={<ArrowRight className="h-4 w-4" />}>
+          <Button
+            variant="primary"
+            className="w-full bg-teal-500 hover:bg-teal-400 text-white border-none"
+            rightIcon={<ArrowRight className="h-4 w-4" />}>
+
             Review Now
           </Button>
         </div>
       </div>
-    </Card>;
+    </Card>);
+
 }

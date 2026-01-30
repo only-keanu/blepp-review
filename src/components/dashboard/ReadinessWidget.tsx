@@ -4,9 +4,7 @@ import { TrendingUp, AlertCircle } from 'lucide-react';
 interface ReadinessWidgetProps {
   score: number;
 }
-export function ReadinessWidget({
-  score
-}: ReadinessWidgetProps) {
+export function ReadinessWidget({ score }: ReadinessWidgetProps) {
   // Determine color based on score
   let colorClass = 'text-red-500';
   let strokeClass = 'stroke-red-500';
@@ -30,7 +28,8 @@ export function ReadinessWidget({
   }
   const circumference = 2 * Math.PI * 40; // radius 40
   const strokeDashoffset = circumference - score / 100 * circumference;
-  return <Card className="h-full flex flex-col justify-between">
+  return (
+    <Card className="h-full flex flex-col justify-between">
       <div className="flex justify-between items-start mb-4">
         <div>
           <h3 className="text-lg font-semibold text-slate-900">
@@ -47,13 +46,34 @@ export function ReadinessWidget({
         <div className="relative h-40 w-40">
           {/* Background circle */}
           <svg className="h-full w-full transform -rotate-90">
-            <circle cx="80" cy="80" r="40" stroke="currentColor" strokeWidth="10" fill="transparent" className="text-slate-100" />
+            <circle
+              cx="80"
+              cy="80"
+              r="40"
+              stroke="currentColor"
+              strokeWidth="10"
+              fill="transparent"
+              className="text-slate-100" />
+
             {/* Progress circle */}
-            <circle cx="80" cy="80" r="40" stroke="currentColor" strokeWidth="10" fill="transparent" strokeDasharray={circumference} strokeDashoffset={strokeDashoffset} strokeLinecap="round" className={`${strokeClass} transition-all duration-1000 ease-out`} />
+            <circle
+              cx="80"
+              cy="80"
+              r="40"
+              stroke="currentColor"
+              strokeWidth="10"
+              fill="transparent"
+              strokeDasharray={circumference}
+              strokeDashoffset={strokeDashoffset}
+              strokeLinecap="round"
+              className={`${strokeClass} transition-all duration-1000 ease-out`} />
+
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
             <span className={`text-4xl font-bold ${colorClass}`}>{score}%</span>
-            <span className={`text-xs font-medium px-2 py-0.5 rounded-full mt-1 ${bgClass} ${colorClass}`}>
+            <span
+              className={`text-xs font-medium px-2 py-0.5 rounded-full mt-1 ${bgClass} ${colorClass}`}>
+
               {status}
             </span>
           </div>
@@ -69,5 +89,6 @@ export function ReadinessWidget({
           </p>
         </div>
       </div>
-    </Card>;
+    </Card>);
+
 }

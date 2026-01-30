@@ -23,7 +23,11 @@ export function Badge({
     sm: 'px-2 py-0.5 text-xs',
     md: 'px-2.5 py-0.5 text-sm'
   };
-  return <span className={`inline-flex items-center font-medium rounded-full ${variants[variant]} ${sizes[size]} ${className}`}>
+  return (
+    <span
+      className={`inline-flex items-center font-medium rounded-full ${variants[variant]} ${sizes[size]} ${className}`}>
+
       {children}
-    </span>;
+    </span>);
+
 }

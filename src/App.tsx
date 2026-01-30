@@ -1,5 +1,10 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate } from
+'react-router-dom';
 import { LandingPage } from './pages/LandingPage';
 import { LoginPage } from './pages/auth/LoginPage';
 import { RegisterPage } from './pages/auth/RegisterPage';
@@ -10,6 +15,7 @@ import { TopicsPage } from './pages/study/TopicsPage';
 import { PracticePage } from './pages/study/PracticePage';
 import { FlashcardsPage } from './pages/study/FlashcardsPage';
 import { MistakesPage } from './pages/study/MistakesPage';
+import { ManageFlashcardsPage } from './pages/study/ManageFlashcardsPage';
 // Question Pages
 import { GeneratePage } from './pages/questions/GeneratePage';
 import { BankPage } from './pages/questions/BankPage';
@@ -24,19 +30,14 @@ import { ReadinessPage } from './pages/progress/ReadinessPage';
 import { ProfilePage } from './pages/settings/ProfilePage';
 import { TopicsSettingsPage } from './pages/settings/TopicsPage';
 // Protected Route Wrapper
-function ProtectedRoute({
-  children
-}: {
-  children: React.ReactNode;
-}) {
-  const {
-    user,
-    isLoading
-  } = useAuth();
+function ProtectedRoute({ children }: {children: React.ReactNode;}) {
+  const { user, isLoading } = useAuth();
   if (isLoading) {
-    return <div className="min-h-screen flex items-center justify-center bg-slate-50">
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600"></div>
-      </div>;
+      </div>);
+
   }
   if (!user) {
     return <Navigate to="/auth/login" replace />;
@@ -44,19 +45,14 @@ function ProtectedRoute({
   return <>{children}</>;
 }
 // Public Route Wrapper (redirects to dashboard if already logged in)
-function PublicRoute({
-  children
-}: {
-  children: React.ReactNode;
-}) {
-  const {
-    user,
-    isLoading
-  } = useAuth();
+function PublicRoute({ children }: {children: React.ReactNode;}) {
+  const { user, isLoading } = useAuth();
   if (isLoading) {
-    return <div className="min-h-screen flex items-center justify-center bg-slate-50">
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600"></div>
-      </div>;
+      </div>);
+
   }
   if (user) {
     return <Navigate to="/dashboard" replace />;
@@ -64,79 +60,183 @@ function PublicRoute({
   return <>{children}</>;
 }
 export function App() {
-  return <Router>
+  return (
+    <Router>
       <Routes>
         <Route path="/" element={<LandingPage />} />
 
-        <Route path="/auth/login" element={<PublicRoute>
+        <Route
+          path="/auth/login"
+          element={
+          <PublicRoute>
               <LoginPage />
-            </PublicRoute>} />
+            </PublicRoute>
+          } />
 
-        <Route path="/auth/register" element={<PublicRoute>
+
+        <Route
+          path="/auth/register"
+          element={
+          <PublicRoute>
               <RegisterPage />
-            </PublicRoute>} />
+            </PublicRoute>
+          } />
+
 
         {/* Dashboard & Protected Routes */}
-        <Route path="/dashboard" element={<ProtectedRoute>
+        <Route
+          path="/dashboard"
+          element={
+          <ProtectedRoute>
               <DashboardPage />
-            </ProtectedRoute>} />
+            </ProtectedRoute>
+          } />
+
 
         {/* Study Routes */}
-        <Route path="/dashboard/study" element={<Navigate to="/dashboard/study/topics" replace />} />
-        <Route path="/dashboard/study/topics" element={<ProtectedRoute>
+        <Route
+          path="/dashboard/study"
+          element={<Navigate to="/dashboard/study/topics" replace />} />
+
+        <Route
+          path="/dashboard/study/topics"
+          element={
+          <ProtectedRoute>
               <TopicsPage />
-            </ProtectedRoute>} />
-        <Route path="/dashboard/study/practice" element={<ProtectedRoute>
+            </ProtectedRoute>
+          } />
+
+        <Route
+          path="/dashboard/study/practice"
+          element={
+          <ProtectedRoute>
               <PracticePage />
-            </ProtectedRoute>} />
-        <Route path="/dashboard/study/flashcards" element={<ProtectedRoute>
+            </ProtectedRoute>
+          } />
+
+        <Route
+          path="/dashboard/study/flashcards"
+          element={
+          <ProtectedRoute>
               <FlashcardsPage />
-            </ProtectedRoute>} />
-        <Route path="/dashboard/study/mistakes" element={<ProtectedRoute>
+            </ProtectedRoute>
+          } />
+
+        <Route
+          path="/dashboard/study/mistakes"
+          element={
+          <ProtectedRoute>
               <MistakesPage />
-            </ProtectedRoute>} />
+            </ProtectedRoute>
+          } />
+
+
+        {/* Flashcards Management Route */}
+        <Route
+          path="/dashboard/flashcards"
+          element={
+          <ProtectedRoute>
+              <ManageFlashcardsPage />
+            </ProtectedRoute>
+          } />
+
 
         {/* Question Routes */}
-        <Route path="/dashboard/questions" element={<Navigate to="/dashboard/questions/bank" replace />} />
-        <Route path="/dashboard/questions/generate" element={<ProtectedRoute>
+        <Route
+          path="/dashboard/questions"
+          element={<Navigate to="/dashboard/questions/bank" replace />} />
+
+        <Route
+          path="/dashboard/questions/generate"
+          element={
+          <ProtectedRoute>
               <GeneratePage />
-            </ProtectedRoute>} />
-        <Route path="/dashboard/questions/bank" element={<ProtectedRoute>
+            </ProtectedRoute>
+          } />
+
+        <Route
+          path="/dashboard/questions/bank"
+          element={
+          <ProtectedRoute>
               <BankPage />
-            </ProtectedRoute>} />
+            </ProtectedRoute>
+          } />
+
 
         {/* Exam Routes */}
-        <Route path="/dashboard/exams" element={<Navigate to="/dashboard/exams/list" replace />} />
-        <Route path="/dashboard/exams/list" element={<ProtectedRoute>
+        <Route
+          path="/dashboard/exams"
+          element={<Navigate to="/dashboard/exams/list" replace />} />
+
+        <Route
+          path="/dashboard/exams/list"
+          element={
+          <ProtectedRoute>
               <MockExamsPage />
-            </ProtectedRoute>} />
-        <Route path="/dashboard/exams/take/:id" element={<ProtectedRoute>
+            </ProtectedRoute>
+          } />
+
+        <Route
+          path="/dashboard/exams/take/:id"
+          element={
+          <ProtectedRoute>
               <TakeExamPage />
-            </ProtectedRoute>} />
-        <Route path="/dashboard/exams/results/:id" element={<ProtectedRoute>
+            </ProtectedRoute>
+          } />
+
+        <Route
+          path="/dashboard/exams/results/:id"
+          element={
+          <ProtectedRoute>
               <ExamResultsPage />
-            </ProtectedRoute>} />
+            </ProtectedRoute>
+          } />
+
         {/* Redirect old /mocks path if needed */}
-        <Route path="/dashboard/mocks" element={<Navigate to="/dashboard/exams/list" replace />} />
+        <Route
+          path="/dashboard/mocks"
+          element={<Navigate to="/dashboard/exams/list" replace />} />
+
 
         {/* Progress Routes */}
-        <Route path="/dashboard/progress" element={<ProtectedRoute>
+        <Route
+          path="/dashboard/progress"
+          element={
+          <ProtectedRoute>
               <AnalyticsPage />
-            </ProtectedRoute>} />
-        <Route path="/dashboard/progress/readiness" element={<ProtectedRoute>
+            </ProtectedRoute>
+          } />
+
+        <Route
+          path="/dashboard/progress/readiness"
+          element={
+          <ProtectedRoute>
               <ReadinessPage />
-            </ProtectedRoute>} />
+            </ProtectedRoute>
+          } />
+
 
         {/* Settings Routes */}
-        <Route path="/dashboard/settings" element={<ProtectedRoute>
+        <Route
+          path="/dashboard/settings"
+          element={
+          <ProtectedRoute>
               <ProfilePage />
-            </ProtectedRoute>} />
-        <Route path="/dashboard/settings/topics" element={<ProtectedRoute>
+            </ProtectedRoute>
+          } />
+
+        <Route
+          path="/dashboard/settings/topics"
+          element={
+          <ProtectedRoute>
               <TopicsSettingsPage />
-            </ProtectedRoute>} />
+            </ProtectedRoute>
+          } />
+
 
         {/* Catch all redirect */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </Router>;
+    </Router>);
+
 }

@@ -9,10 +9,7 @@ export function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const {
-    login,
-    isLoading
-  } = useAuth();
+  const { login, isLoading } = useAuth();
   const navigate = useNavigate();
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,30 +25,65 @@ export function LoginPage() {
       setError('Failed to sign in. Please try again.');
     }
   };
-  return <AuthLayout title="Sign in to your account" subtitle="Welcome back, future Psychologist!">
+  return (
+    <AuthLayout
+      title="Sign in to your account"
+      subtitle="Welcome back, future Psychologist!">
+
       <form className="space-y-6" onSubmit={handleSubmit}>
-        <Input label="Email address" type="email" autoComplete="email" required value={email} onChange={e => setEmail(e.target.value)} icon={<Mail className="h-5 w-5" />} placeholder="you@example.com" />
+        <Input
+          label="Email address"
+          type="email"
+          autoComplete="email"
+          required
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          icon={<Mail className="h-5 w-5" />}
+          placeholder="you@example.com" />
 
-        <Input label="Password" type="password" autoComplete="current-password" required value={password} onChange={e => setPassword(e.target.value)} icon={<Lock className="h-5 w-5" />} placeholder="••••••••" />
 
-        {error && <div className="rounded-md bg-red-50 p-4">
+        <Input
+          label="Password"
+          type="password"
+          autoComplete="current-password"
+          required
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          icon={<Lock className="h-5 w-5" />}
+          placeholder="••••••••" />
+
+
+        {error &&
+        <div className="rounded-md bg-red-50 p-4">
             <div className="flex">
               <div className="ml-3">
                 <h3 className="text-sm font-medium text-red-800">{error}</h3>
               </div>
             </div>
-          </div>}
+          </div>
+        }
 
         <div className="flex items-center justify-between">
           <div className="flex items-center">
-            <input id="remember-me" name="remember-me" type="checkbox" className="h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500" />
-            <label htmlFor="remember-me" className="ml-2 block text-sm text-slate-900">
+            <input
+              id="remember-me"
+              name="remember-me"
+              type="checkbox"
+              className="h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500" />
+
+            <label
+              htmlFor="remember-me"
+              className="ml-2 block text-sm text-slate-900">
+
               Remember me
             </label>
           </div>
 
           <div className="text-sm">
-            <a href="#" className="font-medium text-teal-600 hover:text-teal-500">
+            <a
+              href="#"
+              className="font-medium text-teal-600 hover:text-teal-500">
+
               Forgot your password?
             </a>
           </div>
@@ -82,5 +114,6 @@ export function LoginPage() {
           </div>
         </div>
       </form>
-    </AuthLayout>;
+    </AuthLayout>);
+
 }

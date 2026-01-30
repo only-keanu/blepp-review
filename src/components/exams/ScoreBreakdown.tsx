@@ -20,13 +20,31 @@ export function ScoreBreakdown({
   timeTaken,
   topicScores
 }: ScoreBreakdownProps) {
-  return <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       {/* Main Score */}
       <Card className="md:col-span-1 flex flex-col items-center justify-center text-center py-8">
         <div className="relative h-40 w-40 mb-4">
           <svg className="h-full w-full transform -rotate-90">
-            <circle cx="80" cy="80" r="70" stroke="#e2e8f0" strokeWidth="12" fill="transparent" />
-            <circle cx="80" cy="80" r="70" stroke="#0d9488" strokeWidth="12" fill="transparent" strokeDasharray={440} strokeDashoffset={440 - 440 * score / 100} strokeLinecap="round" />
+            <circle
+              cx="80"
+              cy="80"
+              r="70"
+              stroke="#e2e8f0"
+              strokeWidth="12"
+              fill="transparent" />
+
+            <circle
+              cx="80"
+              cy="80"
+              r="70"
+              stroke="#0d9488"
+              strokeWidth="12"
+              fill="transparent"
+              strokeDasharray={440}
+              strokeDashoffset={440 - 440 * score / 100}
+              strokeLinecap="round" />
+
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
             <span className="text-4xl font-bold text-slate-900">{score}%</span>
@@ -54,9 +72,10 @@ export function ScoreBreakdown({
       {/* Topic Breakdown */}
       <Card className="md:col-span-2" title="Performance by Topic">
         <div className="space-y-6">
-          {topicScores.map(topic => {
-          const percentage = Math.round(topic.score / topic.total * 100);
-          return <div key={topic.name}>
+          {topicScores.map((topic) => {
+            const percentage = Math.round(topic.score / topic.total * 100);
+            return (
+              <div key={topic.name}>
                 <div className="flex justify-between mb-2">
                   <span className="text-sm font-medium text-slate-700">
                     {topic.name}
@@ -65,10 +84,21 @@ export function ScoreBreakdown({
                     {topic.score}/{topic.total} ({percentage}%)
                   </span>
                 </div>
-                <Progress value={percentage} variant={percentage >= 75 ? 'success' : percentage >= 50 ? 'warning' : 'danger'} />
-              </div>;
-        })}
+                <Progress
+                  value={percentage}
+                  variant={
+                  percentage >= 75 ?
+                  'success' :
+                  percentage >= 50 ?
+                  'warning' :
+                  'danger'
+                  } />
+
+              </div>);
+
+          })}
         </div>
       </Card>
-    </div>;
+    </div>);
+
 }

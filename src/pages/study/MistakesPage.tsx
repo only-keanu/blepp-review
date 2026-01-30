@@ -4,21 +4,25 @@ import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
 import { AlertCircle, ArrowRight, Filter } from 'lucide-react';
-const MISTAKES = [{
+const MISTAKES = [
+{
   id: '1',
-  question: 'Which neurotransmitter is primarily associated with the regulation of mood and sleep?',
+  question:
+  'Which neurotransmitter is primarily associated with the regulation of mood and sleep?',
   userAnswer: 'Dopamine',
   correctAnswer: 'Serotonin',
   topic: 'Physiological Psych',
   date: '2 days ago'
-}, {
+},
+{
   id: '2',
   question: 'In classical conditioning, the bell starts as a(n):',
   userAnswer: 'Conditioned Stimulus',
   correctAnswer: 'Neutral Stimulus',
   topic: 'Learning',
   date: '3 days ago'
-}, {
+},
+{
   id: '3',
   question: 'Who proposed the Hierarchy of Needs?',
   userAnswer: 'Rogers',
@@ -26,8 +30,10 @@ const MISTAKES = [{
   topic: 'Theories of Personality',
   date: '5 days ago'
 }];
+
 export function MistakesPage() {
-  return <AppLayout>
+  return (
+    <AppLayout>
       <div className="space-y-6">
         <div className="flex justify-between items-end">
           <div>
@@ -42,7 +48,11 @@ export function MistakesPage() {
         </div>
 
         <div className="grid gap-4">
-          {MISTAKES.map(mistake => <Card key={mistake.id} className="hover:border-teal-200 transition-colors">
+          {MISTAKES.map((mistake) =>
+          <Card
+            key={mistake.id}
+            className="hover:border-teal-200 transition-colors">
+
               <div className="flex items-start gap-4">
                 <div className="p-2 bg-red-100 rounded-full flex-shrink-0">
                   <AlertCircle className="h-5 w-5 text-red-600" />
@@ -79,13 +89,19 @@ export function MistakesPage() {
                   </div>
                 </div>
                 <div className="self-center">
-                  <Button size="sm" variant="ghost" rightIcon={<ArrowRight className="h-4 w-4" />}>
+                  <Button
+                  size="sm"
+                  variant="ghost"
+                  rightIcon={<ArrowRight className="h-4 w-4" />}>
+
                     Review
                   </Button>
                 </div>
               </div>
-            </Card>)}
+            </Card>
+          )}
         </div>
       </div>
-    </AppLayout>;
+    </AppLayout>);
+
 }

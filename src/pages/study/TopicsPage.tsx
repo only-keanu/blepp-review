@@ -3,9 +3,17 @@ import { AppLayout } from '../../components/layout/AppLayout';
 import { Card } from '../../components/ui/Card';
 import { Progress } from '../../components/ui/Progress';
 import { Button } from '../../components/ui/Button';
-import { ArrowRight, BookOpen, Brain, Activity, Users, Scale } from 'lucide-react';
+import {
+  ArrowRight,
+  BookOpen,
+  Brain,
+  Activity,
+  Users,
+  Scale } from
+'lucide-react';
 import { Link } from 'react-router-dom';
-const TOPICS = [{
+const TOPICS = [
+{
   id: '1',
   name: 'General Psychology',
   slug: 'general',
@@ -13,7 +21,8 @@ const TOPICS = [{
   color: 'blue',
   icon: Brain,
   questions: 120
-}, {
+},
+{
   id: '2',
   name: 'Abnormal Psychology',
   slug: 'abnormal',
@@ -21,7 +30,8 @@ const TOPICS = [{
   color: 'purple',
   icon: Activity,
   questions: 85
-}, {
+},
+{
   id: '3',
   name: 'Psychological Assessment',
   slug: 'assessment',
@@ -29,7 +39,8 @@ const TOPICS = [{
   color: 'amber',
   icon: Scale,
   questions: 90
-}, {
+},
+{
   id: '4',
   name: 'Industrial/Org Psychology',
   slug: 'industrial',
@@ -37,7 +48,8 @@ const TOPICS = [{
   color: 'green',
   icon: Users,
   questions: 110
-}, {
+},
+{
   id: '5',
   name: 'Ethics (RA 10029)',
   slug: 'ethics',
@@ -46,8 +58,10 @@ const TOPICS = [{
   icon: BookOpen,
   questions: 45
 }];
+
 export function TopicsPage() {
-  return <AppLayout>
+  return (
+    <AppLayout>
       <div className="space-y-6">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Study Topics</h1>
@@ -57,9 +71,15 @@ export function TopicsPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {TOPICS.map(topic => <Card key={topic.id} className="hover:shadow-md transition-shadow cursor-pointer group">
+          {TOPICS.map((topic) =>
+          <Card
+            key={topic.id}
+            className="hover:shadow-md transition-shadow cursor-pointer group">
+
               <div className="flex items-start justify-between mb-4">
-                <div className={`p-3 rounded-lg bg-${topic.color}-100 text-${topic.color}-600`}>
+                <div
+                className={`p-3 rounded-lg bg-${topic.color}-100 text-${topic.color}-600`}>
+
                   <topic.icon className="h-6 w-6" />
                 </div>
                 <span className="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-1 rounded-full">
@@ -93,8 +113,10 @@ export function TopicsPage() {
                   </Button>
                 </Link>
               </div>
-            </Card>)}
+            </Card>
+          )}
         </div>
       </div>
-    </AppLayout>;
+    </AppLayout>);
+
 }

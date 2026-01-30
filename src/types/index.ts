@@ -6,12 +6,14 @@ export interface User {
   dailyStudyHours: number;
   avatarUrl?: string;
 }
+
 export interface Topic {
   id: string;
   name: string;
   slug: string;
   color: 'blue' | 'green' | 'amber' | 'red' | 'purple' | 'gray';
 }
+
 export interface Question {
   id: string;
   text: string;
@@ -20,9 +22,23 @@ export interface Question {
   explanation: string;
   topicId: string;
   difficulty: 'easy' | 'medium' | 'hard' | 'difficult';
-  source: 'pdf' | 'ai';
+  source: 'pdf' | 'ai' | 'manual';
   tags: string[];
+  category?: string;
+  createdAt?: string;
 }
+
+export interface Flashcard {
+  id: string;
+  front: string;
+  back: string;
+  topic: string;
+  category?: string;
+  confidence?: 'low' | 'medium' | 'high';
+  nextReview?: string;
+  createdAt?: string;
+}
+
 export interface AnswerAttempt {
   id: string;
   userId: string;
@@ -32,6 +48,7 @@ export interface AnswerAttempt {
   timestamp: string;
   timeTakenSeconds: number;
 }
+
 export interface MockExam {
   id: string;
   title: string;
@@ -41,6 +58,7 @@ export interface MockExam {
   score?: number;
   dateTaken?: string;
 }
+
 export interface StudyPlanItem {
   id: string;
   topicId: string;
@@ -49,6 +67,7 @@ export interface StudyPlanItem {
   count: number;
   completed: boolean;
 }
+
 export interface StudyPlan {
   id: string;
   date: string;

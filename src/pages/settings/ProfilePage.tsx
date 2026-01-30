@@ -5,9 +5,7 @@ import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
 import { useAuth } from '../../hooks/useAuth';
 export function ProfilePage() {
-  const {
-    user
-  } = useAuth();
+  const { user } = useAuth();
   const [formData, setFormData] = useState({
     fullName: user?.fullName || '',
     email: user?.email || '',
@@ -15,7 +13,7 @@ export function ProfilePage() {
     dailyStudyHours: user?.dailyStudyHours || 2
   });
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [e.target.name]: e.target.value
     }));
@@ -24,17 +22,45 @@ export function ProfilePage() {
     e.preventDefault();
     alert('Profile updated successfully!');
   };
-  return <AppLayout>
+  return (
+    <AppLayout>
       <div className="max-w-2xl mx-auto space-y-6">
         <h1 className="text-2xl font-bold text-slate-900">Profile Settings</h1>
 
         <Card title="Personal Information">
           <form onSubmit={handleSubmit} className="space-y-4">
-            <Input label="Full Name" name="fullName" value={formData.fullName} onChange={handleChange} />
-            <Input label="Email Address" name="email" type="email" value={formData.email} onChange={handleChange} disabled helperText="Contact support to change email" />
+            <Input
+              label="Full Name"
+              name="fullName"
+              value={formData.fullName}
+              onChange={handleChange} />
+
+            <Input
+              label="Email Address"
+              name="email"
+              type="email"
+              value={formData.email}
+              onChange={handleChange}
+              disabled
+              helperText="Contact support to change email" />
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Input label="Target Exam Date" name="targetExamDate" type="date" value={formData.targetExamDate} onChange={handleChange} />
-              <Input label="Daily Study Goal (Hours)" name="dailyStudyHours" type="number" min="1" max="12" value={formData.dailyStudyHours} onChange={handleChange} />
+              <Input
+                label="Target Exam Date"
+                name="targetExamDate"
+                type="date"
+                value={formData.targetExamDate}
+                onChange={handleChange} />
+
+              <Input
+                label="Daily Study Goal (Hours)"
+                name="dailyStudyHours"
+                type="number"
+                min="1"
+                max="12"
+                value={formData.dailyStudyHours}
+                onChange={handleChange} />
+
             </div>
             <div className="pt-4 flex justify-end">
               <Button type="submit">Save Changes</Button>
@@ -55,5 +81,6 @@ export function ProfilePage() {
           </div>
         </Card>
       </div>
-    </AppLayout>;
+    </AppLayout>);
+
 }
