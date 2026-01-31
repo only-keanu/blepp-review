@@ -32,10 +32,10 @@ export function ReadinessWidget({ score }: ReadinessWidgetProps) {
     <Card className="h-full flex flex-col justify-between">
       <div className="flex justify-between items-start mb-4">
         <div>
-          <h3 className="text-lg font-semibold text-slate-900">
+          <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
             Readiness Score
           </h3>
-          <p className="text-sm text-slate-500">Predicted performance</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400">Predicted performance</p>
         </div>
         <div className={`p-2 rounded-lg ${bgClass}`}>
           <TrendingUp className={`h-5 w-5 ${colorClass}`} />
@@ -53,7 +53,7 @@ export function ReadinessWidget({ score }: ReadinessWidgetProps) {
               stroke="currentColor"
               strokeWidth="10"
               fill="transparent"
-              className="text-slate-100" />
+              className="text-slate-100 dark:text-slate-800" />
 
             {/* Progress circle */}
             <circle
@@ -80,10 +80,10 @@ export function ReadinessWidget({ score }: ReadinessWidgetProps) {
         </div>
       </div>
 
-      <div className="mt-4 pt-4 border-t border-slate-100">
+      <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
         <div className="flex items-start gap-2">
-          <AlertCircle className="h-4 w-4 text-slate-400 mt-0.5 flex-shrink-0" />
-          <p className="text-xs text-slate-500">
+          <AlertCircle className="h-4 w-4 text-slate-400 dark:text-slate-500 mt-0.5 flex-shrink-0" />
+          <p className="text-xs text-slate-500 dark:text-slate-400">
             Based on your accuracy, consistency, and topic coverage. Not
             affiliated with PRC.
           </p>

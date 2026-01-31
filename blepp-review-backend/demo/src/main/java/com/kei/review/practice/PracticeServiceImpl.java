@@ -7,6 +7,8 @@ import com.kei.review.questions.Question;
 import com.kei.review.questions.QuestionRepository;
 import com.kei.review.topics.Topic;
 import com.kei.review.topics.TopicRepository;
+import com.kei.review.topics.UserTopic;
+import com.kei.review.topics.UserTopicRepository;
 import com.kei.review.users.User;
 import com.kei.review.users.UserRepository;
 import java.time.Instant;
@@ -19,6 +21,7 @@ public class PracticeServiceImpl implements PracticeService {
     private final PracticeSessionRepository practiceSessionRepository;
     private final AnswerAttemptRepository answerAttemptRepository;
     private final TopicRepository topicRepository;
+    private final UserTopicRepository userTopicRepository;
     private final UserRepository userRepository;
     private final QuestionRepository questionRepository;
 
@@ -26,12 +29,14 @@ public class PracticeServiceImpl implements PracticeService {
         PracticeSessionRepository practiceSessionRepository,
         AnswerAttemptRepository answerAttemptRepository,
         TopicRepository topicRepository,
+        UserTopicRepository userTopicRepository,
         UserRepository userRepository,
         QuestionRepository questionRepository
     ) {
         this.practiceSessionRepository = practiceSessionRepository;
         this.answerAttemptRepository = answerAttemptRepository;
         this.topicRepository = topicRepository;
+        this.userTopicRepository = userTopicRepository;
         this.userRepository = userRepository;
         this.questionRepository = questionRepository;
     }
@@ -92,6 +97,22 @@ public class PracticeServiceImpl implements PracticeService {
             .build();
 
         answerAttemptRepository.save(attempt);
+
+        Topic topic = question.getTopic();
+        UserTopic userTopic = userTopicRepository.findByUserIdAndTopicId(userId, topic.getId())
+            .orElseGet(() -> UserTopic.builder()
+                .user(user)
+                .topic(topic)
+                .weak(false)
+                .masteryPct(0)
+                .build()
+            );
+
+        long totalAttempts = answerAttemptRepository.countByUserIdAndQuestionTopicId(userId, topic.getId());
+        long correctAttempts = answerAttemptRepository.countByUserIdAndQuestionTopicIdAndCorrectTrue(userId, topic.getId());
+        int masteryPct = totalAttempts == 0 ? 0 : (int) Math.round((correctAttempts * 100.0) / totalAttempts);
+        userTopic.setMasteryPct(masteryPct);
+        userTopicRepository.save(userTopic);
     }
 
     @Override

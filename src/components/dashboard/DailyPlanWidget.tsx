@@ -9,6 +9,7 @@ interface PlanItem {
   count: number;
   type: 'questions' | 'flashcards';
   completed: boolean;
+  mastery?: number;
 }
 interface DailyPlanWidgetProps {
   items: PlanItem[];
@@ -42,7 +43,7 @@ export function DailyPlanWidget({ items, actionHref, cardHref }: DailyPlanWidget
               <div
               className={`
                 h-8 w-8 rounded-full flex items-center justify-center
-                ${item.completed ? 'bg-green-100 text-green-600' : 'bg-slate-100 text-slate-500 group-hover:bg-teal-100 group-hover:text-teal-600'}
+                ${item.completed ? 'bg-green-100 text-green-600 dark:bg-green-950/30 dark:text-green-300' : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-300 group-hover:bg-teal-100 group-hover:text-teal-600 dark:group-hover:bg-teal-950/40 dark:group-hover:text-teal-300'}
               `}>
 
                 {item.completed ?
@@ -52,11 +53,12 @@ export function DailyPlanWidget({ items, actionHref, cardHref }: DailyPlanWidget
               }
               </div>
               <div>
-                <p className="text-sm font-medium text-slate-900">
+                <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
                   {item.subject}
                 </p>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-slate-500 dark:text-slate-400">
                   {item.count} {item.type}
+                  {typeof item.mastery === 'number' ? ` • ${item.mastery}% mastery` : ''}
                 </p>
               </div>
             </div>
@@ -71,8 +73,8 @@ export function DailyPlanWidget({ items, actionHref, cardHref }: DailyPlanWidget
         )}
 
         {items.length === 0 &&
-        <div className="text-center py-8 text-slate-500">
-            <p>No study items scheduled for today.</p>
+        <div className="text-center py-8 text-slate-500 dark:text-slate-400">
+          <p>No study items scheduled for today.</p>
             <Button variant="outline" size="sm" className="mt-2">
               Generate Plan
             </Button>

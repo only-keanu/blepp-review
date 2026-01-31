@@ -30,9 +30,10 @@ export function ScoreBreakdown({
               cx="80"
               cy="80"
               r="70"
-              stroke="#e2e8f0"
+              stroke="currentColor"
               strokeWidth="12"
-              fill="transparent" />
+              fill="transparent"
+              className="text-slate-200 dark:text-slate-800" />
 
             <circle
               cx="80"
@@ -47,22 +48,22 @@ export function ScoreBreakdown({
 
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-4xl font-bold text-slate-900">{score}%</span>
-            <span className="text-sm text-slate-500">Final Score</span>
+            <span className="text-4xl font-bold text-slate-900 dark:text-slate-100">{score}%</span>
+            <span className="text-sm text-slate-500 dark:text-slate-400">Final Score</span>
           </div>
         </div>
         <div className="grid grid-cols-2 gap-8 w-full px-4 mt-4">
           <div>
-            <p className="text-2xl font-bold text-slate-900">
+            <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">
               {correctCount}/{totalQuestions}
             </p>
-            <p className="text-xs text-slate-500 uppercase tracking-wide">
+            <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wide">
               Correct
             </p>
           </div>
           <div>
-            <p className="text-2xl font-bold text-slate-900">{timeTaken || '--:--'}</p>
-            <p className="text-xs text-slate-500 uppercase tracking-wide">
+            <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">{timeTaken || '--:--'}</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wide">
               Time
             </p>
           </div>
@@ -77,10 +78,10 @@ export function ScoreBreakdown({
             return (
               <div key={topic.name}>
                 <div className="flex justify-between mb-2">
-                  <span className="text-sm font-medium text-slate-700">
+                  <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
                     {topic.name}
                   </span>
-                  <span className="text-sm text-slate-500">
+                  <span className="text-sm text-slate-500 dark:text-slate-400">
                     {topic.score}/{topic.total} ({percentage}%)
                   </span>
                 </div>

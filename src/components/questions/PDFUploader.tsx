@@ -83,13 +83,13 @@ export function PDFUploader({ onUploadComplete }: PDFUploaderProps) {
           accept=".pdf"
           onChange={handleFileSelect} />
 
-          <div className="bg-slate-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Upload className="h-6 w-6 text-slate-500" />
+          <div className="bg-slate-100 dark:bg-slate-800 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Upload className="h-6 w-6 text-slate-500 dark:text-slate-400" />
           </div>
-          <h3 className="text-lg font-medium text-slate-900">
+          <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100">
             Click to upload or drag and drop
           </h3>
-          <p className="text-slate-500 mt-1 text-sm">
+          <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">
             PDF files only (max 10MB)
           </p>
           {error &&
@@ -100,29 +100,29 @@ export function PDFUploader({ onUploadComplete }: PDFUploaderProps) {
         }
         </div> :
 
-      <div className="bg-white border border-slate-200 rounded-xl p-6">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6">
           <div className="flex items-start justify-between mb-4">
             <div className="flex items-center gap-3">
-              <div className="bg-red-100 p-2 rounded-lg">
-                <FileText className="h-6 w-6 text-red-600" />
+              <div className="bg-red-100 dark:bg-red-950/40 p-2 rounded-lg">
+                <FileText className="h-6 w-6 text-red-600 dark:text-red-300" />
               </div>
               <div>
-                <h4 className="font-medium text-slate-900">{file.name}</h4>
-                <p className="text-xs text-slate-500">
+                <h4 className="font-medium text-slate-900 dark:text-slate-100">{file.name}</h4>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
                   {(file.size / 1024 / 1024).toFixed(2)} MB
                 </p>
               </div>
             </div>
             <button
             onClick={clearFile}
-            className="text-slate-400 hover:text-slate-600">
+            className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-200">
 
               <X className="h-5 w-5" />
             </button>
           </div>
 
           <div className="space-y-2">
-            <div className="flex justify-between text-xs text-slate-500">
+            <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400">
               <span>
                 {uploadProgress < 100 ? 'Uploading...' : 'Upload Complete'}
               </span>
@@ -132,7 +132,7 @@ export function PDFUploader({ onUploadComplete }: PDFUploaderProps) {
           </div>
 
           {uploadProgress === 100 &&
-        <div className="mt-4 flex items-center gap-2 text-sm text-green-600 bg-green-50 p-3 rounded-lg">
+        <div className="mt-4 flex items-center gap-2 text-sm text-green-600 dark:text-green-300 bg-green-50 dark:bg-green-950/30 p-3 rounded-lg">
               <CheckCircle2 className="h-4 w-4" />
               Ready for question generation
             </div>

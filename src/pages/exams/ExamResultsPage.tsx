@@ -56,7 +56,7 @@ export function ExamResultsPage() {
         <div className="flex items-center justify-between">
           <Link
             to="/dashboard/exams"
-            className="text-slate-500 hover:text-slate-900 flex items-center gap-2">
+            className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 flex items-center gap-2">
             <ArrowLeft className="h-4 w-4" />
             Back to Exams
           </Link>
@@ -74,21 +74,21 @@ export function ExamResultsPage() {
           </div>
         )}
 
-        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm mb-6">
-          <h1 className="text-2xl font-bold text-slate-900 mb-2">
+        <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm mb-6">
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">
             Exam Results
           </h1>
-          <p className="text-slate-500">
+          <p className="text-slate-500 dark:text-slate-400">
             Completed on {new Date().toLocaleDateString()}
           </p>
         </div>
 
         {isLoading ? (
-          <div className="text-center py-16 text-slate-500">Loading...</div>
+          <div className="text-center py-16 text-slate-500 dark:text-slate-400">Loading...</div>
         ) : scoreBreakdown ? (
           <ScoreBreakdown {...scoreBreakdown} />
         ) : (
-          <div className="text-center py-16 text-slate-500">
+          <div className="text-center py-16 text-slate-500 dark:text-slate-400">
             No results available.
           </div>
         )}

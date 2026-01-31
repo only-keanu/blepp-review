@@ -14,15 +14,19 @@ export function AnalyticsPage() {
   const [topicStats, setTopicStats] = useState<
     { name: string; mastery: number }[]
   >([]);
+  const [trendPoints, setTrendPoints] = useState<
+    { label: string; accuracy: number }[]
+  >([]);
   const [error, setError] = useState('');
 
   useEffect(() => {
     const loadAnalytics = async () => {
       setError('');
       try {
-        const [overviewData, masteryData] = await Promise.all([
+        const [overviewData, masteryData, trendData] = await Promise.all([
           apiFetch<any>('/api/analytics/overview'),
-          apiFetch<any>('/api/analytics/topic-mastery')
+          apiFetch<any>('/api/analytics/topic-mastery'),
+          apiFetch<any>('/api/analytics/accuracy-trend')
         ]);
 
         setOverview({
@@ -38,6 +42,13 @@ export function AnalyticsPage() {
             mastery: topic.masteryPct ?? 0
           }))
         );
+
+        setTrendPoints(
+          (trendData?.points ?? []).map((point: any) => ({
+            label: point.label,
+            accuracy: point.accuracy ?? 0
+          }))
+        );
       } catch (err) {
         setError('Failed to load analytics.');
       }
@@ -47,6 +58,9 @@ export function AnalyticsPage() {
   }, []);
 
   const accuracyTrend = useMemo(() => {
+    if (trendPoints.length > 0) {
+      return trendPoints.map((point) => point.accuracy);
+    }
     const value = parseInt(String(overview.accuracy).replace('%', ''), 10);
     if (!Number.isFinite(value)) {
       return [45, 50, 48, 55, 60, 58, 65, 70, 72, 75];
@@ -56,7 +70,17 @@ export function AnalyticsPage() {
     return Array.from({ length: 10 }, (_, index) =>
       Math.round(start + step * index)
     );
-  }, [overview.accuracy]);
+  }, [overview.accuracy, trendPoints]);
+
+  const trendLabels = useMemo(() => {
+    if (trendPoints.length > 0) {
+      return {
+        start: trendPoints[0]?.label ?? 'Start',
+        end: trendPoints[trendPoints.length - 1]?.label ?? 'Today'
+      };
+    }
+    return { start: 'Week 1', end: 'Week 10' };
+  }, [trendPoints]);
 
   return (
     <AppLayout>
@@ -115,15 +139,15 @@ export function AnalyticsPage() {
                     height: `${h}%`
                   }}>
                 </div>
-                  <div className="opacity-0 group-hover:opacity-100 absolute -top-8 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white text-xs py-1 px-2 rounded">
-                    {h}%
+                  <div className="opacity-0 group-hover:opacity-100 absolute -top-9 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white text-xs py-1 px-2 rounded">
+                    {trendPoints[i]?.label ? `${trendPoints[i].label}: ` : ''}{h}%
                   </div>
                 </div>
               )}
             </div>
             <div className="flex justify-between text-xs text-slate-400 dark:text-slate-500 px-4">
-              <span>Week 1</span>
-              <span>Week 10</span>
+              <span>{trendLabels.start}</span>
+              <span>{trendLabels.end}</span>
             </div>
           </Card>
 

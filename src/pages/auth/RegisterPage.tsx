@@ -107,10 +107,10 @@ export function RegisterPage() {
         </div>
 
         {error &&
-        <div className="rounded-md bg-red-50 p-4">
+        <div className="rounded-md bg-red-50 dark:bg-red-950/40 p-4">
             <div className="flex">
               <div className="ml-3">
-                <h3 className="text-sm font-medium text-red-800">{error}</h3>
+                <h3 className="text-sm font-medium text-red-800 dark:text-red-200">{error}</h3>
               </div>
             </div>
           </div>
@@ -121,7 +121,7 @@ export function RegisterPage() {
         </Button>
 
         <div className="mt-6 text-center text-sm">
-          <span className="text-slate-500">Already have an account? </span>
+          <span className="text-slate-500 dark:text-slate-400">Already have an account? </span>
           <Link
             to="/auth/login"
             className="font-medium text-teal-600 hover:text-teal-500">

@@ -24,14 +24,14 @@ export function FlashcardView({ card, onRate }: FlashcardViewProps) {
         }}>
 
         {/* Front */}
-        <div className="absolute inset-0 h-full w-full backface-hidden bg-white rounded-2xl shadow-lg border border-slate-200 p-8 flex flex-col items-center justify-center text-center">
-          <span className="absolute top-6 left-6 inline-flex items-center rounded-full bg-teal-50 px-2.5 py-0.5 text-xs font-medium text-teal-700">
+        <div className="absolute inset-0 h-full w-full backface-hidden bg-white dark:bg-slate-900 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-800 p-8 flex flex-col items-center justify-center text-center">
+          <span className="absolute top-6 left-6 inline-flex items-center rounded-full bg-teal-50 dark:bg-teal-950/40 px-2.5 py-0.5 text-xs font-medium text-teal-700 dark:text-teal-200">
             {card.topic}
           </span>
-          <h3 className="text-2xl font-medium text-slate-900 leading-relaxed">
+          <h3 className="text-2xl font-medium text-slate-900 dark:text-slate-100 leading-relaxed">
             {card.front}
           </h3>
-          <p className="absolute bottom-6 text-sm text-slate-400 flex items-center gap-2">
+          <p className="absolute bottom-6 text-sm text-slate-400 dark:text-slate-500 flex items-center gap-2">
             <RotateCw className="h-4 w-4" /> Click to flip
           </p>
         </div>
@@ -55,7 +55,7 @@ export function FlashcardView({ card, onRate }: FlashcardViewProps) {
       <div
         className={`mt-8 transition-opacity duration-300 ${isFlipped ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
 
-        <p className="text-center text-sm text-slate-500 mb-4">
+        <p className="text-center text-sm text-slate-500 dark:text-slate-400 mb-4">
           How well did you know this?
         </p>
         <div className="flex justify-center gap-4">

@@ -112,18 +112,18 @@ export function FlashcardsPage() {
         <div className="flex items-center justify-between mb-8">
           <Link
             to="/dashboard/study/topics"
-            className="text-slate-500 hover:text-slate-900 flex items-center gap-2">
+            className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 flex items-center gap-2">
             <ArrowLeft className="h-4 w-4" />
             Back
           </Link>
           <div className="flex items-center gap-4">
             <select
-              className="border border-slate-300 rounded-lg px-3 py-2 text-sm"
+              className="border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100"
               value={selectedTopic}
               onChange={(e) => setSelectedTopic(e.target.value)}>
               {topicOptions}
             </select>
-            <span className="text-sm font-medium text-slate-600">
+            <span className="text-sm font-medium text-slate-600 dark:text-slate-300">
               Card {totalCards === 0 ? 0 : currentIndex + 1} / {totalCards}
             </span>
             <Button variant="ghost" size="sm" leftIcon={<Settings className="h-4 w-4" />}>
@@ -143,11 +143,11 @@ export function FlashcardsPage() {
         </div>
 
         {isLoading ? (
-          <div className="flex-1 flex items-center justify-center text-slate-500">
+          <div className="flex-1 flex items-center justify-center text-slate-500 dark:text-slate-400">
             Loading...
           </div>
         ) : !currentCard ? (
-          <div className="flex-1 flex items-center justify-center text-slate-500">
+          <div className="flex-1 flex items-center justify-center text-slate-500 dark:text-slate-400">
             No flashcards available.
           </div>
         ) : (

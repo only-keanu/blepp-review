@@ -180,11 +180,11 @@ export function AddQuestionModal({
       <div className="space-y-5">
         {/* Question Text */}
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1.5">
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
             Question Text <span className="text-red-500">*</span>
           </label>
           <textarea
-            className={`w-full rounded-lg border ${errors.text ? 'border-red-300' : 'border-slate-300'} shadow-sm focus:border-teal-500 focus:ring-teal-500 p-3 text-sm min-h-[100px]`}
+            className={`w-full rounded-lg border ${errors.text ? 'border-red-300' : 'border-slate-300 dark:border-slate-700'} bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-sm focus:border-teal-500 focus:ring-teal-500 p-3 text-sm min-h-[100px]`}
             placeholder="Enter your question here..."
             value={formData.text}
             onChange={(e) =>
@@ -246,7 +246,7 @@ export function AddQuestionModal({
 
         {/* Answer Choices */}
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2">
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
             Answer Choices <span className="text-red-500">*</span>
           </label>
           <div className="space-y-3">
@@ -262,7 +262,7 @@ export function AddQuestionModal({
                 }
                 className={`
                     h-8 w-8 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all
-                    ${formData.correctAnswerIndex === index ? 'border-green-500 bg-green-500 text-white' : 'border-slate-300 text-slate-500 hover:border-green-300'}
+                    ${formData.correctAnswerIndex === index ? 'border-green-500 bg-green-500 text-white' : 'border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400 hover:border-green-300'}
                   `}
                 title={
                 formData.correctAnswerIndex === index ?
@@ -274,7 +274,7 @@ export function AddQuestionModal({
                 </button>
                 <input
                 type="text"
-                className="flex-1 rounded-lg border border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 p-2 text-sm"
+                className="flex-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-sm focus:border-teal-500 focus:ring-teal-500 p-2 text-sm"
                 placeholder={`Choice ${String.fromCharCode(65 + index)}`}
                 value={choice}
                 onChange={(e) => handleChoiceChange(index, e.target.value)} />
@@ -285,7 +285,7 @@ export function AddQuestionModal({
           {errors.choices &&
           <p className="mt-1 text-sm text-red-600">{errors.choices}</p>
           }
-          <p className="mt-2 text-xs text-slate-500">
+          <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
             Click the letter to mark the correct answer (currently:{' '}
             {String.fromCharCode(65 + formData.correctAnswerIndex)})
           </p>
@@ -293,11 +293,11 @@ export function AddQuestionModal({
 
         {/* Explanation */}
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1.5">
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
             Explanation <span className="text-red-500">*</span>
           </label>
           <textarea
-            className={`w-full rounded-lg border ${errors.explanation ? 'border-red-300' : 'border-slate-300'} shadow-sm focus:border-teal-500 focus:ring-teal-500 p-3 text-sm min-h-[80px]`}
+            className={`w-full rounded-lg border ${errors.explanation ? 'border-red-300' : 'border-slate-300 dark:border-slate-700'} bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-sm focus:border-teal-500 focus:ring-teal-500 p-3 text-sm min-h-[80px]`}
             placeholder="Explain why this is the correct answer..."
             value={formData.explanation}
             onChange={(e) =>
@@ -313,7 +313,7 @@ export function AddQuestionModal({
         </div>
 
         {submitError &&
-        <div className="rounded-md bg-red-50 p-3 text-sm text-red-700">
+        <div className="rounded-md bg-red-50 dark:bg-red-950/40 p-3 text-sm text-red-700 dark:text-red-200">
             {submitError}
           </div>
         }

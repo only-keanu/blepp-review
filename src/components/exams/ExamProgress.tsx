@@ -27,13 +27,13 @@ export function ExamProgress({
             onClick={() => onJumpToQuestion(idx)}
             className={`
               h-8 w-8 rounded-md text-xs font-medium flex items-center justify-center transition-colors relative
-              ${isCurrent ? 'ring-2 ring-teal-500 ring-offset-1 z-10' : ''}
-              ${isAnswered ? 'bg-teal-100 text-teal-700 border border-teal-200' : 'bg-slate-50 text-slate-500 border border-slate-200 hover:bg-slate-100'}
+              ${isCurrent ? 'ring-2 ring-teal-500 ring-offset-1 dark:ring-offset-slate-900 z-10' : ''}
+              ${isAnswered ? 'bg-teal-100 text-teal-700 border border-teal-200 dark:bg-teal-950/40 dark:text-teal-200 dark:border-teal-900' : 'bg-slate-50 text-slate-500 border border-slate-200 hover:bg-slate-100 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700 dark:hover:bg-slate-700'}
             `}>
 
             {idx + 1}
             {isFlagged &&
-            <span className="absolute -top-1 -right-1 h-2.5 w-2.5 bg-amber-400 rounded-full border border-white" />
+            <span className="absolute -top-1 -right-1 h-2.5 w-2.5 bg-amber-400 rounded-full border border-white dark:border-slate-900" />
             }
           </button>);
 

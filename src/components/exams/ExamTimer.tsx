@@ -23,7 +23,7 @@ export function ExamTimer({ durationMinutes, onTimeUp }: ExamTimerProps) {
     <div
       className={`
       flex items-center gap-2 px-4 py-2 rounded-lg font-mono font-medium border
-      ${isLowTime ? 'bg-red-50 text-red-700 border-red-200 animate-pulse' : 'bg-slate-50 text-slate-700 border-slate-200'}
+      ${isLowTime ? 'bg-red-50 text-red-700 border-red-200 dark:bg-red-950/40 dark:text-red-300 dark:border-red-900 animate-pulse' : 'bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700'}
     `}>
 
       <Clock className="h-4 w-4" />

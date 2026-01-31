@@ -41,20 +41,20 @@ export function QuestionList({ questions }: QuestionListProps) {
                   </span>
               }
               </div>
-              <h3 className="font-medium text-slate-900 mb-2 line-clamp-2">
+              <h3 className="font-medium text-slate-900 dark:text-slate-100 mb-2 line-clamp-2">
                 {question.text}
               </h3>
-              <p className="text-sm text-slate-500 line-clamp-1">
+              <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-1">
                 Answer: {question.choices[question.correctAnswerIndex]}
               </p>
             </div>
 
             <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
               <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                <Eye className="h-4 w-4 text-slate-500" />
+                <Eye className="h-4 w-4 text-slate-500 dark:text-slate-400" />
               </Button>
               <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                <Edit2 className="h-4 w-4 text-slate-500" />
+                <Edit2 className="h-4 w-4 text-slate-500 dark:text-slate-400" />
               </Button>
               <Button
               variant="ghost"

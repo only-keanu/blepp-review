@@ -29,11 +29,11 @@ export function AnswerFeedback({
           </div>
           <div>
             <h3
-              className={`text-lg font-bold ${isCorrect ? 'text-green-700' : 'text-red-700'}`}>
+              className={`text-lg font-bold ${isCorrect ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'}`}>
 
               {isCorrect ? 'Correct!' : 'Incorrect'}
             </h3>
-            <p className="mt-1 text-slate-600">
+            <p className="mt-1 text-slate-600 dark:text-slate-300">
               The correct answer is{' '}
               <span className="font-bold">
                 {String.fromCharCode(65 + question.correctAnswerIndex)}:{' '}
@@ -46,14 +46,14 @@ export function AnswerFeedback({
 
       <Card title="Explanation">
         <div className="prose prose-slate max-w-none">
-          <p className="text-slate-700 leading-relaxed">
+          <p className="text-slate-700 dark:text-slate-200 leading-relaxed">
             {question.explanation}
           </p>
         </div>
 
-        <div className="mt-6 p-4 bg-amber-50 rounded-lg border border-amber-100 flex items-start gap-3">
-          <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
-          <div className="text-sm text-amber-800">
+        <div className="mt-6 p-4 bg-amber-50 dark:bg-amber-950/30 rounded-lg border border-amber-100 dark:border-amber-900 flex items-start gap-3">
+          <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-300 mt-0.5 flex-shrink-0" />
+          <div className="text-sm text-amber-800 dark:text-amber-200">
             <span className="font-semibold block mb-1">Learning Tip</span>
             Connect this concept to {question.topicId} principles to strengthen
             your memory.
@@ -61,9 +61,9 @@ export function AnswerFeedback({
         </div>
       </Card>
 
-      <Card className="bg-slate-50 border-slate-200">
+      <Card className="bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800">
         <div className="text-center">
-          <h4 className="text-sm font-medium text-slate-500 uppercase tracking-wider mb-4">
+          <h4 className="text-sm font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4">
             How difficult was this question?
           </h4>
           <DifficultySelector onSelect={onNext} />

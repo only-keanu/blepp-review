@@ -107,7 +107,7 @@ export function ProfilePage() {
           <div className="space-y-4">
             <Button variant="outline">Change Password</Button>
             <div className="pt-4 border-t border-slate-100">
-              <p className="text-sm text-slate-500 mb-4">
+              <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
                 Permanently delete your account and all data. This action cannot
                 be undone.
               </p>

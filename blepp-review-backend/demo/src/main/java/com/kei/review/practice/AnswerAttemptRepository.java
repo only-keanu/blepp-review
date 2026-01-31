@@ -11,4 +11,6 @@ public interface AnswerAttemptRepository extends JpaRepository<AnswerAttempt, UU
     long countByUserId(UUID userId);
     long countByUserIdAndCorrectTrue(UUID userId);
     List<AnswerAttempt> findByUserIdAndCreatedAtAfter(UUID userId, Instant after);
+    long countByUserIdAndQuestionTopicId(UUID userId, UUID topicId);
+    long countByUserIdAndQuestionTopicIdAndCorrectTrue(UUID userId, UUID topicId);
 }

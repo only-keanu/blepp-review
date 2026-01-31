@@ -11,23 +11,23 @@ import {
 'lucide-react';
 export function LandingPage() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white dark:bg-slate-950">
       {/* Navigation */}
-      <nav className="bg-white border-b border-slate-100 sticky top-0 z-50">
+      <nav className="bg-white dark:bg-slate-950 border-b border-slate-100 dark:border-slate-800 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center gap-2">
               <div className="bg-teal-600 p-2 rounded-lg">
                 <BookOpen className="h-6 w-6 text-white" />
               </div>
-              <span className="text-xl font-bold text-slate-900 tracking-tight">
+              <span className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
                 BLEPP Review
               </span>
             </div>
             <div className="flex items-center gap-4">
               <Link
                 to="/auth/login"
-                className="text-sm font-medium text-slate-600 hover:text-slate-900">
+                className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100">
 
                 Sign in
               </Link>
@@ -40,7 +40,7 @@ export function LandingPage() {
       </nav>
 
       {/* Hero Section */}
-      <div className="relative overflow-hidden bg-slate-50 pt-16 pb-32">
+      <div className="relative overflow-hidden bg-slate-50 dark:bg-slate-900 pt-16 pb-32">
         <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
           <div className="absolute right-0 top-0 h-96 w-96 bg-teal-400 rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/2"></div>
           <div className="absolute left-0 bottom-0 h-96 w-96 bg-blue-400 rounded-full blur-3xl transform -translate-x-1/2 translate-y-1/2"></div>
@@ -55,11 +55,11 @@ export function LandingPage() {
               </span>
               New: AI-Powered Question Generation
             </div>
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-slate-900 tracking-tight mb-6">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight mb-6">
               Master the Psychology Board Exam with{' '}
               <span className="text-teal-600">Intelligent Study</span>
             </h1>
-            <p className="text-xl text-slate-600 mb-10 leading-relaxed">
+            <p className="text-xl text-slate-600 dark:text-slate-300 mb-10 leading-relaxed">
               The all-in-one review platform for aspiring Psychologists.
               Personalized study plans, active recall quizzes, and AI-generated
               questions from your own materials.
@@ -80,7 +80,7 @@ export function LandingPage() {
                 </Button>
               </Link>
             </div>
-            <p className="mt-4 text-sm text-slate-500">
+            <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">
               No credit card required • 7-day free trial
             </p>
           </div>
@@ -88,13 +88,13 @@ export function LandingPage() {
       </div>
 
       {/* Features Grid */}
-      <div className="py-24 bg-white">
+      <div className="py-24 bg-white dark:bg-slate-950">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-slate-900">
+            <h2 className="text-3xl font-bold text-slate-900 dark:text-slate-100">
               Everything you need to pass
             </h2>
-            <p className="mt-4 text-lg text-slate-600">
+            <p className="mt-4 text-lg text-slate-600 dark:text-slate-300">
               Built on learning science principles to maximize retention.
             </p>
           </div>
@@ -120,11 +120,11 @@ export function LandingPage() {
       </div>
 
       {/* Social Proof / Trust */}
-      <div className="bg-slate-50 py-16 border-y border-slate-100">
+      <div className="bg-slate-50 dark:bg-slate-900 py-16 border-y border-slate-100 dark:border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-3xl font-bold text-slate-900 mb-6">
+              <h2 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-6">
                 Designed for the Philippine Psychology Licensure Exam
               </h2>
               <ul className="space-y-4">
@@ -136,31 +136,31 @@ export function LandingPage() {
                 map((item, i) =>
                 <li key={i} className="flex items-center gap-3">
                     <CheckCircle2 className="h-5 w-5 text-green-500 flex-shrink-0" />
-                    <span className="text-slate-700">{item}</span>
+                    <span className="text-slate-700 dark:text-slate-300">{item}</span>
                   </li>
                 )}
               </ul>
             </div>
-            <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
+            <div className="bg-white dark:bg-slate-900 p-8 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800">
               <div className="flex items-center gap-4 mb-6">
                 <Shield className="h-10 w-10 text-teal-600" />
                 <div>
-                  <h3 className="font-bold text-slate-900">Secure & Private</h3>
-                  <p className="text-sm text-slate-500">
+                  <h3 className="font-bold text-slate-900 dark:text-slate-100">Secure & Private</h3>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">
                     Your data is safe with us
                   </p>
                 </div>
               </div>
-              <p className="text-slate-600 italic">
+              <p className="text-slate-600 dark:text-slate-300 italic">
                 "This platform helped me organize my review. The spaced
                 repetition feature is a game changer for remembering theories
                 and names."
               </p>
               <div className="mt-4 flex items-center gap-3">
-                <div className="h-8 w-8 rounded-full bg-slate-200"></div>
+                <div className="h-8 w-8 rounded-full bg-slate-200 dark:bg-slate-700"></div>
                 <div>
-                  <p className="text-sm font-bold text-slate-900">Rina D.</p>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-sm font-bold text-slate-900 dark:text-slate-100">Rina D.</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
                     RPm, August 2023 Passer
                   </p>
                 </div>
@@ -171,12 +171,12 @@ export function LandingPage() {
       </div>
 
       {/* CTA */}
-      <div className="py-24 bg-white">
+      <div className="py-24 bg-white dark:bg-slate-950">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold text-slate-900 mb-6">
+          <h2 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-6">
             Ready to top the boards?
           </h2>
-          <p className="text-lg text-slate-600 mb-8">
+          <p className="text-lg text-slate-600 dark:text-slate-300 mb-8">
             Join thousands of psychology students preparing smarter, not harder.
           </p>
           <Link to="/auth/register">
@@ -257,12 +257,12 @@ function FeatureCard({
 
 }: {icon: React.ReactNode;title: string;description: string;}) {
   return (
-    <div className="bg-slate-50 p-6 rounded-xl border border-slate-100 hover:border-teal-100 hover:shadow-md transition-all">
-      <div className="bg-white w-12 h-12 rounded-lg flex items-center justify-center shadow-sm mb-4">
+    <div className="bg-slate-50 dark:bg-slate-900 p-6 rounded-xl border border-slate-100 dark:border-slate-800 hover:border-teal-100 hover:shadow-md transition-all">
+      <div className="bg-white dark:bg-slate-800 w-12 h-12 rounded-lg flex items-center justify-center shadow-sm mb-4">
         {icon}
       </div>
-      <h3 className="text-lg font-bold text-slate-900 mb-2">{title}</h3>
-      <p className="text-slate-600">{description}</p>
+      <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-2">{title}</h3>
+      <p className="text-slate-600 dark:text-slate-300">{description}</p>
     </div>);
 
 }

@@ -50,14 +50,14 @@ export function LoginPage() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           icon={<Lock className="h-5 w-5" />}
-          placeholder="••••••••" />
+          placeholder="********" />
 
 
         {error &&
-        <div className="rounded-md bg-red-50 p-4">
+        <div className="rounded-md bg-red-50 dark:bg-red-950/40 p-4">
             <div className="flex">
               <div className="ml-3">
-                <h3 className="text-sm font-medium text-red-800">{error}</h3>
+                <h3 className="text-sm font-medium text-red-800 dark:text-red-200">{error}</h3>
               </div>
             </div>
           </div>
@@ -69,11 +69,11 @@ export function LoginPage() {
               id="remember-me"
               name="remember-me"
               type="checkbox"
-              className="h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500" />
+              className="h-4 w-4 rounded border-slate-300 dark:border-slate-600 text-teal-600 focus:ring-teal-500" />
 
             <label
               htmlFor="remember-me"
-              className="ml-2 block text-sm text-slate-900">
+              className="ml-2 block text-sm text-slate-900 dark:text-slate-100">
 
               Remember me
             </label>
@@ -99,7 +99,7 @@ export function LoginPage() {
               <div className="w-full border-t border-slate-300" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="bg-white px-2 text-slate-500">
+              <span className="bg-white dark:bg-slate-900 px-2 text-slate-500 dark:text-slate-400">
                 Don't have an account?
               </span>
             </div>

@@ -7,22 +7,22 @@ export function DifficultySelector({ onSelect }: DifficultySelectorProps) {
   {
     id: 'easy',
     label: 'Easy',
-    color: 'bg-green-100 text-green-700 hover:bg-green-200 border-green-200'
+    color: 'bg-green-100 text-green-700 hover:bg-green-200 border-green-200 dark:bg-green-950/30 dark:text-green-300 dark:hover:bg-green-950/50 dark:border-green-900'
   },
   {
     id: 'medium',
     label: 'Medium',
-    color: 'bg-blue-100 text-blue-700 hover:bg-blue-200 border-blue-200'
+    color: 'bg-blue-100 text-blue-700 hover:bg-blue-200 border-blue-200 dark:bg-blue-950/30 dark:text-blue-300 dark:hover:bg-blue-950/50 dark:border-blue-900'
   },
   {
     id: 'hard',
     label: 'Hard',
-    color: 'bg-amber-100 text-amber-700 hover:bg-amber-200 border-amber-200'
+    color: 'bg-amber-100 text-amber-700 hover:bg-amber-200 border-amber-200 dark:bg-amber-950/30 dark:text-amber-300 dark:hover:bg-amber-950/50 dark:border-amber-900'
   },
   {
     id: 'difficult',
     label: 'Difficult',
-    color: 'bg-red-100 text-red-700 hover:bg-red-200 border-red-200'
+    color: 'bg-red-100 text-red-700 hover:bg-red-200 border-red-200 dark:bg-red-950/30 dark:text-red-300 dark:hover:bg-red-950/50 dark:border-red-900'
   }];
 
   return (

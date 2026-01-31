@@ -46,8 +46,8 @@ export function TopicsSettingsPage() {
   return (
     <AppLayout>
       <div className="max-w-2xl mx-auto space-y-6">
-        <h1 className="text-2xl font-bold text-slate-900">Study Priorities</h1>
-        <p className="text-slate-500">
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Study Priorities</h1>
+        <p className="text-slate-500 dark:text-slate-400">
           Mark topics as "Weak Areas" to prioritize them in your daily study
           plan and spaced repetition algorithm.
         </p>
@@ -57,14 +57,14 @@ export function TopicsSettingsPage() {
             {topics.map((topic) =>
             <div
               key={topic.id}
-              className="flex items-center justify-between p-4 rounded-lg border border-slate-100 hover:bg-slate-50 transition-colors">
+              className="flex items-center justify-between p-4 rounded-lg border border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
 
-                <span className="font-medium text-slate-900">{topic.name}</span>
+                <span className="font-medium text-slate-900 dark:text-slate-100">{topic.name}</span>
                 <button
                 onClick={() => toggleWeak(topic.id)}
                 className={`
                     px-3 py-1.5 rounded-full text-sm font-medium transition-all
-                    ${topic.isWeak ? 'bg-red-100 text-red-700 ring-2 ring-red-500 ring-offset-1' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}
+                    ${topic.isWeak ? 'bg-red-100 text-red-700 ring-2 ring-red-500 ring-offset-1 dark:bg-red-950/40 dark:text-red-300 dark:ring-red-700 dark:ring-offset-slate-900' : 'bg-slate-100 text-slate-500 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'}
                   `}>
 
                   {topic.isWeak ? 'Weak Area' : 'Normal Priority'}

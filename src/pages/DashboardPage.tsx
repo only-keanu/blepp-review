@@ -21,12 +21,23 @@ export function DashboardPage() {
     const loadData = async () => {
       setError('');
       try {
-        const [topicsData, readinessData, flashcards] = await Promise.all([
+        const [topicsData, readinessData, flashcards, masteryData] = await Promise.all([
           apiFetch<any[]>('/api/topics'),
           apiFetch<any>('/api/analytics/readiness'),
-          apiFetch<any[]>('/api/flashcards')
+          apiFetch<any[]>('/api/flashcards'),
+          apiFetch<any>('/api/analytics/topic-mastery')
         ]);
-        setTopics(topicsData);
+        const masteryMap = new Map<string, number>();
+        (masteryData?.topics ?? []).forEach((stat: any) => {
+          if (stat?.name) {
+            masteryMap.set(stat.name, stat.masteryPct ?? 0);
+          }
+        });
+        const mergedTopics = topicsData.map((topic) => ({
+          ...topic,
+          masteryPct: masteryMap.get(topic.name) ?? (topic as any).masteryPct ?? 0
+        }));
+        setTopics(mergedTopics);
         setReadiness(readinessData.score ?? 0);
 
         const today = new Date();
@@ -53,12 +64,13 @@ export function DashboardPage() {
     }));
     const sorted = [...withMastery].sort((a, b) => a.mastery - b.mastery);
     const base = sorted.slice(0, 3);
-    const items = base.map(({ id, subject, count, type, completed }) => ({
+    const items = base.map(({ id, subject, count, type, completed, mastery }) => ({
       id,
       subject,
       count,
       type,
-      completed
+      completed,
+      mastery
     }));
     if (dueCount > 0) {
       items.push({
@@ -78,19 +90,19 @@ export function DashboardPage() {
         {/* Welcome Section */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900">
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
               Welcome back, {user?.fullName.split(' ')[0]}!
             </h1>
-            <p className="text-slate-500 mt-1">
+            <p className="text-slate-500 dark:text-slate-400 mt-1">
               You're on a 5-day streak. Keep it up!
             </p>
           </div>
-          <div className="flex items-center gap-4 text-sm text-slate-600 bg-white px-4 py-2 rounded-lg border border-slate-200 shadow-sm">
+          <div className="flex items-center gap-4 text-sm text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900 px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm">
             <div className="flex items-center gap-2">
               <Target className="h-4 w-4 text-teal-600" />
               <span>Goal: {user?.dailyStudyHours}h/day</span>
             </div>
-            <div className="h-4 w-px bg-slate-200" />
+            <div className="h-4 w-px bg-slate-200 dark:bg-slate-700" />
             <div className="flex items-center gap-2">
               <Award className="h-4 w-4 text-amber-500" />
               <span>Level 3</span>
@@ -135,10 +147,10 @@ export function DashboardPage() {
                   return (
                   <div key={topic.name}>
                     <div className="flex justify-between mb-2">
-                      <span className="text-sm font-medium text-slate-700">
+                      <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
                         {topic.name}
                       </span>
-                      <span className="text-sm text-slate-500">
+                      <span className="text-sm text-slate-500 dark:text-slate-400">
                         {progress}%
                       </span>
                     </div>

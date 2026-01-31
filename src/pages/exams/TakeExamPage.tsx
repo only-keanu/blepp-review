@@ -122,10 +122,10 @@ export function TakeExamPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
-      <header className="bg-white border-b border-slate-200 px-4 py-3 sticky top-0 z-10">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col">
+      <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 py-3 sticky top-0 z-10">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <h1 className="font-bold text-slate-900">BLEPP Simulation</h1>
+          <h1 className="font-bold text-slate-900 dark:text-slate-100">BLEPP Simulation</h1>
           <div className="flex items-center gap-4">
             <ExamTimer durationMinutes={durationMinutes} onTimeUp={handleSubmit} />
             <Button size="sm" onClick={() => setIsSubmitModalOpen(true)}>
@@ -144,15 +144,15 @@ export function TakeExamPage() {
           )}
 
           {isLoading ? (
-            <div className="text-center py-16 text-slate-500">Loading...</div>
+            <div className="text-center py-16 text-slate-500 dark:text-slate-400">Loading...</div>
           ) : !currentQuestion ? (
-            <div className="text-center py-16 text-slate-500">
+            <div className="text-center py-16 text-slate-500 dark:text-slate-400">
               No questions available.
             </div>
           ) : (
             <Card className="min-h-[400px] flex flex-col">
               <div className="flex justify-between items-start mb-6">
-                <span className="text-sm font-medium text-slate-500">
+                <span className="text-sm font-medium text-slate-500 dark:text-slate-400">
                   Question {currentQuestionIndex + 1} of {totalQuestions}
                 </span>
                 <button
@@ -160,7 +160,7 @@ export function TakeExamPage() {
                   className={`flex items-center gap-2 text-sm font-medium ${
                     flagged.includes(currentQuestionIndex)
                       ? 'text-amber-600'
-                      : 'text-slate-400 hover:text-slate-600'
+                      : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'
                   }`}>
                   <Flag
                     className={`h-4 w-4 ${
@@ -171,7 +171,7 @@ export function TakeExamPage() {
                 </button>
               </div>
 
-              <h2 className="text-xl font-medium text-slate-900 mb-8">
+              <h2 className="text-xl font-medium text-slate-900 dark:text-slate-100 mb-8">
                 {currentQuestion.text}
               </h2>
 
@@ -184,8 +184,8 @@ export function TakeExamPage() {
                       w-full text-left p-4 rounded-lg border-2 transition-all flex items-center
                       ${
                         answers[currentQuestionIndex] === idx
-                          ? 'border-teal-600 bg-teal-50 text-teal-900'
-                          : 'border-slate-200 hover:border-teal-200 hover:bg-slate-50 text-slate-700'
+                          ? 'border-teal-600 bg-teal-50 text-teal-900 dark:bg-teal-950/40 dark:text-teal-100'
+                          : 'border-slate-200 dark:border-slate-700 hover:border-teal-200 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200'
                       }
                     `}>
                     <div
@@ -194,7 +194,7 @@ export function TakeExamPage() {
                         ${
                           answers[currentQuestionIndex] === idx
                             ? 'border-teal-600 bg-teal-600 text-white'
-                            : 'border-slate-300 text-slate-500'
+                            : 'border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400'
                         }
                       `}>
                       {String.fromCharCode(65 + idx)}
@@ -204,7 +204,7 @@ export function TakeExamPage() {
                 ))}
               </div>
 
-              <div className="flex justify-between mt-8 pt-6 border-t border-slate-100">
+              <div className="flex justify-between mt-8 pt-6 border-t border-slate-100 dark:border-slate-800">
                 <Button
                   variant="outline"
                   disabled={currentQuestionIndex === 0}
@@ -234,17 +234,17 @@ export function TakeExamPage() {
               onJumpToQuestion={setCurrentQuestionIndex}
             />
 
-            <div className="mt-6 space-y-2 text-xs text-slate-500">
+            <div className="mt-6 space-y-2 text-xs text-slate-500 dark:text-slate-400">
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-teal-100 border border-teal-200 rounded"></div>
+                <div className="w-3 h-3 bg-teal-100 border border-teal-200 dark:bg-teal-950/40 dark:border-teal-900 rounded"></div>
                 <span>Answered</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-slate-50 border border-slate-200 rounded"></div>
+                <div className="w-3 h-3 bg-slate-50 border border-slate-200 dark:bg-slate-800 dark:border-slate-700 rounded"></div>
                 <span>Unanswered</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-slate-50 border border-slate-200 rounded relative">
+                <div className="w-3 h-3 bg-slate-50 border border-slate-200 dark:bg-slate-800 dark:border-slate-700 rounded relative">
                   <div className="absolute -top-1 -right-1 h-1.5 w-1.5 bg-amber-400 rounded-full"></div>
                 </div>
                 <span>Flagged</span>
@@ -268,13 +268,13 @@ export function TakeExamPage() {
             </Button>
           </>
         }>
-        <p className="text-slate-600">
+        <p className="text-slate-600 dark:text-slate-300">
           You have answered{' '}
-          <span className="font-bold text-slate-900">
+          <span className="font-bold text-slate-900 dark:text-slate-100">
             {Object.keys(answers).length}
           </span>{' '}
           out of{' '}
-          <span className="font-bold text-slate-900">{totalQuestions}</span>{' '}
+          <span className="font-bold text-slate-900 dark:text-slate-100">{totalQuestions}</span>{' '}
           questions.
         </p>
         {Object.keys(answers).length < totalQuestions && (

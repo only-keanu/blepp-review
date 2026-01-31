@@ -143,11 +143,11 @@ export function AddFlashcardModal({
       <div className="space-y-5">
         {/* Front Side */}
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1.5">
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
             Front Side (Question/Term) <span className="text-red-500">*</span>
           </label>
           <textarea
-            className={`w-full rounded-lg border ${errors.front ? 'border-red-300' : 'border-slate-300'} shadow-sm focus:border-teal-500 focus:ring-teal-500 p-3 text-sm min-h-[100px]`}
+            className={`w-full rounded-lg border ${errors.front ? 'border-red-300' : 'border-slate-300 dark:border-slate-700'} bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-sm focus:border-teal-500 focus:ring-teal-500 p-3 text-sm min-h-[100px]`}
             placeholder="What do you want to remember? (e.g., 'What is classical conditioning?')"
             value={formData.front}
             onChange={(e) =>
@@ -164,12 +164,12 @@ export function AddFlashcardModal({
 
         {/* Back Side */}
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1.5">
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
             Back Side (Answer/Definition){' '}
             <span className="text-red-500">*</span>
           </label>
           <textarea
-            className={`w-full rounded-lg border ${errors.back ? 'border-red-300' : 'border-slate-300'} shadow-sm focus:border-teal-500 focus:ring-teal-500 p-3 text-sm min-h-[100px]`}
+            className={`w-full rounded-lg border ${errors.back ? 'border-red-300' : 'border-slate-300 dark:border-slate-700'} bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-sm focus:border-teal-500 focus:ring-teal-500 p-3 text-sm min-h-[100px]`}
             placeholder="The answer or explanation (e.g., 'A learning process where a neutral stimulus becomes associated with a meaningful stimulus...')"
             value={formData.back}
             onChange={(e) =>
@@ -218,25 +218,25 @@ export function AddFlashcardModal({
         </div>
 
         {submitError &&
-        <div className="rounded-md bg-red-50 p-3 text-sm text-red-700">
+        <div className="rounded-md bg-red-50 dark:bg-red-950/40 p-3 text-sm text-red-700 dark:text-red-200">
             {submitError}
           </div>
         }
 
         {/* Preview */}
-        <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
-          <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-3">
+        <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-4 border border-slate-200 dark:border-slate-800">
+          <p className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
             Preview
           </p>
           <div className="grid grid-cols-2 gap-4">
-            <div className="bg-white rounded-lg p-4 border border-slate-200 min-h-[80px]">
-              <p className="text-xs text-slate-400 mb-1">Front</p>
-              <p className="text-sm text-slate-700">
+            <div className="bg-white dark:bg-slate-900 rounded-lg p-4 border border-slate-200 dark:border-slate-800 min-h-[80px]">
+              <p className="text-xs text-slate-400 dark:text-slate-500 mb-1">Front</p>
+              <p className="text-sm text-slate-700 dark:text-slate-200">
                 {formData.front || 'Your question will appear here...'}
               </p>
             </div>
-            <div className="bg-slate-900 rounded-lg p-4 min-h-[80px]">
-              <p className="text-xs text-slate-400 mb-1">Back</p>
+            <div className="bg-slate-900 dark:bg-slate-950 rounded-lg p-4 min-h-[80px]">
+              <p className="text-xs text-slate-400 dark:text-slate-500 mb-1">Back</p>
               <p className="text-sm text-slate-100">
                 {formData.back || 'Your answer will appear here...'}
               </p>
