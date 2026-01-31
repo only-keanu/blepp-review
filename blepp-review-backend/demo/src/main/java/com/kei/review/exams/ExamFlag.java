@@ -1,6 +1,7 @@
 package com.kei.review.exams;
 
 import com.kei.review.questions.Question;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -35,4 +36,7 @@ public class ExamFlag {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "question_id", nullable = false)
     private Question question;
+
+    @Column(nullable = false)
+    private boolean flagged;
 }
