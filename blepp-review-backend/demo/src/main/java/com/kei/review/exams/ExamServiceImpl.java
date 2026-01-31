@@ -1,6 +1,7 @@
 package com.kei.review.exams;
 
 import com.kei.review.exams.dto.ExamAnswerRequest;
+import com.kei.review.exams.dto.ExamFlagResponse;
 import com.kei.review.exams.dto.ExamResponse;
 import com.kei.review.exams.dto.ExamSessionResponse;
 import com.kei.review.exams.dto.ExamSubmitResponse;
@@ -132,5 +133,18 @@ public class ExamServiceImpl implements ExamService {
         examSessionRepository.save(session);
 
         return new ExamSubmitResponse(session.getId(), score, totalQuestions);
+    }
+
+    @Override
+    public List<ExamFlagResponse> listFlags(UUID userId, UUID sessionId) {
+        ExamSession session = examSessionRepository.findById(sessionId)
+            .orElseThrow(() -> new IllegalStateException("Session not found"));
+        if (!session.getUser().getId().equals(userId)) {
+            throw new IllegalStateException("Session not found");
+        }
+
+        return examFlagRepository.findByExamSessionId(sessionId).stream()
+            .map(flag -> new ExamFlagResponse(flag.getQuestion().getId(), flag.isFlagged()))
+            .toList();
     }
 }
