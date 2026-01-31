@@ -2,6 +2,7 @@ package com.kei.review.exams;
 
 import com.kei.review.auth.UserPrincipal;
 import com.kei.review.exams.dto.ExamAnswerRequest;
+import com.kei.review.exams.dto.ExamFlagResponse;
 import com.kei.review.exams.dto.ExamResponse;
 import com.kei.review.exams.dto.ExamSessionResponse;
 import com.kei.review.exams.dto.ExamSubmitResponse;
@@ -54,5 +55,13 @@ public class ExamController {
         @AuthenticationPrincipal UserPrincipal principal
     ) {
         return ResponseEntity.ok(examService.submit(principal.getId(), sessionId));
+    }
+
+    @GetMapping("/session/{sessionId}/flags")
+    public ResponseEntity<List<ExamFlagResponse>> listFlags(
+        @PathVariable UUID sessionId,
+        @AuthenticationPrincipal UserPrincipal principal
+    ) {
+        return ResponseEntity.ok(examService.listFlags(principal.getId(), sessionId));
     }
 }
