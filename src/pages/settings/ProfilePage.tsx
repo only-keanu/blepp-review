@@ -4,8 +4,12 @@ import { Card } from '../../components/ui/Card';
 import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
 import { useAuth } from '../../hooks/useAuth';
+import { applyTheme, getStoredTheme } from '../../lib/theme';
 export function ProfilePage() {
   const { user } = useAuth();
+  const [isDarkMode, setIsDarkMode] = useState(
+    getStoredTheme() === 'dark'
+  );
   const [formData, setFormData] = useState({
     fullName: user?.fullName || '',
     email: user?.email || '',
@@ -22,10 +26,15 @@ export function ProfilePage() {
     e.preventDefault();
     alert('Profile updated successfully!');
   };
+  const handleThemeToggle = () => {
+    const next = !isDarkMode;
+    setIsDarkMode(next);
+    applyTheme(next ? 'dark' : 'light');
+  };
   return (
     <AppLayout>
       <div className="max-w-2xl mx-auto space-y-6">
-        <h1 className="text-2xl font-bold text-slate-900">Profile Settings</h1>
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Profile Settings</h1>
 
         <Card title="Personal Information">
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -66,6 +75,32 @@ export function ProfilePage() {
               <Button type="submit">Save Changes</Button>
             </div>
           </form>
+        </Card>
+
+        <Card title="Appearance">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="text-sm font-medium text-slate-800 dark:text-slate-100">Night mode</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                Toggle dark theme for late-night study sessions.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={handleThemeToggle}
+              className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors ${
+                isDarkMode ? 'bg-teal-600' : 'bg-slate-300'
+              }`}
+              aria-pressed={isDarkMode}
+              aria-label="Toggle night mode">
+
+              <span
+                className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
+                  isDarkMode ? 'translate-x-5' : 'translate-x-1'
+                }`}
+              />
+            </button>
+          </div>
         </Card>
 
         <Card title="Account Security">

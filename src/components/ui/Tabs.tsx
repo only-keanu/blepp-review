@@ -26,7 +26,7 @@ export function Tabs({ tabs, activeTab, onChange, className = '' }: TabsProps) {
     }
   }, [activeTab, tabs]);
   return (
-    <div className={`relative border-b border-slate-200 ${className}`}>
+    <div className={`relative border-b border-slate-200 dark:border-slate-800 ${className}`}>
       <div className="flex space-x-8 overflow-x-auto scrollbar-hide">
         {tabs.map((tab, index) =>
         <button
@@ -35,7 +35,7 @@ export function Tabs({ tabs, activeTab, onChange, className = '' }: TabsProps) {
           onClick={() => onChange(tab.id)}
           className={`
               whitespace-nowrap py-4 px-1 text-sm font-medium transition-colors focus:outline-none
-              ${activeTab === tab.id ? 'text-teal-600' : 'text-slate-500 hover:text-slate-700'}
+              ${activeTab === tab.id ? 'text-teal-600 dark:text-teal-300' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}
             `}>
 
             {tab.label}

@@ -31,6 +31,7 @@ export function ManageFlashcardsPage() {
   const [search, setSearch] = useState('');
   const [topicFilter, setTopicFilter] = useState('all');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [editingFlashcard, setEditingFlashcard] = useState<Flashcard | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -57,6 +58,7 @@ export function ManageFlashcardsPage() {
           front: card.front,
           back: card.back,
           topic: card.topicName,
+          topicId: card.topicId,
           category: card.category,
           confidence: card.confidence ? card.confidence.toLowerCase() : undefined,
           createdAt: card.createdAt
@@ -95,6 +97,7 @@ export function ManageFlashcardsPage() {
         front: created.front,
         back: created.back,
         topic: created.topicName,
+        topicId: created.topicId,
         category: created.category,
         confidence: created.confidence ? created.confidence.toLowerCase() : undefined,
         createdAt: created.createdAt
@@ -119,6 +122,40 @@ export function ManageFlashcardsPage() {
       setFlashcards((prev) => prev.filter((fc) => fc.id !== id));
     } catch (err) {
       setError('Failed to delete flashcard.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleUpdateFlashcard = async (payload: FlashcardPayload) => {
+    if (!editingFlashcard) return;
+    setIsLoading(true);
+    setError('');
+    try {
+      const updated = await apiFetch<any>(`/api/flashcards/${editingFlashcard.id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({
+          front: payload.front,
+          back: payload.back,
+          category: payload.category
+        })
+      });
+      const mapped: Flashcard = {
+        id: updated.id,
+        front: updated.front,
+        back: updated.back,
+        topic: updated.topicName,
+        topicId: updated.topicId,
+        category: updated.category,
+        confidence: updated.confidence ? updated.confidence.toLowerCase() : undefined,
+        createdAt: updated.createdAt
+      };
+      setFlashcards((prev) => prev.map((fc) => (fc.id === mapped.id ? mapped : fc)));
+      setEditingFlashcard(null);
+      setIsAddModalOpen(false);
+    } catch (err) {
+      setError('Failed to update flashcard.');
+      throw err;
     } finally {
       setIsLoading(false);
     }
@@ -300,7 +337,14 @@ export function ManageFlashcardsPage() {
                 </div>
 
                 <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0"
+                    onClick={() => {
+                      setEditingFlashcard(flashcard);
+                      setIsAddModalOpen(true);
+                    }}>
                     <Edit2 className="h-4 w-4 text-slate-500" />
                   </Button>
                   <Button
@@ -319,9 +363,19 @@ export function ManageFlashcardsPage() {
 
       <AddFlashcardModal
         isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
-        onSave={handleAddFlashcard}
+        onClose={() => {
+          setIsAddModalOpen(false);
+          setEditingFlashcard(null);
+        }}
+        onSave={editingFlashcard ? handleUpdateFlashcard : handleAddFlashcard}
         topics={topics}
+        initial={editingFlashcard ? {
+          id: editingFlashcard.id,
+          front: editingFlashcard.front,
+          back: editingFlashcard.back,
+          topicId: editingFlashcard.topicId,
+          category: editingFlashcard.category
+        } : undefined}
       />
     </AppLayout>
   );

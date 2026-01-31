@@ -12,20 +12,24 @@ interface PlanItem {
 }
 interface DailyPlanWidgetProps {
   items: PlanItem[];
+  actionHref?: string;
+  cardHref?: string;
 }
-export function DailyPlanWidget({ items }: DailyPlanWidgetProps) {
-  return (
+export function DailyPlanWidget({ items, actionHref, cardHref }: DailyPlanWidgetProps) {
+  const actionButton = (
+    <Button
+      className="w-full"
+      rightIcon={<PlayCircle className="h-4 w-4" />}>
+      Start Session
+    </Button>
+  );
+  const card = (
     <Card
       title="Today's Study Plan"
       description="Recommended tasks based on your weak areas"
       className="h-full"
       footer={
-      <Button
-        className="w-full"
-        rightIcon={<PlayCircle className="h-4 w-4" />}>
-
-          Start Session
-        </Button>
+      actionHref ? <a href={actionHref}>{actionButton}</a> : actionButton
       }>
 
       <div className="space-y-4">
@@ -76,5 +80,7 @@ export function DailyPlanWidget({ items }: DailyPlanWidgetProps) {
         }
       </div>
     </Card>);
+
+  return cardHref ? <a href={cardHref}>{card}</a> : card;
 
 }

@@ -72,23 +72,23 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       {/* Sidebar container */}
       <div
         className={`
-        fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-slate-200 transform transition-transform duration-200 ease-in-out lg:translate-x-0 lg:static lg:inset-auto lg:flex lg:flex-col
+        fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 transform transition-transform duration-200 ease-in-out lg:translate-x-0 lg:static lg:inset-auto lg:flex lg:flex-col
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
 
         {/* Logo area */}
-        <div className="flex items-center justify-between h-16 px-6 border-b border-slate-100">
+        <div className="flex items-center justify-between h-16 px-6 border-b border-slate-100 dark:border-slate-800">
           <Link to="/dashboard" className="flex items-center gap-2">
             <div className="bg-teal-600 p-1.5 rounded-lg">
               <BookOpen className="h-5 w-5 text-white" />
             </div>
-            <span className="text-lg font-bold text-slate-900 tracking-tight">
+            <span className="text-lg font-bold text-slate-900 dark:text-slate-100 tracking-tight">
               BLEPP Review
             </span>
           </Link>
           <button
             onClick={onClose}
-            className="lg:hidden p-1 text-slate-500 hover:bg-slate-100 rounded-md">
+            className="lg:hidden p-1 text-slate-500 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md">
 
             <X className="h-5 w-5" />
           </button>
@@ -104,11 +104,11 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 to={item.href}
                 className={`
                   flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-colors
-                  ${active ? 'bg-teal-50 text-teal-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}
+                  ${active ? 'bg-teal-50 text-teal-700 dark:bg-teal-950/40 dark:text-teal-200' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100'}
                 `}>
 
                 <item.icon
-                  className={`h-5 w-5 ${active ? 'text-teal-600' : 'text-slate-400'}`} />
+                  className={`h-5 w-5 ${active ? 'text-teal-600 dark:text-teal-300' : 'text-slate-400 dark:text-slate-500'}`} />
 
                 {item.name}
               </Link>);
@@ -117,13 +117,13 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         </nav>
 
         {/* Footer area */}
-        <div className="p-4 border-t border-slate-100">
-          <div className="bg-slate-50 rounded-lg p-4">
-            <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
+        <div className="p-4 border-t border-slate-100 dark:border-slate-800">
+          <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-4">
+            <h4 className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
               Exam Date
             </h4>
-            <p className="text-sm font-medium text-slate-900">Aug 15, 2024</p>
-            <p className="text-xs text-slate-500 mt-1">124 days remaining</p>
+            <p className="text-sm font-medium text-slate-900 dark:text-slate-100">Aug 15, 2024</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">124 days remaining</p>
           </div>
         </div>
       </div>

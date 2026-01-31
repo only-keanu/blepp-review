@@ -2,7 +2,8 @@ import React from 'react';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { Clock, HelpCircle, Trophy } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { apiFetch } from '../../lib/api';
 interface MockExamCardProps {
   id: string;
   title: string;
@@ -19,6 +20,17 @@ export function MockExamCard({
   durationMinutes,
   bestScore
 }: MockExamCardProps) {
+  const navigate = useNavigate();
+  const handleStart = async () => {
+    try {
+      const session = await apiFetch<{ id: string }>(`/api/exams/${id}/session`, {
+        method: 'POST'
+      });
+      navigate(`/dashboard/exams/take/${session.id}`);
+    } catch (err) {
+      navigate(`/dashboard/exams/take/${id}`);
+    }
+  };
   return (
     <Card className="hover:border-teal-200 transition-colors">
       <div className="flex justify-between items-start mb-4">
@@ -46,9 +58,9 @@ export function MockExamCard({
         </div>
       </div>
 
-      <Link to={`/dashboard/exams/take/${id}`}>
-        <Button className="w-full">Start Exam</Button>
-      </Link>
+      <Button className="w-full" onClick={handleStart}>
+        Start Exam
+      </Button>
     </Card>);
 
 }

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { AppLayout } from '../components/layout/AppLayout';
 import { ReadinessWidget } from '../components/dashboard/ReadinessWidget';
 import { DailyPlanWidget } from '../components/dashboard/DailyPlanWidget';
@@ -7,60 +7,70 @@ import { useAuth } from '../hooks/useAuth';
 import { Card } from '../components/ui/Card';
 import { Progress } from '../components/ui/Progress';
 import { BookOpen, Award, Target } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { apiFetch } from '../lib/api';
+import { Topic } from '../types';
 export function DashboardPage() {
   const { user } = useAuth();
-  // Mock data
-  const planItems = [
-  {
-    id: '1',
-    subject: 'General Psychology',
-    count: 8,
-    type: 'questions' as const,
-    completed: false
-  },
-  {
-    id: '2',
-    subject: 'Abnormal Psychology',
-    count: 10,
-    type: 'questions' as const,
-    completed: false
-  },
-  {
-    id: '3',
-    subject: 'Ethics (RA 10029)',
-    count: 7,
-    type: 'questions' as const,
-    completed: true
-  },
-  {
-    id: '4',
-    subject: 'Flashcard Review',
-    count: 10,
-    type: 'flashcards' as const,
-    completed: false
-  }];
+  const [topics, setTopics] = useState<Topic[]>([]);
+  const [readiness, setReadiness] = useState(0);
+  const [dueCount, setDueCount] = useState(0);
+  const [error, setError] = useState('');
 
-  const topics = [
-  {
-    name: 'General Psychology',
-    progress: 45,
-    color: 'blue'
-  },
-  {
-    name: 'Abnormal Psychology',
-    progress: 30,
-    color: 'purple'
-  },
-  {
-    name: 'Psychological Assessment',
-    progress: 15,
-    color: 'amber'
-  },
-  {
-    name: 'Industrial Psychology',
-    progress: 60,
-    color: 'green'
-  }];
+  useEffect(() => {
+    const loadData = async () => {
+      setError('');
+      try {
+        const [topicsData, readinessData, flashcards] = await Promise.all([
+          apiFetch<any[]>('/api/topics'),
+          apiFetch<any>('/api/analytics/readiness'),
+          apiFetch<any[]>('/api/flashcards')
+        ]);
+        setTopics(topicsData);
+        setReadiness(readinessData.score ?? 0);
+
+        const today = new Date();
+        const due = flashcards.filter((fc) => {
+          if (!fc.nextReview) return false;
+          return new Date(fc.nextReview) <= today;
+        }).length;
+        setDueCount(due);
+      } catch (err) {
+        setError('Failed to load dashboard data.');
+      }
+    };
+    loadData();
+  }, []);
+
+  const planItems = useMemo(() => {
+    const withMastery = topics.map((t) => ({
+      id: t.id,
+      subject: t.name,
+      count: 10,
+      type: 'questions' as const,
+      completed: false,
+      mastery: (t as any).masteryPct ?? 0
+    }));
+    const sorted = [...withMastery].sort((a, b) => a.mastery - b.mastery);
+    const base = sorted.slice(0, 3);
+    const items = base.map(({ id, subject, count, type, completed }) => ({
+      id,
+      subject,
+      count,
+      type,
+      completed
+    }));
+    if (dueCount > 0) {
+      items.push({
+        id: 'flashcards-due',
+        subject: 'Flashcard Review',
+        count: dueCount,
+        type: 'flashcards' as const,
+        completed: false
+      });
+    }
+    return items;
+  }, [topics, dueCount]);
 
   return (
     <AppLayout>
@@ -93,16 +103,24 @@ export function DashboardPage() {
           {/* Column 1: Readiness & Due Items */}
           <div className="space-y-6">
             <div className="h-64">
-              <ReadinessWidget score={68} />
+              <ReadinessWidget score={readiness} />
             </div>
             <div className="h-64">
-              <DueQuestionsWidget count={12} />
+              <DueQuestionsWidget
+                count={dueCount}
+                actionHref="/dashboard/study/flashcards"
+                cardHref="/dashboard/study/flashcards"
+              />
             </div>
           </div>
 
           {/* Column 2: Daily Plan */}
           <div className="lg:col-span-1 h-full">
-            <DailyPlanWidget items={planItems} />
+            <DailyPlanWidget
+              items={planItems}
+              actionHref="/dashboard/study/practice"
+              cardHref="/dashboard/study/practice"
+            />
           </div>
 
           {/* Column 3: Topic Progress */}
@@ -112,27 +130,32 @@ export function DashboardPage() {
               description="Your progress across board subjects">
 
               <div className="space-y-6">
-                {topics.map((topic) =>
-                <div key={topic.name}>
+                {topics.map((topic) => {
+                  const progress = (topic as any).masteryPct ?? 0;
+                  return (
+                  <div key={topic.name}>
                     <div className="flex justify-between mb-2">
                       <span className="text-sm font-medium text-slate-700">
                         {topic.name}
                       </span>
                       <span className="text-sm text-slate-500">
-                        {topic.progress}%
+                        {progress}%
                       </span>
                     </div>
                     <Progress
-                    value={topic.progress}
-                    variant={topic.progress > 50 ? 'success' : 'default'}
+                    value={progress}
+                    variant={progress > 50 ? 'success' : 'default'}
                     size="sm" />
 
                   </div>
-                )}
+                  );
+                })}
 
-                <button className="w-full mt-4 text-sm text-teal-600 font-medium hover:text-teal-700 flex items-center justify-center gap-1">
+                <Link
+                  to="/dashboard/study/topics"
+                  className="w-full mt-4 text-sm text-teal-600 font-medium hover:text-teal-700 flex items-center justify-center gap-1">
                   View all topics <BookOpen className="h-3 w-3" />
-                </button>
+                </Link>
               </div>
             </Card>
           </div>

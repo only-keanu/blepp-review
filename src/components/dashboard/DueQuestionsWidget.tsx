@@ -4,9 +4,19 @@ import { Button } from '../ui/Button';
 import { Clock, RefreshCw, ArrowRight } from 'lucide-react';
 interface DueQuestionsWidgetProps {
   count: number;
+  actionHref?: string;
+  cardHref?: string;
 }
-export function DueQuestionsWidget({ count }: DueQuestionsWidgetProps) {
-  return (
+export function DueQuestionsWidget({ count, actionHref, cardHref }: DueQuestionsWidgetProps) {
+  const actionButton = (
+    <Button
+      variant="primary"
+      className="w-full bg-teal-500 hover:bg-teal-400 text-white border-none"
+      rightIcon={<ArrowRight className="h-4 w-4" />}>
+      Review Now
+    </Button>
+  );
+  const card = (
     <Card className="bg-gradient-to-br from-slate-900 to-slate-800 text-white border-none">
       <div className="flex flex-col h-full justify-between">
         <div className="flex justify-between items-start">
@@ -33,15 +43,11 @@ export function DueQuestionsWidget({ count }: DueQuestionsWidgetProps) {
         </div>
 
         <div className="mt-6">
-          <Button
-            variant="primary"
-            className="w-full bg-teal-500 hover:bg-teal-400 text-white border-none"
-            rightIcon={<ArrowRight className="h-4 w-4" />}>
-
-            Review Now
-          </Button>
+          {actionHref ? <a href={actionHref}>{actionButton}</a> : actionButton}
         </div>
       </div>
     </Card>);
+
+  return cardHref ? <a href={cardHref}>{card}</a> : card;
 
 }

@@ -34,6 +34,7 @@ export interface Flashcard {
   front: string;
   back: string;
   topic: string;
+  topicId?: string;
   category?: string;
   confidence?: 'low' | 'medium' | 'high';
   nextReview?: string;

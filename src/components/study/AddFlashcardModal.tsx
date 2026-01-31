@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
@@ -9,6 +9,13 @@ interface AddFlashcardModalProps {
   onClose: () => void;
   topics: Topic[];
   onSave: (payload: FlashcardCreatePayload) => Promise<void>;
+  initial?: {
+    id?: string;
+    front?: string;
+    back?: string;
+    topicId?: string;
+    category?: string;
+  };
 }
 interface FlashcardCreatePayload {
   front: string;
@@ -51,7 +58,8 @@ export function AddFlashcardModal({
   isOpen,
   onClose,
   onSave,
-  topics
+  topics,
+  initial
 }: AddFlashcardModalProps) {
   const [formData, setFormData] = useState({
     front: '',
@@ -61,6 +69,20 @@ export function AddFlashcardModal({
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitError, setSubmitError] = useState('');
+  const isEditMode = Boolean(initial?.id);
+
+  useEffect(() => {
+    if (isOpen) {
+      setFormData({
+        front: initial?.front || '',
+        back: initial?.back || '',
+        topicId: initial?.topicId || '',
+        category: initial?.category || ''
+      });
+      setErrors({});
+      setSubmitError('');
+    }
+  }, [isOpen, initial]);
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
     if (!formData.front.trim()) {
@@ -99,19 +121,22 @@ export function AddFlashcardModal({
       category: ''
     });
     setErrors({});
+    setSubmitError('');
   };
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Create New Flashcard"
+      title={isEditMode ? "Edit Flashcard" : "Create New Flashcard"}
       size="md"
       footer={
       <>
           <Button variant="ghost" onClick={onClose}>
             Cancel
           </Button>
-          <Button onClick={handleSubmit}>Save Flashcard</Button>
+          <Button onClick={handleSubmit}>
+            {isEditMode ? 'Save Changes' : 'Save Flashcard'}
+          </Button>
         </>
       }>
 
@@ -175,7 +200,8 @@ export function AddFlashcardModal({
             })
             }
             placeholder="Select topic..."
-            searchable />
+            searchable
+            disabled={isEditMode} />
 
           <Select
             label="Category (Optional)"

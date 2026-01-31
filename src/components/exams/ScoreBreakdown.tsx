@@ -10,7 +10,7 @@ interface ScoreBreakdownProps {
   score: number;
   totalQuestions: number;
   correctCount: number;
-  timeTaken: string;
+  timeTaken?: string;
   topicScores: TopicScore[];
 }
 export function ScoreBreakdown({
@@ -61,7 +61,7 @@ export function ScoreBreakdown({
             </p>
           </div>
           <div>
-            <p className="text-2xl font-bold text-slate-900">{timeTaken}</p>
+            <p className="text-2xl font-bold text-slate-900">{timeTaken || '--:--'}</p>
             <p className="text-xs text-slate-500 uppercase tracking-wide">
               Time
             </p>
