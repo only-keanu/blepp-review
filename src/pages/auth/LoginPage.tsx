@@ -19,7 +19,7 @@ export function LoginPage() {
       return;
     }
     try {
-      await login(email);
+      await login(email, password);
       navigate('/dashboard');
     } catch (err) {
       setError('Failed to sign in. Please try again.');

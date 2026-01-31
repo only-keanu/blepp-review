@@ -19,7 +19,7 @@ export function QuestionList({ questions }: QuestionListProps) {
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
                 <Badge variant="primary" size="sm">
-                  {question.topicId}
+                  {question.topicName || question.topicId}
                 </Badge>
                 <Badge
                 variant={

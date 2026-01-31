@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { AppLayout } from '../../components/layout/AppLayout';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
@@ -15,94 +15,115 @@ import {
   Filter } from
 'lucide-react';
 import { Link } from 'react-router-dom';
-import { Flashcard } from '../../types';
-const INITIAL_FLASHCARDS: Flashcard[] = [
-{
-  id: '1',
-  front: 'What is the "Strange Situation" procedure used to assess?',
-  back: 'Attachment styles in infants (Secure, Insecure-Avoidant, Insecure-Resistant)',
-  topic: 'Developmental Psych',
-  category: 'research',
-  confidence: 'high'
-},
-{
-  id: '2',
-  front: 'Who is considered the father of Modern Psychology?',
-  back: 'Wilhelm Wundt (established the first psychology lab in 1879)',
-  topic: 'History of Psych',
-  category: 'people',
-  confidence: 'medium'
-},
-{
-  id: '3',
-  front: 'Define "Operant Conditioning"',
-  back: 'A method of learning that occurs through rewards and punishments for behavior (B.F. Skinner)',
-  topic: 'Learning',
-  category: 'definitions',
-  confidence: 'low'
-},
-{
-  id: '4',
-  front: 'What are the 4 lobes of the cerebral cortex?',
-  back: 'Frontal, Parietal, Temporal, and Occipital lobes',
-  topic: 'General Psychology',
-  category: 'definitions'
-},
-{
-  id: '5',
-  front: 'What is the difference between Type I and Type II errors?',
-  back: 'Type I (False Positive): Rejecting a true null hypothesis. Type II (False Negative): Failing to reject a false null hypothesis.',
-  topic: 'General Psychology',
-  category: 'research',
-  confidence: 'medium'
-}];
+import { Flashcard, Topic } from '../../types';
+import { apiFetch } from '../../lib/api';
 
-const TOPIC_OPTIONS = [
-{
-  value: 'all',
-  label: 'All Topics'
-},
-{
-  value: 'General Psychology',
-  label: 'General Psychology'
-},
-{
-  value: 'Abnormal Psychology',
-  label: 'Abnormal Psychology'
-},
-{
-  value: 'Developmental Psych',
-  label: 'Developmental Psychology'
-},
-{
-  value: 'History of Psych',
-  label: 'History of Psychology'
-},
-{
-  value: 'Learning',
-  label: 'Learning & Conditioning'
-}];
+type FlashcardPayload = {
+  front: string;
+  back: string;
+  topicId: string;
+  category?: string;
+};
 
 export function ManageFlashcardsPage() {
-  const [flashcards, setFlashcards] = useState<Flashcard[]>(INITIAL_FLASHCARDS);
+  const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
+  const [topics, setTopics] = useState<Topic[]>([]);
   const [search, setSearch] = useState('');
   const [topicFilter, setTopicFilter] = useState('all');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const filteredFlashcards = flashcards.filter((fc) => {
-    const matchesSearch =
-    fc.front.toLowerCase().includes(search.toLowerCase()) ||
-    fc.back.toLowerCase().includes(search.toLowerCase());
-    const matchesTopic = topicFilter === 'all' || fc.topic === topicFilter;
-    return matchesSearch && matchesTopic;
-  });
-  const handleAddFlashcard = (newFlashcard: Flashcard) => {
-    setFlashcards((prev) => [newFlashcard, ...prev]);
-  };
-  const handleDeleteFlashcard = (id: string) => {
-    if (confirm('Are you sure you want to delete this flashcard?')) {
-      setFlashcards((prev) => prev.filter((fc) => fc.id !== id));
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const loadTopics = async () => {
+      try {
+        const data = await apiFetch<Topic[]>('/api/topics');
+        setTopics(data);
+      } catch (err) {
+        setError('Failed to load topics.');
+      }
+    };
+    loadTopics();
+  }, []);
+
+  useEffect(() => {
+    const loadFlashcards = async () => {
+      setIsLoading(true);
+      setError('');
+      try {
+        const data = await apiFetch<any[]>('/api/flashcards');
+        const mapped = data.map((card) => ({
+          id: card.id,
+          front: card.front,
+          back: card.back,
+          topic: card.topicName,
+          category: card.category,
+          confidence: card.confidence ? card.confidence.toLowerCase() : undefined,
+          createdAt: card.createdAt
+        })) as Flashcard[];
+        setFlashcards(mapped);
+      } catch (err) {
+        setError('Failed to load flashcards.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadFlashcards();
+  }, []);
+
+  const filteredFlashcards = useMemo(() => {
+    return flashcards.filter((fc) => {
+      const matchesSearch =
+        fc.front.toLowerCase().includes(search.toLowerCase()) ||
+        fc.back.toLowerCase().includes(search.toLowerCase());
+      const matchesTopic =
+        topicFilter === 'all' || fc.topic === topics.find((t) => t.id === topicFilter)?.name;
+      return matchesSearch && matchesTopic;
+    });
+  }, [flashcards, search, topicFilter, topics]);
+
+  const handleAddFlashcard = async (payload: FlashcardPayload) => {
+    setIsLoading(true);
+    setError('');
+    try {
+      const created = await apiFetch<any>('/api/flashcards', {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      });
+      const mapped: Flashcard = {
+        id: created.id,
+        front: created.front,
+        back: created.back,
+        topic: created.topicName,
+        category: created.category,
+        confidence: created.confidence ? created.confidence.toLowerCase() : undefined,
+        createdAt: created.createdAt
+      };
+      setFlashcards((prev) => [mapped, ...prev]);
+    } catch (err) {
+      setError('Failed to save flashcard.');
+      throw err;
+    } finally {
+      setIsLoading(false);
     }
   };
+
+  const handleDeleteFlashcard = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this flashcard?')) {
+      return;
+    }
+    setIsLoading(true);
+    setError('');
+    try {
+      await apiFetch<void>(`/api/flashcards/${id}`, { method: 'DELETE' });
+      setFlashcards((prev) => prev.filter((fc) => fc.id !== id));
+    } catch (err) {
+      setError('Failed to delete flashcard.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const getConfidenceBadge = (confidence?: string) => {
     switch (confidence) {
       case 'high':
@@ -128,9 +149,9 @@ export function ManageFlashcardsPage() {
           <Badge variant="outline" size="sm">
             New
           </Badge>);
-
     }
   };
+
   const stats = {
     total: flashcards.length,
     mastered: flashcards.filter((f) => f.confidence === 'high').length,
@@ -138,10 +159,15 @@ export function ManageFlashcardsPage() {
     needsReview: flashcards.filter((f) => f.confidence === 'low').length,
     new: flashcards.filter((f) => !f.confidence).length
   };
+
+  const topicOptions = [
+    { value: 'all', label: 'All Topics' },
+    ...topics.map((t) => ({ value: t.id, label: t.name }))
+  ];
+
   return (
     <AppLayout>
       <div className="space-y-6">
-        {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h1 className="text-2xl font-bold text-slate-900">My Flashcards</h1>
@@ -158,13 +184,17 @@ export function ManageFlashcardsPage() {
             <Button
               leftIcon={<Plus className="h-4 w-4" />}
               onClick={() => setIsAddModalOpen(true)}>
-
               Add Flashcard
             </Button>
           </div>
         </div>
 
-        {/* Stats Cards */}
+        {error && (
+          <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+            {error}
+          </div>
+        )}
+
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <Card className="text-center py-4">
             <p className="text-3xl font-bold text-slate-900">{stats.total}</p>
@@ -190,7 +220,6 @@ export function ManageFlashcardsPage() {
           </Card>
         </div>
 
-        {/* Filters */}
         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row gap-4">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
@@ -199,22 +228,23 @@ export function ManageFlashcardsPage() {
               placeholder="Search flashcards..."
               className="w-full pl-9 pr-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
               value={search}
-              onChange={(e) => setSearch(e.target.value)} />
-
+              onChange={(e) => setSearch(e.target.value)}
+            />
           </div>
           <div className="w-full sm:w-64">
             <Select
-              options={TOPIC_OPTIONS}
+              options={topicOptions}
               value={topicFilter}
               onChange={setTopicFilter}
-              placeholder="Filter by topic" />
-
+              placeholder="Filter by topic"
+            />
           </div>
         </div>
 
-        {/* Flashcard List */}
-        {filteredFlashcards.length === 0 ?
-        <div className="text-center py-16 bg-white rounded-xl border border-slate-200">
+        {isLoading ? (
+          <div className="text-center py-16 text-slate-500">Loading...</div>
+        ) : filteredFlashcards.length === 0 ? (
+          <div className="text-center py-16 bg-white rounded-xl border border-slate-200">
             <div className="bg-slate-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
               <RotateCw className="h-8 w-8 text-slate-400" />
             </div>
@@ -225,29 +255,27 @@ export function ManageFlashcardsPage() {
               Create your first flashcard to start studying!
             </p>
             <Button
-            onClick={() => setIsAddModalOpen(true)}
-            leftIcon={<Plus className="h-4 w-4" />}>
-
+              onClick={() => setIsAddModalOpen(true)}
+              leftIcon={<Plus className="h-4 w-4" />}>
               Create Flashcard
             </Button>
-          </div> :
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {filteredFlashcards.map((flashcard) =>
-          <Card
-            key={flashcard.id}
-            className="group hover:border-teal-200 transition-colors">
-
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {filteredFlashcards.map((flashcard) => (
+              <Card
+                key={flashcard.id}
+                className="group hover:border-teal-200 transition-colors">
                 <div className="flex justify-between items-start mb-3">
                   <div className="flex items-center gap-2">
                     <Badge variant="primary" size="sm">
                       {flashcard.topic}
                     </Badge>
-                    {flashcard.category &&
-                <Badge variant="outline" size="sm">
+                    {flashcard.category && (
+                      <Badge variant="outline" size="sm">
                         {flashcard.category}
                       </Badge>
-                }
+                    )}
                   </div>
                   {getConfidenceBadge(flashcard.confidence)}
                 </div>
@@ -276,25 +304,25 @@ export function ManageFlashcardsPage() {
                     <Edit2 className="h-4 w-4 text-slate-500" />
                   </Button>
                   <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 w-8 p-0 hover:text-red-600"
-                onClick={() => handleDeleteFlashcard(flashcard.id)}>
-
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0 hover:text-red-600"
+                    onClick={() => handleDeleteFlashcard(flashcard.id)}>
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
               </Card>
-          )}
+            ))}
           </div>
-        }
+        )}
       </div>
 
       <AddFlashcardModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
-        onSave={handleAddFlashcard} />
-
-    </AppLayout>);
-
+        onSave={handleAddFlashcard}
+        topics={topics}
+      />
+    </AppLayout>
+  );
 }

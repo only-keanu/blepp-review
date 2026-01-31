@@ -1,36 +1,89 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { AppLayout } from '../../components/layout/AppLayout';
 import { FlashcardView } from '../../components/study/FlashcardView';
 import { Button } from '../../components/ui/Button';
 import { Progress } from '../../components/ui/Progress';
 import { ArrowLeft, Settings } from 'lucide-react';
-import { Link } from 'react-router-dom';
-const MOCK_FLASHCARDS = [
-{
-  id: '1',
-  front: 'What is the "Strange Situation" procedure used to assess?',
-  back: 'Attachment styles in infants (Secure, Insecure-Avoidant, Insecure-Resistant)',
-  topic: 'Developmental Psych'
-},
-{
-  id: '2',
-  front: 'Who is considered the father of Modern Psychology?',
-  back: 'Wilhelm Wundt (established the first psychology lab in 1879)',
-  topic: 'History of Psych'
-},
-{
-  id: '3',
-  front: 'Define "Operant Conditioning"',
-  back: 'A method of learning that occurs through rewards and punishments for behavior (B.F. Skinner)',
-  topic: 'Learning'
-}];
+import { Link, useLocation } from 'react-router-dom';
+import { apiFetch } from '../../lib/api';
+import { Topic } from '../../types';
+
+type FlashcardApi = {
+  id: string;
+  topicId: string;
+  topicName: string;
+  front: string;
+  back: string;
+  category?: string;
+  confidence?: 'LOW' | 'MEDIUM' | 'HIGH';
+  nextReview?: string;
+};
+
+type FlashcardViewModel = {
+  id: string;
+  front: string;
+  back: string;
+  topic: string;
+};
 
 export function FlashcardsPage() {
+  const location = useLocation();
+  const [topics, setTopics] = useState<Topic[]>([]);
+  const [selectedTopic, setSelectedTopic] = useState<string>('all');
+  const [cards, setCards] = useState<FlashcardViewModel[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [completed, setCompleted] = useState(0);
-  const currentCard = MOCK_FLASHCARDS[currentIndex];
-  const totalCards = MOCK_FLASHCARDS.length;
-  const progress = completed / totalCards * 100;
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const loadTopics = async () => {
+      try {
+        const data = await apiFetch<Topic[]>('/api/topics');
+        setTopics(data);
+        const params = new URLSearchParams(location.search);
+        const topicFromUrl = params.get('topicId');
+        if (topicFromUrl && data.find((t) => t.id === topicFromUrl)) {
+          setSelectedTopic(topicFromUrl);
+        }
+      } catch (err) {
+        setError('Failed to load topics.');
+      }
+    };
+    loadTopics();
+  }, [location.search]);
+
+  useEffect(() => {
+    const loadCards = async () => {
+      setIsLoading(true);
+      setError('');
+      try {
+        const data = await apiFetch<FlashcardApi[]>('/api/flashcards');
+        const mapped = data.map((card) => ({
+          id: card.id,
+          front: card.front,
+          back: card.back,
+          topic: card.topicName
+        }));
+        const filtered = selectedTopic === 'all'
+          ? mapped
+          : mapped.filter((card) => card.topic === topics.find((t) => t.id === selectedTopic)?.name);
+        setCards(filtered);
+        setCurrentIndex(0);
+        setCompleted(0);
+      } catch (err) {
+        setError('Failed to load flashcards.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadCards();
+  }, [selectedTopic, topics]);
+
+  const currentCard = cards[currentIndex];
+  const totalCards = cards.length;
+  const progress = totalCards === 0 ? 0 : (completed / totalCards) * 100;
+
   const handleRate = (confidence: 'low' | 'medium' | 'high') => {
     setCompleted((prev) => prev + 1);
     if (currentIndex < totalCards - 1) {
@@ -39,46 +92,74 @@ export function FlashcardsPage() {
       alert('Review Complete!');
     }
   };
+
+  const topicOptions = useMemo(
+    () =>
+      [
+        <option key="all" value="all">All Topics</option>,
+        ...topics.map((t) => (
+          <option key={t.id} value={t.id}>
+            {t.name}
+          </option>
+        ))
+      ],
+    [topics]
+  );
+
   return (
     <AppLayout>
       <div className="max-w-4xl mx-auto h-[calc(100vh-8rem)] flex flex-col">
-        {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <Link
             to="/dashboard/study/topics"
             className="text-slate-500 hover:text-slate-900 flex items-center gap-2">
-
             <ArrowLeft className="h-4 w-4" />
             Back
           </Link>
           <div className="flex items-center gap-4">
+            <select
+              className="border border-slate-300 rounded-lg px-3 py-2 text-sm"
+              value={selectedTopic}
+              onChange={(e) => setSelectedTopic(e.target.value)}>
+              {topicOptions}
+            </select>
             <span className="text-sm font-medium text-slate-600">
-              Card {currentIndex + 1} / {totalCards}
+              Card {totalCards === 0 ? 0 : currentIndex + 1} / {totalCards}
             </span>
-            <Button
-              variant="ghost"
-              size="sm"
-              leftIcon={<Settings className="h-4 w-4" />}>
-
+            <Button variant="ghost" size="sm" leftIcon={<Settings className="h-4 w-4" />}>
               Options
             </Button>
           </div>
         </div>
 
-        {/* Progress */}
+        {error && (
+          <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700 mb-4">
+            {error}
+          </div>
+        )}
+
         <div className="mb-12">
           <Progress value={progress} size="sm" />
         </div>
 
-        {/* Card Area */}
-        <div className="flex-1 flex items-center justify-center">
-          <FlashcardView
-            key={currentCard.id} // Force re-render on card change
-            card={currentCard}
-            onRate={handleRate} />
-
-        </div>
+        {isLoading ? (
+          <div className="flex-1 flex items-center justify-center text-slate-500">
+            Loading...
+          </div>
+        ) : !currentCard ? (
+          <div className="flex-1 flex items-center justify-center text-slate-500">
+            No flashcards available.
+          </div>
+        ) : (
+          <div className="flex-1 flex items-center justify-center">
+            <FlashcardView
+              key={currentCard.id}
+              card={currentCard}
+              onRate={handleRate}
+            />
+          </div>
+        )}
       </div>
-    </AppLayout>);
-
+    </AppLayout>
+  );
 }

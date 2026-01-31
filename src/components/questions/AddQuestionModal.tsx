@@ -4,33 +4,23 @@ import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Select } from '../ui/Select';
 import { Plus, Trash2 } from 'lucide-react';
-import { Question } from '../../types';
+import { Question, Topic } from '../../types';
 interface AddQuestionModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (question: Question) => void;
+  topics: Topic[];
+  onSave: (payload: QuestionCreatePayload) => Promise<void>;
 }
-const TOPICS = [
-{
-  value: 'General Psychology',
-  label: 'General Psychology'
-},
-{
-  value: 'Abnormal Psychology',
-  label: 'Abnormal Psychology'
-},
-{
-  value: 'Psychological Assessment',
-  label: 'Psychological Assessment'
-},
-{
-  value: 'Industrial/Org Psychology',
-  label: 'Industrial/Org Psychology'
-},
-{
-  value: 'Ethics (RA 10029)',
-  label: 'Ethics (RA 10029)'
-}];
+interface QuestionCreatePayload {
+  text: string;
+  choices: string[];
+  correctAnswerIndex: number;
+  explanation: string;
+  topicId: string;
+  difficulty: Question['difficulty'];
+  category?: string;
+  tags: string[];
+}
 
 const DIFFICULTIES = [
 {
@@ -95,7 +85,8 @@ const CATEGORIES = [
 export function AddQuestionModal({
   isOpen,
   onClose,
-  onSave
+  onSave,
+  topics
 }: AddQuestionModalProps) {
   const [formData, setFormData] = useState({
     text: '',
@@ -108,6 +99,7 @@ export function AddQuestionModal({
     tags: ''
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [submitError, setSubmitError] = useState('');
   const handleChoiceChange = (index: number, value: string) => {
     const newChoices = [...formData.choices];
     newChoices[index] = value;
@@ -133,27 +125,29 @@ export function AddQuestionModal({
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!validateForm()) return;
-    const newQuestion: Question = {
-      id: `manual_${Date.now()}`,
+    setSubmitError('');
+    const payload: QuestionCreatePayload = {
       text: formData.text,
       choices: formData.choices,
       correctAnswerIndex: formData.correctAnswerIndex,
       explanation: formData.explanation,
       topicId: formData.topicId,
       difficulty: formData.difficulty,
-      source: 'manual',
       category: formData.category,
       tags: formData.tags.
       split(',').
       map((t) => t.trim()).
-      filter(Boolean),
-      createdAt: new Date().toISOString()
+      filter(Boolean)
     };
-    onSave(newQuestion);
-    handleReset();
-    onClose();
+    try {
+      await onSave(payload);
+      handleReset();
+      onClose();
+    } catch (err) {
+      setSubmitError('Failed to save question. Please try again.');
+    }
   };
   const handleReset = () => {
     setFormData({
@@ -209,7 +203,10 @@ export function AddQuestionModal({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Select
             label="Topic"
-            options={TOPICS}
+            options={topics.map((topic) => ({
+              value: topic.id,
+              label: topic.name
+            }))}
             value={formData.topicId}
             onChange={(value) =>
             setFormData({
@@ -310,10 +307,16 @@ export function AddQuestionModal({
             })
             } />
 
-          {errors.explanation &&
-          <p className="mt-1 text-sm text-red-600">{errors.explanation}</p>
-          }
+        {errors.explanation &&
+        <p className="mt-1 text-sm text-red-600">{errors.explanation}</p>
+        }
         </div>
+
+        {submitError &&
+        <div className="rounded-md bg-red-50 p-3 text-sm text-red-700">
+            {submitError}
+          </div>
+        }
 
         {/* Tags */}
         <Input

@@ -3,53 +3,19 @@ import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Select } from '../ui/Select';
-import { Flashcard } from '../../types';
+import { Flashcard, Topic } from '../../types';
 interface AddFlashcardModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (flashcard: Flashcard) => void;
+  topics: Topic[];
+  onSave: (payload: FlashcardCreatePayload) => Promise<void>;
 }
-const TOPICS = [
-{
-  value: 'General Psychology',
-  label: 'General Psychology'
-},
-{
-  value: 'Abnormal Psychology',
-  label: 'Abnormal Psychology'
-},
-{
-  value: 'Psychological Assessment',
-  label: 'Psychological Assessment'
-},
-{
-  value: 'Industrial/Org Psychology',
-  label: 'Industrial/Org Psychology'
-},
-{
-  value: 'Ethics (RA 10029)',
-  label: 'Ethics (RA 10029)'
-},
-{
-  value: 'Developmental Psych',
-  label: 'Developmental Psychology'
-},
-{
-  value: 'History of Psych',
-  label: 'History of Psychology'
-},
-{
-  value: 'Learning',
-  label: 'Learning & Conditioning'
-},
-{
-  value: 'Memory',
-  label: 'Memory & Cognition'
-},
-{
-  value: 'Social Psychology',
-  label: 'Social Psychology'
-}];
+interface FlashcardCreatePayload {
+  front: string;
+  back: string;
+  topicId: string;
+  category?: string;
+}
 
 const CATEGORIES = [
 {
@@ -84,15 +50,17 @@ const CATEGORIES = [
 export function AddFlashcardModal({
   isOpen,
   onClose,
-  onSave
+  onSave,
+  topics
 }: AddFlashcardModalProps) {
   const [formData, setFormData] = useState({
     front: '',
     back: '',
-    topic: '',
+    topicId: '',
     category: ''
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [submitError, setSubmitError] = useState('');
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
     if (!formData.front.trim()) {
@@ -101,32 +69,33 @@ export function AddFlashcardModal({
     if (!formData.back.trim()) {
       newErrors.back = 'Back side is required';
     }
-    if (!formData.topic) {
+    if (!formData.topicId) {
       newErrors.topic = 'Please select a topic';
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!validateForm()) return;
-    const newFlashcard: Flashcard = {
-      id: `fc_${Date.now()}`,
-      front: formData.front,
-      back: formData.back,
-      topic: formData.topic,
-      category: formData.category || undefined,
-      confidence: undefined,
-      createdAt: new Date().toISOString()
-    };
-    onSave(newFlashcard);
-    handleReset();
-    onClose();
+    setSubmitError('');
+    try {
+      await onSave({
+        front: formData.front,
+        back: formData.back,
+        topicId: formData.topicId,
+        category: formData.category || undefined
+      });
+      handleReset();
+      onClose();
+    } catch (err) {
+      setSubmitError('Failed to save flashcard. Please try again.');
+    }
   };
   const handleReset = () => {
     setFormData({
       front: '',
       back: '',
-      topic: '',
+      topicId: '',
       category: ''
     });
     setErrors({});
@@ -194,12 +163,15 @@ export function AddFlashcardModal({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Select
             label="Topic"
-            options={TOPICS}
-            value={formData.topic}
+            options={topics.map((topic) => ({
+              value: topic.id,
+              label: topic.name
+            }))}
+            value={formData.topicId}
             onChange={(value) =>
             setFormData({
               ...formData,
-              topic: value
+              topicId: value
             })
             }
             placeholder="Select topic..."
@@ -218,6 +190,12 @@ export function AddFlashcardModal({
             placeholder="Select category..." />
 
         </div>
+
+        {submitError &&
+        <div className="rounded-md bg-red-50 p-3 text-sm text-red-700">
+            {submitError}
+          </div>
+        }
 
         {/* Preview */}
         <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">

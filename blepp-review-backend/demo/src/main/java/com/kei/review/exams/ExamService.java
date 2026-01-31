@@ -3,6 +3,8 @@ package com.kei.review.exams;
 import com.kei.review.exams.dto.ExamAnswerRequest;
 import com.kei.review.exams.dto.ExamFlagResponse;
 import com.kei.review.exams.dto.ExamResponse;
+import com.kei.review.exams.dto.ExamResultResponse;
+import com.kei.review.exams.dto.ExamSessionQuestionResponse;
 import com.kei.review.exams.dto.ExamSessionResponse;
 import com.kei.review.exams.dto.ExamSubmitResponse;
 import java.util.List;
@@ -14,4 +16,6 @@ public interface ExamService {
     void recordAnswer(UUID userId, UUID sessionId, ExamAnswerRequest request);
     ExamSubmitResponse submit(UUID userId, UUID sessionId);
     List<ExamFlagResponse> listFlags(UUID userId, UUID sessionId);
+    List<ExamSessionQuestionResponse> listSessionQuestions(UUID userId, UUID sessionId);
+    ExamResultResponse results(UUID userId, UUID sessionId);
 }

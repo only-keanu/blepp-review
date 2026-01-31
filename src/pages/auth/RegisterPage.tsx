@@ -33,6 +33,7 @@ export function RegisterPage() {
     try {
       await register({
         email: formData.email,
+        password: formData.password,
         fullName: formData.fullName,
         targetExamDate: formData.targetExamDate,
         dailyStudyHours: Number(formData.dailyStudyHours)

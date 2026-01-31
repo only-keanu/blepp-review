@@ -21,6 +21,7 @@ export interface Question {
   correctAnswerIndex: number;
   explanation: string;
   topicId: string;
+  topicName?: string;
   difficulty: 'easy' | 'medium' | 'hard' | 'difficult';
   source: 'pdf' | 'ai' | 'manual';
   tags: string[];

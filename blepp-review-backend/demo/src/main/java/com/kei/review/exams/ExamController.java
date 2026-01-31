@@ -4,6 +4,8 @@ import com.kei.review.auth.UserPrincipal;
 import com.kei.review.exams.dto.ExamAnswerRequest;
 import com.kei.review.exams.dto.ExamFlagResponse;
 import com.kei.review.exams.dto.ExamResponse;
+import com.kei.review.exams.dto.ExamResultResponse;
+import com.kei.review.exams.dto.ExamSessionQuestionResponse;
 import com.kei.review.exams.dto.ExamSessionResponse;
 import com.kei.review.exams.dto.ExamSubmitResponse;
 import java.util.List;
@@ -63,5 +65,21 @@ public class ExamController {
         @AuthenticationPrincipal UserPrincipal principal
     ) {
         return ResponseEntity.ok(examService.listFlags(principal.getId(), sessionId));
+    }
+
+    @GetMapping("/session/{sessionId}/questions")
+    public ResponseEntity<List<ExamSessionQuestionResponse>> listQuestions(
+        @PathVariable UUID sessionId,
+        @AuthenticationPrincipal UserPrincipal principal
+    ) {
+        return ResponseEntity.ok(examService.listSessionQuestions(principal.getId(), sessionId));
+    }
+
+    @GetMapping("/session/{sessionId}/results")
+    public ResponseEntity<ExamResultResponse> results(
+        @PathVariable UUID sessionId,
+        @AuthenticationPrincipal UserPrincipal principal
+    ) {
+        return ResponseEntity.ok(examService.results(principal.getId(), sessionId));
     }
 }

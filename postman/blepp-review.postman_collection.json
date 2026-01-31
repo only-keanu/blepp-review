@@ -729,7 +729,62 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "exams", "{{examId}}", "session"]
             }
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', function () {",
+                  "  pm.expect(pm.response.code).to.eql(200);",
+                  "});",
+                  "try {",
+                  "  const json = pm.response.json();",
+                  "  if (json && json.id) {",
+                  "    pm.collectionVariables.set('examSessionId', json.id);",
+                  "  }",
+                  "} catch (e) {}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List Session Questions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/exams/session/{{examSessionId}}/questions",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "exams", "session", "{{examSessionId}}", "questions"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', function () {",
+                  "  pm.expect(pm.response.code).to.eql(200);",
+                  "});",
+                  "try {",
+                  "  const json = pm.response.json();",
+                  "  if (Array.isArray(json) && json.length > 0 && json[0].questionId) {",
+                  "    pm.collectionVariables.set('questionId', json[0].questionId);",
+                  "  }",
+                  "} catch (e) {}"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Record Exam Answer",
@@ -770,6 +825,40 @@
               "raw": "{{baseUrl}}/api/exams/session/{{examSessionId}}/submit",
               "host": ["{{baseUrl}}"],
               "path": ["api", "exams", "session", "{{examSessionId}}", "submit"]
+            }
+          }
+        },
+        {
+          "name": "Results",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/exams/session/{{examSessionId}}/results",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "exams", "session", "{{examSessionId}}", "results"]
+            }
+          }
+        },
+        {
+          "name": "List Flags",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/exams/session/{{examSessionId}}/flags",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "exams", "session", "{{examSessionId}}", "flags"]
             }
           }
         }
