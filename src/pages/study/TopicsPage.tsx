@@ -7,6 +7,7 @@ import { ArrowRight, BookOpen, Brain, Activity, Users, Scale } from 'lucide-reac
 import { Link, useSearchParams } from 'react-router-dom';
 import { apiFetch } from '../../lib/api';
 import { Topic } from '../../types';
+import { Modal } from '../../components/ui/Modal';
 
 const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   blue: Brain,
@@ -16,11 +17,24 @@ const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   red: BookOpen,
   gray: BookOpen
 };
+const COLORS = [
+  { value: 'blue', label: 'Blue' },
+  { value: 'purple', label: 'Purple' },
+  { value: 'amber', label: 'Amber' },
+  { value: 'green', label: 'Green' },
+  { value: 'red', label: 'Red' },
+  { value: 'gray', label: 'Gray' }
+];
 
 export function TopicsPage() {
   const [topics, setTopics] = useState<Topic[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [isAddOpen, setIsAddOpen] = useState(false);
+  const [newName, setNewName] = useState('');
+  const [newColor, setNewColor] = useState('blue');
+  const [addError, setAddError] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
   const [searchParams] = useSearchParams();
 
   useEffect(() => {
@@ -76,11 +90,16 @@ export function TopicsPage() {
   return (
     <AppLayout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Study Topics</h1>
-          <p className="text-slate-500 dark:text-slate-400 mt-1">
-            Select a subject to start practicing questions.
-          </p>
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Study Topics</h1>
+            <p className="text-slate-500 dark:text-slate-400 mt-1">
+              Select a subject to start practicing questions.
+            </p>
+          </div>
+          <Button variant="outline" onClick={() => setIsAddOpen(true)}>
+            Add Topic
+          </Button>
         </div>
 
         {error && (
@@ -137,6 +156,99 @@ export function TopicsPage() {
           </div>
         )}
       </div>
+
+      <Modal
+        isOpen={isAddOpen}
+        onClose={() => {
+          setIsAddOpen(false);
+          setAddError('');
+        }}
+        title="Add Study Topic"
+        footer={
+          <>
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setIsAddOpen(false);
+                setAddError('');
+              }}>
+              Cancel
+            </Button>
+            <Button
+              onClick={async () => {
+                const name = newName.trim();
+                if (!name) {
+                  setAddError('Topic name is required.');
+                  return;
+                }
+                setIsSaving(true);
+                setAddError('');
+                try {
+                  const created = await apiFetch<any>('/api/topics', {
+                    method: 'POST',
+                    body: JSON.stringify({ name, color: newColor })
+                  });
+                  setTopics((prev) => [
+                    ...prev,
+                    {
+                      id: created.id,
+                      name: created.name,
+                      slug: created.slug,
+                      color: created.color,
+                      weak: created.weak,
+                      masteryPct: created.masteryPct
+                    } as Topic
+                  ]);
+                  setNewName('');
+                  setNewColor('blue');
+                  setIsAddOpen(false);
+                } catch (err) {
+                  setAddError('Failed to add topic.');
+                } finally {
+                  setIsSaving(false);
+                }
+              }}
+              disabled={isSaving}>
+              {isSaving ? 'Saving...' : 'Add Topic'}
+            </Button>
+          </>
+        }>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+              Topic name
+            </label>
+            <input
+              type="text"
+              className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 px-3 py-2 text-sm"
+              placeholder="e.g., Developmental Psychology"
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+              Color
+            </label>
+            <select
+              className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 px-3 py-2 text-sm"
+              value={newColor}
+              onChange={(e) => setNewColor(e.target.value)}
+            >
+              {COLORS.map((c) => (
+                <option key={c.value} value={c.value}>
+                  {c.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          {addError && (
+            <div className="rounded-md bg-red-50 dark:bg-red-950/40 p-3 text-sm text-red-700 dark:text-red-200">
+              {addError}
+            </div>
+          )}
+        </div>
+      </Modal>
     </AppLayout>
   );
 }

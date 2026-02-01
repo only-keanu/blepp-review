@@ -56,33 +56,88 @@ export function PracticePage() {
     setIsLoading(true);
     setError('');
     try {
-      const session = await apiFetch<PracticeSessionResponse>('/api/practice/session', {
-        method: 'POST',
-        body: JSON.stringify({
-          topicId: selectedTopic,
-          difficulty: 'MEDIUM',
-          questionCount: 10
-        })
-      });
-      setSessionId(session.id);
-      const data = await apiFetch<any[]>(
-        `/api/questions?topicId=${encodeURIComponent(selectedTopic)}`
-      );
-      const mapped = data.map((q) => ({
-        id: q.id,
-        topicId: q.topicId,
-        topicName: q.topicName,
-        text: q.text,
-        choices: q.choices,
-        correctAnswerIndex: q.correctAnswerIndex,
-        explanation: q.explanation,
-        difficulty: q.difficulty.toLowerCase(),
-        source: q.source.toLowerCase(),
-        tags: q.tags || [],
-        category: q.category,
-        createdAt: q.createdAt
-      })) as Question[];
-      setQuestions(mapped.slice(0, 10));
+      const params = new URLSearchParams(location.search);
+      const mode = params.get('mode');
+      const scope = params.get('scope');
+      if (mode === 'mistakes') {
+        if (scope === 'all') {
+          const session = await apiFetch<PracticeSessionResponse>(
+            `/api/practice/mistakes/session/all`,
+            { method: 'POST' }
+          );
+          setSessionId(session.id);
+          const data = await apiFetch<any[]>(
+            `/api/practice/mistakes/questions/all`
+          );
+          const mapped = data.map((q) => ({
+            id: q.id,
+            topicId: q.topicId,
+            topicName: q.topicName,
+            text: q.text,
+            choices: q.choices,
+            correctAnswerIndex: q.correctAnswerIndex,
+            explanation: q.explanation,
+            difficulty: q.difficulty.toLowerCase(),
+            source: q.source.toLowerCase(),
+            tags: q.tags || [],
+            category: q.category,
+            createdAt: q.createdAt
+          })) as Question[];
+          setQuestions(mapped);
+        } else {
+          const session = await apiFetch<PracticeSessionResponse>(
+            `/api/practice/mistakes/session?topicId=${encodeURIComponent(selectedTopic)}`,
+            { method: 'POST' }
+          );
+          setSessionId(session.id);
+          const data = await apiFetch<any[]>(
+            `/api/practice/mistakes/questions?topicId=${encodeURIComponent(selectedTopic)}`
+          );
+          const mapped = data.map((q) => ({
+            id: q.id,
+            topicId: q.topicId,
+            topicName: q.topicName,
+          text: q.text,
+          choices: q.choices,
+          correctAnswerIndex: q.correctAnswerIndex,
+          explanation: q.explanation,
+          difficulty: q.difficulty.toLowerCase(),
+          source: q.source.toLowerCase(),
+            tags: q.tags || [],
+            category: q.category,
+            createdAt: q.createdAt
+          })) as Question[];
+          setQuestions(mapped);
+        }
+      } else {
+        const session = await apiFetch<PracticeSessionResponse>('/api/practice/session', {
+          method: 'POST',
+          body: JSON.stringify({
+            topicId: selectedTopic,
+            difficulty: 'MEDIUM',
+            questionCount: 10
+          })
+        });
+        setSessionId(session.id);
+        const data = await apiFetch<any[]>(
+          `/api/questions?topicId=${encodeURIComponent(selectedTopic)}`
+        );
+        const mapped = data.map((q) => ({
+          id: q.id,
+          topicId: q.topicId,
+          topicName: q.topicName,
+          text: q.text,
+          choices: q.choices,
+          correctAnswerIndex: q.correctAnswerIndex,
+          explanation: q.explanation,
+          difficulty: q.difficulty.toLowerCase(),
+          source: q.source.toLowerCase(),
+          tags: q.tags || [],
+          category: q.category,
+          createdAt: q.createdAt
+        })) as Question[];
+        setQuestions(mapped.slice(0, 10));
+      }
       setCurrentQuestionIndex(0);
       setSelectedAnswer(null);
       setIsSubmitted(false);
@@ -98,7 +153,7 @@ export function PracticePage() {
     if (selectedTopic) {
       startSession();
     }
-  }, [selectedTopic]);
+  }, [selectedTopic, location.search]);
 
   const handleSelectAnswer = (index: number) => {
     if (!isSubmitted) {

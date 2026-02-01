@@ -1,9 +1,11 @@
 package com.kei.review.topics;
 
 import com.kei.review.topics.dto.TopicResponse;
+import com.kei.review.topics.dto.TopicCreateRequest;
 import com.kei.review.topics.dto.WeakToggleRequest;
 import com.kei.review.users.User;
 import com.kei.review.users.UserRepository;
+import java.text.Normalizer;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -82,5 +84,48 @@ public class TopicServiceImpl implements TopicService {
             saved.isWeak(),
             saved.getMasteryPct()
         );
+    }
+
+    @Override
+    public TopicResponse createTopic(UUID userId, TopicCreateRequest request) {
+        String name = request.name().trim();
+        String color = request.color() == null || request.color().isBlank()
+            ? "blue"
+            : request.color().trim();
+
+        String baseSlug = toSlug(name);
+        String slug = baseSlug;
+        int suffix = 2;
+        while (topicRepository.findBySlug(slug).isPresent()) {
+            slug = baseSlug + "-" + suffix;
+            suffix += 1;
+        }
+
+        Topic topic = Topic.builder()
+            .name(name)
+            .slug(slug)
+            .color(color)
+            .build();
+
+        Topic saved = topicRepository.save(topic);
+        return new TopicResponse(
+            saved.getId(),
+            saved.getName(),
+            saved.getSlug(),
+            saved.getColor(),
+            false,
+            0
+        );
+    }
+
+    private String toSlug(String input) {
+        String normalized = Normalizer.normalize(input, Normalizer.Form.NFD)
+            .replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
+        String slug = normalized
+            .toLowerCase()
+            .replaceAll("[^a-z0-9\\s-]", "")
+            .trim()
+            .replaceAll("\\s+", "-");
+        return slug.isBlank() ? "topic" : slug;
     }
 }
