@@ -17,6 +17,8 @@ import { PracticePage } from './pages/study/PracticePage';
 import { FlashcardsPage } from './pages/study/FlashcardsPage';
 import { MistakesPage } from './pages/study/MistakesPage';
 import { ManageFlashcardsPage } from './pages/study/ManageFlashcardsPage';
+import { TopicLessonsPage } from './pages/study/TopicLessonsPage';
+import { LessonReviewPage } from './pages/study/LessonReviewPage';
 // Question Pages
 import { GeneratePage } from './pages/questions/GeneratePage';
 import { BankPage } from './pages/questions/BankPage';
@@ -112,6 +114,30 @@ export function App() {
           element={
           <ProtectedRoute>
               <TopicsPage />
+            </ProtectedRoute>
+          } />
+
+        <Route
+          path="/dashboard/study/lessons/:slug"
+          element={
+          <ProtectedRoute>
+              <TopicLessonsPage />
+            </ProtectedRoute>
+          } />
+
+        <Route
+          path="/dashboard/study/topics/:slug"
+          element={
+          <ProtectedRoute>
+              <TopicLessonsPage />
+            </ProtectedRoute>
+          } />
+
+        <Route
+          path="/dashboard/study/lesson/:topicSlug/:lessonId"
+          element={
+          <ProtectedRoute>
+              <LessonReviewPage />
             </ProtectedRoute>
           } />
 
