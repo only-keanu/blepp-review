@@ -76,3 +76,14 @@ export interface StudyPlan {
   items: StudyPlanItem[];
   totalTimeMinutes: number;
 }
+
+export interface Lesson {
+  id: string;
+  topicSlug: string;
+  number: number;
+  title: string;
+  description: string;
+  duration: number;
+  completed: boolean;
+  questionsCount: number;
+}
