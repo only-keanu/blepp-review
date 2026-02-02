@@ -1,58 +1,71 @@
-import React, { useEffect, useState, memo } from 'react';
+import React, { useState } from 'react';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
-import { Loader2, Sparkles, Check } from 'lucide-react';
+import { Sparkles, Check } from 'lucide-react';
 import { Question } from '../../types';
+import { apiFetch } from '../../lib/api';
 interface QuestionGeneratorProps {
   file: File;
+  uploadId: string | null;
+  topicId: string;
+  topicName: string;
   onSave: (questions: Question[]) => void;
 }
-export function QuestionGenerator({ file, onSave }: QuestionGeneratorProps) {
+interface GenerationRunResponse {
+  jobId: string;
+  status: string;
+  questionCount: number;
+  questions: {
+    text: string;
+    choices: string[];
+    correctAnswerIndex: number;
+    explanation: string;
+    difficulty: string;
+    tags: string[];
+  }[];
+}
+export function QuestionGenerator({ file, uploadId, topicId, topicName, onSave }: QuestionGeneratorProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedQuestions, setGeneratedQuestions] = useState<Question[]>([]);
-  const handleGenerate = () => {
+  const [error, setError] = useState<string | null>(null);
+  const handleGenerate = async () => {
+    if (!uploadId) {
+      setError('Upload is missing. Please re-upload your PDF.');
+      return;
+    }
+    if (!topicId) {
+      setError('Please select a topic before generating.');
+      return;
+    }
+    setError(null);
     setIsGenerating(true);
-    // Simulate AI generation delay
-    setTimeout(() => {
-      const mockQuestions: Question[] = [
-      {
-        id: 'gen_1',
-        topicId: 'General Psychology',
-        text: 'Based on the uploaded text, which concept best describes the phenomenon where a person cannot remember events prior to a trauma?',
-        choices: [
-        'Anterograde Amnesia',
-        'Retrograde Amnesia',
-        'Dissociative Fugue',
-        'Repression'],
-
-        correctAnswerIndex: 1,
-        explanation:
-        'Retrograde amnesia is the loss of memory-access to events that occurred, or information that was learned, before an injury or the onset of a disease.',
-        difficulty: 'medium',
+    try {
+      const response = await apiFetch<GenerationRunResponse>('/api/generation/run', {
+        method: 'POST',
+        body: JSON.stringify({
+          uploadId,
+          questionCount: 10,
+          model: null
+        })
+      });
+      const mapped = (response.questions ?? []).map((question, index) => ({
+        id: `gen_${response.jobId}_${index}`,
+        topicId,
+        topicName,
+        text: question.text,
+        choices: question.choices,
+        correctAnswerIndex: question.correctAnswerIndex,
+        explanation: question.explanation,
+        difficulty: question.difficulty?.toLowerCase?.() ?? 'medium',
         source: 'ai',
-        tags: ['memory', 'disorders']
-      },
-      {
-        id: 'gen_2',
-        topicId: 'General Psychology',
-        text: "The text discusses Piaget's stages. Which stage is characterized by abstract thinking?",
-        choices: [
-        'Sensorimotor',
-        'Preoperational',
-        'Concrete Operational',
-        'Formal Operational'],
-
-        correctAnswerIndex: 3,
-        explanation:
-        'The Formal Operational stage (age 12+) is characterized by the ability to think abstractly, reason logically, and draw conclusions from the information available.',
-        difficulty: 'easy',
-        source: 'ai',
-        tags: ['development', 'piaget']
-      }];
-
-      setGeneratedQuestions(mockQuestions);
+        tags: question.tags ?? []
+      })) as Question[];
+      setGeneratedQuestions(mapped);
+    } catch (err) {
+      setError('Failed to generate questions. Please try again.');
+    } finally {
       setIsGenerating(false);
-    }, 2500);
+    }
   };
   if (generatedQuestions.length > 0) {
     return (
@@ -73,7 +86,7 @@ export function QuestionGenerator({ file, onSave }: QuestionGeneratorProps) {
           <Card key={q.id} className="border-l-4 border-l-teal-500">
               <div className="flex justify-between items-start mb-2">
                 <span className="text-xs font-medium text-teal-600 dark:text-teal-200 bg-teal-50 dark:bg-teal-950/40 px-2 py-1 rounded-full">
-                  {q.topicId}
+                  {q.topicName || q.topicId}
                 </span>
                 <span className="text-xs text-slate-400 dark:text-slate-500">AI Generated</span>
               </div>
@@ -126,6 +139,9 @@ export function QuestionGenerator({ file, onSave }: QuestionGeneratorProps) {
           <Button onClick={handleGenerate} size="lg" className="mt-4">
             Generate Questions
           </Button>
+          {error &&
+          <p className="text-sm text-red-600 dark:text-red-300">{error}</p>
+          }
         </div>
       }
     </div>);
