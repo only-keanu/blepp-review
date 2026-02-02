@@ -16,6 +16,7 @@ type SearchResult = {
 export function Header({ onMenuClick }: HeaderProps) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [menuOpen, setMenuOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
   const [isOpen, setIsOpen] = useState(false);
@@ -23,6 +24,7 @@ export function Header({ onMenuClick }: HeaderProps) {
   const [topicsCache, setTopicsCache] = useState<any[] | null>(null);
   const [flashcardsCache, setFlashcardsCache] = useState<any[] | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   const handleLogout = () => {
     logout();
     navigate('/auth/login');
@@ -35,6 +37,12 @@ export function Header({ onMenuClick }: HeaderProps) {
         !containerRef.current.contains(event.target as Node)
       ) {
         setIsOpen(false);
+      }
+      if (
+        menuRef.current &&
+        !menuRef.current.contains(event.target as Node)
+      ) {
+        setMenuOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -254,8 +262,12 @@ export function Header({ onMenuClick }: HeaderProps) {
               </p>
               <p className="text-xs text-slate-500 dark:text-slate-400">Psychology Student</p>
             </div>
-            <div className="relative group">
-              <button className="flex items-center gap-2 focus:outline-none">
+            <div className="relative" ref={menuRef}>
+              <button
+                className="flex items-center gap-2 focus:outline-none"
+                onClick={() => setMenuOpen((prev) => !prev)}
+                aria-haspopup="menu"
+                aria-expanded={menuOpen}>
                 <img
                   src={user?.avatarUrl}
                   alt={user?.fullName}
@@ -264,7 +276,7 @@ export function Header({ onMenuClick }: HeaderProps) {
               </button>
 
               {/* Dropdown menu */}
-              <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-900 rounded-lg shadow-lg border border-slate-100 dark:border-slate-800 py-1 hidden group-hover:block hover:block">
+              <div className={`absolute right-0 mt-2 w-48 bg-white dark:bg-slate-900 rounded-lg shadow-lg border border-slate-100 dark:border-slate-800 py-1 ${menuOpen ? 'block' : 'hidden'}`}>
                 <div className="px-4 py-2 border-b border-slate-100 dark:border-slate-800 sm:hidden">
                   <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
                     {user?.fullName}

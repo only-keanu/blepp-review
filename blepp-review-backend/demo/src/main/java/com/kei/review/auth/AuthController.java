@@ -2,6 +2,7 @@ package com.kei.review.auth;
 
 import com.kei.review.auth.dto.AuthResponse;
 import com.kei.review.auth.dto.LoginRequest;
+import com.kei.review.auth.dto.OAuthCodeRequest;
 import com.kei.review.auth.dto.RegisterRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -39,5 +40,15 @@ public class AuthController {
     public ResponseEntity<Void> logout(@RequestHeader("Authorization") String refreshToken) {
         authService.logout(refreshToken);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/oauth/google")
+    public ResponseEntity<AuthResponse> oauthGoogle(@RequestBody OAuthCodeRequest request) {
+        return ResponseEntity.ok(authService.oauthGoogle(request));
+    }
+
+    @PostMapping("/oauth/facebook")
+    public ResponseEntity<AuthResponse> oauthFacebook(@RequestBody OAuthCodeRequest request) {
+        return ResponseEntity.ok(authService.oauthFacebook(request));
     }
 }

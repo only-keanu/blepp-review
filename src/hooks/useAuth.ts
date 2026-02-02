@@ -12,6 +12,7 @@ interface AuthContextType {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (data: Partial<User> & {password?: string;}) => Promise<void>;
+  oauthLogin: (provider: 'google' | 'facebook', code: string, redirectUri: string) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
 }
@@ -92,6 +93,20 @@ export function useAuth() {
     isLoading,
     login,
     register,
+    oauthLogin: async (provider: 'google' | 'facebook', code: string, redirectUri: string) => {
+      setIsLoading(true);
+      try {
+        const auth = await apiFetch<AuthResponse>(`/api/auth/oauth/${provider}`, {
+          method: 'POST',
+          body: JSON.stringify({ code, redirectUri })
+        });
+        setTokens(auth.accessToken, auth.refreshToken);
+        const profile = await apiFetch<User>('/api/me');
+        setUser(profile);
+      } finally {
+        setIsLoading(false);
+      }
+    },
     logout,
     isAuthenticated: !!user
   };

@@ -8,6 +8,7 @@ import {
 import { LandingPage } from './pages/LandingPage';
 import { LoginPage } from './pages/auth/LoginPage';
 import { RegisterPage } from './pages/auth/RegisterPage';
+import { OAuthCallbackPage } from './pages/auth/OAuthCallbackPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { useAuth } from './hooks/useAuth';
 // Study Pages
@@ -79,6 +80,14 @@ export function App() {
           element={
           <PublicRoute>
               <RegisterPage />
+            </PublicRoute>
+          } />
+
+        <Route
+          path="/auth/:provider/callback"
+          element={
+          <PublicRoute>
+              <OAuthCallbackPage />
             </PublicRoute>
           } />
 

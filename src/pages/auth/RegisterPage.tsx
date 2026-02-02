@@ -5,6 +5,7 @@ import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
 import { useAuth } from '../../hooks/useAuth';
 import { Mail, Lock, User, Calendar, Clock } from 'lucide-react';
+import { buildFacebookAuthUrl, buildGoogleAuthUrl, openOAuthPopup } from '../../lib/oauth';
 export function RegisterPage() {
   const [formData, setFormData] = useState({
     fullName: '',
@@ -14,8 +15,48 @@ export function RegisterPage() {
     dailyStudyHours: 2
   });
   const [error, setError] = useState('');
-  const { register, isLoading } = useAuth();
+  const { register, isLoading, oauthLogin } = useAuth();
   const navigate = useNavigate();
+  const handleOAuth = async (provider: 'google' | 'facebook') => {
+    setError('');
+    const origin = window.location.origin;
+    const redirectUri = `${origin}/auth/${provider}/callback`;
+    const state = `${provider}-${Math.random().toString(36).slice(2)}`;
+
+    const clientId =
+      provider === 'google'
+        ? import.meta.env.VITE_GOOGLE_CLIENT_ID
+        : import.meta.env.VITE_FACEBOOK_APP_ID;
+    if (!clientId) {
+      setError(`Missing ${provider === 'google' ? 'Google' : 'Facebook'} client ID.`);
+      return;
+    }
+
+    const authUrl =
+      provider === 'google'
+        ? buildGoogleAuthUrl(clientId, redirectUri, state)
+        : buildFacebookAuthUrl(clientId, redirectUri, state);
+
+    try {
+      const result = await openOAuthPopup(authUrl, `${provider}-oauth`);
+      if (result.error) {
+        setError('Authentication was cancelled.');
+        return;
+      }
+      if (!result.code) {
+        setError('No authorization code received.');
+        return;
+      }
+      if (result.state !== state) {
+        setError('OAuth state mismatch. Please try again.');
+        return;
+      }
+      await oauthLogin(provider, result.code, redirectUri);
+      navigate('/dashboard');
+    } catch (err) {
+      setError('Social sign up failed. Please try again.');
+    }
+  };
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -49,6 +90,36 @@ export function RegisterPage() {
       subtitle="Start your journey to becoming a Registered Psychologist">
 
       <form className="space-y-5" onSubmit={handleSubmit}>
+        <div className="space-y-3">
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full"
+            onClick={() => handleOAuth('google')}
+          >
+            Continue with Google
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full"
+            onClick={() => handleOAuth('facebook')}
+          >
+            Continue with Facebook
+          </Button>
+        </div>
+
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-slate-300 dark:border-slate-700" />
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="bg-white dark:bg-slate-900 px-2 text-slate-500 dark:text-slate-400">
+              Or sign up with email
+            </span>
+          </div>
+        </div>
+
         <Input
           label="Full Name"
           name="fullName"
