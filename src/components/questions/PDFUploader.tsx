@@ -1,15 +1,16 @@
 import React, { useState, useRef } from 'react';
 import { Upload, FileText, CheckCircle2, AlertCircle, X } from 'lucide-react';
-import { Button } from '../ui/Button';
 import { Progress } from '../ui/Progress';
+import { apiFetch } from '../../lib/api';
 interface PDFUploaderProps {
-  onUploadComplete: (file: File) => void;
+  onUploadComplete: (file: File, uploadId: string) => void;
 }
 export function PDFUploader({ onUploadComplete }: PDFUploaderProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -41,20 +42,27 @@ export function PDFUploader({ onUploadComplete }: PDFUploaderProps) {
       return;
     }
     setFile(file);
-    simulateUpload(file);
+    uploadFile(file);
   };
-  const simulateUpload = (file: File) => {
-    setUploadProgress(0);
-    const interval = setInterval(() => {
-      setUploadProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          onUploadComplete(file);
-          return 100;
-        }
-        return prev + 10;
+  const uploadFile = async (file: File) => {
+    setUploadProgress(10);
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      setUploadProgress(35);
+      const response = await apiFetch<{ uploadId: string }>('/api/generation/upload', {
+        method: 'POST',
+        body: formData
       });
-    }, 200);
+      setUploadProgress(100);
+      onUploadComplete(file, response.uploadId);
+    } catch (err) {
+      setError('Upload failed. Please try again.');
+      setUploadProgress(0);
+    } finally {
+      setIsUploading(false);
+    }
   };
   const clearFile = () => {
     setFile(null);
@@ -124,7 +132,7 @@ export function PDFUploader({ onUploadComplete }: PDFUploaderProps) {
           <div className="space-y-2">
             <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400">
               <span>
-                {uploadProgress < 100 ? 'Uploading...' : 'Upload Complete'}
+                {isUploading || uploadProgress < 100 ? 'Uploading...' : 'Upload Complete'}
               </span>
               <span>{uploadProgress}%</span>
             </div>
