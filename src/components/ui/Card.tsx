@@ -6,6 +6,7 @@ interface CardProps {
   description?: string;
   footer?: React.ReactNode;
   noPadding?: boolean;
+  onClick?: React.MouseEventHandler<HTMLDivElement>;
 }
 export function Card({
   children,
@@ -13,11 +14,26 @@ export function Card({
   title,
   description,
   footer,
-  noPadding = false
+  noPadding = false,
+  onClick
 }: CardProps) {
   return (
     <div
-      className={`bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden ${className}`}>
+      className={`bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden ${onClick ? 'cursor-pointer' : ''} ${className}`}
+      onClick={onClick}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={
+        onClick
+          ? (event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault();
+              onClick(event as unknown as React.MouseEvent<HTMLDivElement>);
+            }
+          }
+          : undefined
+      }
+    >
 
       {(title || description) &&
       <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800">
