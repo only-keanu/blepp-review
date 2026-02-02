@@ -41,7 +41,7 @@ public class GenerationServiceImpl implements GenerationService {
 
     private final GenerationJobRepository jobRepository;
     private final UserRepository userRepository;
-    private final ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper = new ObjectMapper();
     private final RestTemplate restTemplate = new RestTemplate();
 
     private final String uploadDir;
@@ -51,14 +51,12 @@ public class GenerationServiceImpl implements GenerationService {
     public GenerationServiceImpl(
         GenerationJobRepository jobRepository,
         UserRepository userRepository,
-        ObjectMapper objectMapper,
         @Value("${app.generation.upload-dir:uploads/generation}") String uploadDir,
         @Value("${app.openai.api-key:}") String openAiApiKey,
         @Value("${app.openai.model:gpt-4o-mini}") String defaultModel
     ) {
         this.jobRepository = jobRepository;
         this.userRepository = userRepository;
-        this.objectMapper = objectMapper;
         this.uploadDir = uploadDir;
         this.openAiApiKey = openAiApiKey;
         this.defaultModel = defaultModel;
@@ -237,6 +235,9 @@ public class GenerationServiceImpl implements GenerationService {
 
         Map<String, Object> parsed = objectMapper.readValue(outputText, new TypeReference<>() {});
         Object questions = parsed.get("questions");
+        if (questions == null) {
+            throw new IOException("OpenAI response missing questions.");
+        }
         String questionsJson = objectMapper.writeValueAsString(questions);
         List<GeneratedQuestionResponse> results = objectMapper.readValue(
             questionsJson,
