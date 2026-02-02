@@ -3,11 +3,13 @@ import { AppLayout } from '../../components/layout/AppLayout';
 import { Card } from '../../components/ui/Card';
 import { Progress } from '../../components/ui/Progress';
 import { Button } from '../../components/ui/Button';
-import { ArrowRight, BookOpen, Brain, Activity, Users, Scale } from 'lucide-react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Badge } from '../../components/ui/Badge';
+import { BookOpen, Brain, Activity, Users, Scale, ChevronRight } from 'lucide-react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { apiFetch } from '../../lib/api';
 import { Topic } from '../../types';
 import { Modal } from '../../components/ui/Modal';
+import { TOPICS_DATA } from './TopicLessonsPage';
 
 const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   blue: Brain,
@@ -36,6 +38,7 @@ export function TopicsPage() {
   const [addError, setAddError] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const loadTopics = async () => {
@@ -78,11 +81,26 @@ export function TopicsPage() {
     return filtered.map((topic) => {
       const Icon = ICONS[topic.color] || BookOpen;
       const mastery = (topic as any).masteryPct ?? 0;
+      const slug = (topic.slug || topic.name || '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '');
+      const normalizedSlug = slug.toLowerCase();
+      const matched = TOPICS_DATA[normalizedSlug as keyof typeof TOPICS_DATA];
+      const lessons = matched?.lessons ?? [];
+      const completedLessons = lessons.filter((lesson) => lesson.completed).length;
+      const progress = lessons.length > 0 ? Math.round((completedLessons / lessons.length) * 100) : mastery;
+      const questions = lessons.reduce((sum, lesson) => sum + lesson.questionsCount, 0);
       return {
         ...topic,
         Icon,
         mastery,
-        colorClass: colorClasses[topic.color] ?? colorClasses.gray
+        colorClass: colorClasses[topic.color] ?? colorClasses.gray,
+        topicSlug: slug,
+        lessonsCount: lessons.length,
+        completedLessons,
+        progress,
+        questions
       };
     });
   }, [topics, searchParams]);
@@ -112,47 +130,79 @@ export function TopicsPage() {
           <div className="text-center py-16 text-slate-500 dark:text-slate-400">Loading...</div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {topicCards.map((topic) => (
-              <Card
-                key={topic.id}
-                className="hover:shadow-md transition-shadow cursor-pointer group">
+            {topicCards.map((topic) => {
+              return (
+                <Card
+                  key={topic.id}
+                  className="h-full hover:shadow-lg hover:border-teal-200 transition-all duration-200 group cursor-pointer"
+                  onClick={(event) => {
+                    const target = event.target as HTMLElement;
+                    if (target.closest('[data-card-action=\"true\"]')) {
+                      return;
+                    }
+                    navigate(`/dashboard/study/topics/${topic.topicSlug}`);
+                  }}>
                 <div className="flex items-start justify-between mb-4">
-                  <div className={`p-3 rounded-lg ${topic.colorClass}`}>
+                  <div className={`p-3 rounded-lg ${topic.colorClass} group-hover:scale-110 transition-transform duration-200`}>
                     <topic.Icon className="h-6 w-6" />
                   </div>
-                  <span className="text-xs font-medium text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-full">
-                    {topic.slug}
-                  </span>
+                  <Badge variant="outline" size="sm">
+                    {topic.completedLessons}/{topic.lessonsCount || 0} Lessons
+                  </Badge>
                 </div>
 
                 <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-2 group-hover:text-teal-600 transition-colors">
                   {topic.name}
                 </h3>
 
-                <div className="space-y-2 mb-6">
+                <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
+                  {topic.questions ? `${topic.questions} practice questions available` : 'Practice questions available'}
+                </p>
+
+                <div className="space-y-2 mb-4">
                   <div className="flex justify-between text-sm">
-                    <span className="text-slate-500 dark:text-slate-400">Mastery</span>
+                    <span className="text-slate-500 dark:text-slate-400">Progress</span>
                     <span className="font-medium text-slate-900 dark:text-slate-100">
-                      {topic.mastery}%
+                      {topic.progress}%
                     </span>
                   </div>
-                  <Progress value={topic.mastery} size="sm" />
+                  <Progress value={topic.progress} size="sm" />
                 </div>
 
-                <div className="flex gap-3">
-                  <Link to={`/dashboard/study/practice?topicId=${topic.id}`} className="flex-1">
+                <button
+                  type="button"
+                  className="w-full flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800 text-left"
+                  data-card-action="true"
+                  onClick={() => navigate(`/dashboard/study/topics/${topic.topicSlug}`)}
+                >
+                  <span className="text-sm font-medium text-teal-600 group-hover:text-teal-700">
+                    View Lessons
+                  </span>
+                  <ChevronRight className="h-5 w-5 text-teal-600 group-hover:translate-x-1 transition-transform" />
+                </button>
+                <div className="mt-4 flex gap-3">
+                  <Link
+                    to={`/dashboard/study/practice?topicId=${topic.id}`}
+                    className="flex-1"
+                    data-card-action="true"
+                    onClick={(event) => event.stopPropagation()}>
                     <Button variant="outline" className="w-full" size="sm">
                       Practice
                     </Button>
                   </Link>
-                  <Link to={`/dashboard/study/flashcards?topicId=${topic.id}`} className="flex-1">
+                  <Link
+                    to={`/dashboard/study/flashcards?topicId=${topic.id}`}
+                    className="flex-1"
+                    data-card-action="true"
+                    onClick={(event) => event.stopPropagation()}>
                     <Button variant="ghost" className="w-full" size="sm">
                       Flashcards
                     </Button>
                   </Link>
                 </div>
-              </Card>
-            ))}
+                </Card>
+              );
+            })}
           </div>
         )}
       </div>
