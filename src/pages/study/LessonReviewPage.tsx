@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+ï»¿import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { AppLayout } from '../../components/layout/AppLayout';
 import { Card } from '../../components/ui/Card';
@@ -17,6 +17,7 @@ import {
   ChevronLeft,
   ChevronRight
 } from 'lucide-react';
+import { fetchLessonProgress, markLessonComplete } from '../../lib/lessonProgressApi';
 
 interface LessonSection {
   id: string;
@@ -61,31 +62,19 @@ const LESSON_CONTENT: Record<string, LessonContent> = {
       {
         id: 's1',
         title: 'What is Psychology?',
-        content: `Psychology is the scientific study of behavior and mental processes. The word comes from the Greek words "psyche" (soul/mind) and "logos" (study of). Modern psychology uses scientific methods to understand, explain, predict, and sometimes change behavior and mental processes.
-
-Psychology encompasses a vast range of topics including perception, cognition, emotion, personality, behavior, and interpersonal relationships. It also examines the unconscious mind and how our experiences shape who we are.`,
+        content: 'Psychology is the scientific study of behavior and mental processes. The word comes from the Greek words "psyche" (soul/mind) and "logos" (study of). Modern psychology uses scientific methods to understand, explain, predict, and sometimes change behavior and mental processes.\n\nPsychology encompasses a vast range of topics including perception, cognition, emotion, personality, behavior, and interpersonal relationships. It also examines the unconscious mind and how our experiences shape who we are.',
         keyPoints: [
           'Psychology is a science that studies behavior and mental processes',
           'It uses empirical methods to gather evidence',
           'The field covers both observable behavior and internal mental states',
           'Psychology aims to describe, explain, predict, and control behavior'
         ],
-        tip: 'Remember: Psychology is not just about mental illness—it studies all aspects of human experience and behavior.'
+        tip: 'Remember: Psychology is not just about mental illnessâ€”it studies all aspects of human experience and behavior.'
       },
       {
         id: 's2',
         title: 'Goals of Psychology',
-        content: `Psychology has four main goals that guide research and practice:
-
-1. Description - Observing and describing behavior accurately. What is happening?
-
-2. Explanation - Understanding why behavior occurs. Why is it happening?
-
-3. Prediction - Anticipating future behavior based on patterns. When will it happen again?
-
-4. Control/Change - Applying knowledge to modify behavior in beneficial ways. How can we change it?
-
-These goals build upon each other, with description being the foundation and control being the ultimate application of psychological knowledge.`,
+        content: 'Psychology has four main goals that guide research and practice:\n\n1. Description - Observing and describing behavior accurately. What is happening?\n\n2. Explanation - Understanding why behavior occurs. Why is it happening?\n\n3. Prediction - Anticipating future behavior based on patterns. When will it happen again?\n\n4. Control/Change - Applying knowledge to modify behavior in beneficial ways. How can we change it?\n\nThese goals build upon each other, with description being the foundation and control being the ultimate application of psychological knowledge.',
         keyPoints: [
           'Description: Accurately observing and recording behavior',
           'Explanation: Understanding causes and mechanisms',
@@ -101,17 +90,7 @@ These goals build upon each other, with description being the foundation and con
       {
         id: 's3',
         title: 'Historical Foundations',
-        content: `Psychology emerged as a formal discipline in 1879 when Wilhelm Wundt established the first psychology laboratory in Leipzig, Germany. However, questions about the mind and behavior date back to ancient philosophers like Plato and Aristotle.
-
-Key Historical Milestones:
-
-- 1879: Wilhelm Wundt opens first psychology lab (Structuralism)
-- 1890: William James publishes "Principles of Psychology" (Functionalism)
-- 1900s: Sigmund Freud develops Psychoanalysis
-- 1913: John Watson introduces Behaviorism
-- 1950s: Humanistic psychology emerges (Maslow, Rogers)
-- 1960s: Cognitive Revolution begins
-- Present: Integration of multiple perspectives`,
+        content: 'Psychology emerged as a formal discipline in 1879 when Wilhelm Wundt established the first psychology laboratory in Leipzig, Germany. However, questions about the mind and behavior date back to ancient philosophers like Plato and Aristotle.\n\nKey Historical Milestones:\n\n- 1879: Wilhelm Wundt opens first psychology lab (Structuralism)\n- 1890: William James publishes "Principles of Psychology" (Functionalism)\n- 1900s: Sigmund Freud develops Psychoanalysis\n- 1913: John Watson introduces Behaviorism\n- 1950s: Humanistic psychology emerges (Maslow, Rogers)\n- 1960s: Cognitive Revolution begins\n- Present: Integration of multiple perspectives',
         keyPoints: [
           'Wilhelm Wundt is the "Father of Modern Psychology"',
           'First psychology lab established in 1879 in Leipzig, Germany',
@@ -123,19 +102,7 @@ Key Historical Milestones:
       {
         id: 's4',
         title: 'Major Schools of Thought',
-        content: `Throughout its history, psychology has developed several major perspectives or "schools of thought":
-
-Structuralism (Wundt, Titchener) - Focused on breaking down consciousness into basic elements, used introspection.
-
-Functionalism (William James) - Studied the purpose and function of behavior, influenced by Darwin.
-
-Psychoanalysis (Sigmund Freud) - Emphasized unconscious processes and early childhood experiences.
-
-Behaviorism (Watson, Skinner) - Focused only on observable behavior.
-
-Humanistic Psychology (Maslow, Rogers) - Emphasized free will and self-actualization.
-
-Cognitive Psychology - Studies mental processes like thinking, memory, and problem-solving.`,
+        content: 'Throughout its history, psychology has developed several major perspectives or "schools of thought":\n\nStructuralism (Wundt, Titchener) - Focused on breaking down consciousness into basic elements, used introspection.\n\nFunctionalism (William James) - Studied the purpose and function of behavior, influenced by Darwin.\n\nPsychoanalysis (Sigmund Freud) - Emphasized unconscious processes and early childhood experiences.\n\nBehaviorism (Watson, Skinner) - Focused only on observable behavior.\n\nHumanistic Psychology (Maslow, Rogers) - Emphasized free will and self-actualization.\n\nCognitive Psychology - Studies mental processes like thinking, memory, and problem-solving.',
         keyPoints: [
           'Structuralism: Breaking down consciousness into elements',
           'Functionalism: Understanding the purpose of behavior',
@@ -196,6 +163,31 @@ export function LessonReviewPage() {
   const navigate = useNavigate();
   const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
   const [completedSections, setCompletedSections] = useState<Set<string>>(new Set());
+  const [isCompleted, setIsCompleted] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    let isActive = true;
+    if (!topicSlug || !lessonId) {
+      return undefined;
+    }
+    fetchLessonProgress(topicSlug)
+      .then((data) => {
+        if (!isActive) {
+          return;
+        }
+        setIsCompleted(data.some((item) => item.lessonId === lessonId));
+      })
+      .catch(() => {
+        if (!isActive) {
+          return;
+        }
+        setIsCompleted(false);
+      });
+    return () => {
+      isActive = false;
+    };
+  }, [topicSlug, lessonId]);
 
   const lessonContent =
     lessonId && LESSON_CONTENT[lessonId]
@@ -223,6 +215,7 @@ export function LessonReviewPage() {
   const currentSection = lessonContent.sections[currentSectionIndex];
   const totalSections = lessonContent.sections.length;
   const progress = ((currentSectionIndex + 1) / totalSections) * 100;
+  const isLastSection = currentSectionIndex === totalSections - 1;
 
   const handleNextSection = () => {
     setCompletedSections((prev) => new Set([...prev, currentSection.id]));
@@ -239,7 +232,18 @@ export function LessonReviewPage() {
     }
   };
 
-  const isLastSection = currentSectionIndex === totalSections - 1;
+  const handleMarkComplete = async () => {
+    if (!topicSlug || !lessonId || isSaving) {
+      return;
+    }
+    setIsSaving(true);
+    try {
+      await markLessonComplete(topicSlug, lessonId);
+      setIsCompleted(true);
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
     <AppLayout>
@@ -286,10 +290,15 @@ export function LessonReviewPage() {
               <button
                 key={section.id}
                 onClick={() => setCurrentSectionIndex(index)}
-                className={`
-                  h-2.5 rounded-full transition-all
-                  ${index === currentSectionIndex ? 'w-8 bg-teal-600' : completedSections.has(section.id) ? 'w-2.5 bg-green-500' : 'w-2.5 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300'}
-                `}
+                className={
+                  `h-2.5 rounded-full transition-all ${
+                    index === currentSectionIndex
+                      ? 'w-8 bg-teal-600'
+                      : completedSections.has(section.id)
+                        ? 'w-2.5 bg-green-500'
+                        : 'w-2.5 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300'
+                  }`
+                }
                 title={section.title}
               />
             ))}
@@ -342,7 +351,7 @@ export function LessonReviewPage() {
               <ul className="space-y-2">
                 {currentSection.keyPoints.map((point, i) => (
                   <li key={i} className="flex items-start gap-2 text-sm text-teal-800 dark:text-teal-200">
-                    <span className="text-teal-500 mt-1">•</span>
+                    <span className="text-teal-500 mt-1">â€¢</span>
                     {point}
                   </li>
                 ))}
@@ -395,6 +404,15 @@ export function LessonReviewPage() {
                     </li>
                   ))}
                 </ul>
+                <div className="mt-4">
+                  <Button
+                    variant={isCompleted ? 'outline' : 'primary'}
+                    onClick={handleMarkComplete}
+                    disabled={isCompleted || isSaving}
+                  >
+                    {isCompleted ? 'Completed' : isSaving ? 'Saving...' : 'Mark as Complete'}
+                  </Button>
+                </div>
               </div>
             </div>
           </Card>
