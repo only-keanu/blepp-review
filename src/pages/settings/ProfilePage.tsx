@@ -5,11 +5,14 @@ import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
 import { useAuth } from '../../hooks/useAuth';
 import { applyTheme, getStoredTheme } from '../../lib/theme';
+import { apiFetch } from '../../lib/api';
 export function ProfilePage() {
   const { user } = useAuth();
   const [isDarkMode, setIsDarkMode] = useState(
     getStoredTheme() === 'dark'
   );
+  const [isSaving, setIsSaving] = useState(false);
+  const [statusMessage, setStatusMessage] = useState('');
   const [formData, setFormData] = useState({
     fullName: user?.fullName || '',
     email: user?.email || '',
@@ -22,9 +25,25 @@ export function ProfilePage() {
       [e.target.name]: e.target.value
     }));
   };
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    alert('Profile updated successfully!');
+    setIsSaving(true);
+    setStatusMessage('');
+    try {
+      await apiFetch('/api/me', {
+        method: 'PATCH',
+        body: JSON.stringify({
+          fullName: formData.fullName,
+          targetExamDate: formData.targetExamDate || null,
+          dailyStudyHours: Number(formData.dailyStudyHours)
+        })
+      });
+      setStatusMessage('Profile updated successfully.');
+    } catch (error) {
+      setStatusMessage('Failed to update profile.');
+    } finally {
+      setIsSaving(false);
+    }
   };
   const handleThemeToggle = () => {
     const next = !isDarkMode;
@@ -71,8 +90,15 @@ export function ProfilePage() {
                 onChange={handleChange} />
 
             </div>
+            {statusMessage && (
+              <div className="text-sm text-slate-600 dark:text-slate-300">
+                {statusMessage}
+              </div>
+            )}
             <div className="pt-4 flex justify-end">
-              <Button type="submit">Save Changes</Button>
+              <Button type="submit" disabled={isSaving}>
+                {isSaving ? 'Saving...' : 'Save Changes'}
+              </Button>
             </div>
           </form>
         </Card>
