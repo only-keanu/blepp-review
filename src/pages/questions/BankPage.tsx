@@ -3,6 +3,7 @@ import { AppLayout } from '../../components/layout/AppLayout';
 import { QuestionList } from '../../components/questions/QuestionList';
 import { TopicFilter } from '../../components/questions/TopicFilter';
 import { AddQuestionModal } from '../../components/questions/AddQuestionModal';
+import { Modal } from '../../components/ui/Modal';
 import { Button } from '../../components/ui/Button';
 import { Plus, Search, Filter, Sparkles, PenLine } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
@@ -28,6 +29,8 @@ export function BankPage() {
   const [search, setSearch] = useState('');
   const [topic, setTopic] = useState('all');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
+  const [viewQuestion, setViewQuestion] = useState<Question | null>(null);
   const [searchParams] = useSearchParams();
 
   useEffect(() => {
@@ -125,6 +128,67 @@ export function BankPage() {
     }
   };
 
+  const handleUpdateQuestion = async (payload: QuestionPayload) => {
+    if (!editingQuestion) {
+      return;
+    }
+    setIsLoading(true);
+    setError('');
+    try {
+      const updated = await apiFetch<any>(`/api/questions/${editingQuestion.id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({
+          topicId: payload.topicId,
+          text: payload.text,
+          choices: payload.choices,
+          correctAnswerIndex: payload.correctAnswerIndex,
+          explanation: payload.explanation,
+          difficulty: payload.difficulty.toUpperCase(),
+          tags: payload.tags,
+          category: payload.category
+        })
+      });
+      const mapped: Question = {
+        id: updated.id,
+        topicId: updated.topicId,
+        topicName: updated.topicName,
+        text: updated.text,
+        choices: updated.choices,
+        correctAnswerIndex: updated.correctAnswerIndex,
+        explanation: updated.explanation,
+        difficulty: updated.difficulty.toLowerCase(),
+        source: updated.source.toLowerCase(),
+        tags: updated.tags || [],
+        category: updated.category,
+        createdAt: updated.createdAt
+      };
+      setQuestions((prev) => prev.map((item) => (item.id === mapped.id ? mapped : item)));
+      setEditingQuestion(null);
+      setIsAddModalOpen(false);
+    } catch (err) {
+      setError('Failed to update question.');
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDeleteQuestion = async (question: Question) => {
+    if (!confirm('Are you sure you want to delete this question?')) {
+      return;
+    }
+    setIsLoading(true);
+    setError('');
+    try {
+      await apiFetch<void>(`/api/questions/${question.id}`, { method: 'DELETE' });
+      setQuestions((prev) => prev.filter((item) => item.id !== question.id));
+    } catch (err) {
+      setError('Failed to delete question.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <AppLayout>
       <div className="space-y-6">
@@ -140,7 +204,10 @@ export function BankPage() {
             <Button
               variant="outline"
               leftIcon={<PenLine className="h-4 w-4" />}
-              onClick={() => setIsAddModalOpen(true)}>
+              onClick={() => {
+                setEditingQuestion(null);
+                setIsAddModalOpen(true);
+              }}>
               Add Manually
             </Button>
             <Link to="/dashboard/questions/generate">
@@ -198,16 +265,67 @@ export function BankPage() {
             </Button>
           </div>
         ) : (
-          <QuestionList questions={questions} />
+          <QuestionList
+            questions={questions}
+            onView={(question) => setViewQuestion(question)}
+            onEdit={(question) => {
+              setEditingQuestion(question);
+              setIsAddModalOpen(true);
+            }}
+            onDelete={handleDeleteQuestion}
+          />
         )}
       </div>
 
       <AddQuestionModal
         isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
-        onSave={handleAddQuestion}
+        onClose={() => {
+          setIsAddModalOpen(false);
+          setEditingQuestion(null);
+        }}
+        onSave={editingQuestion ? handleUpdateQuestion : handleAddQuestion}
         topics={topics}
+        initialQuestion={editingQuestion}
+        submitLabel={editingQuestion ? 'Save Changes' : 'Save Question'}
+        title={editingQuestion ? 'Edit Question' : 'Add New Question'}
       />
+
+      <Modal
+        isOpen={!!viewQuestion}
+        onClose={() => setViewQuestion(null)}
+        title="Question Details"
+        size="lg"
+        footer={
+          <Button variant="ghost" onClick={() => setViewQuestion(null)}>
+            Close
+          </Button>
+        }
+      >
+        {viewQuestion && (
+          <div className="space-y-4">
+            <div>
+              <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-1">Question</p>
+              <p className="text-sm text-slate-600 dark:text-slate-300">{viewQuestion.text}</p>
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-1">Choices</p>
+              <ol className="list-decimal ml-5 space-y-1 text-sm text-slate-600 dark:text-slate-300">
+                {viewQuestion.choices.map((choice, index) => (
+                  <li key={choice} className={index === viewQuestion.correctAnswerIndex ? 'font-semibold text-teal-600' : ''}>
+                    {choice}
+                  </li>
+                ))}
+              </ol>
+            </div>
+            {viewQuestion.explanation && (
+              <div>
+                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-1">Explanation</p>
+                <p className="text-sm text-slate-600 dark:text-slate-300">{viewQuestion.explanation}</p>
+              </div>
+            )}
+          </div>
+        )}
+      </Modal>
     </AppLayout>
   );
 }

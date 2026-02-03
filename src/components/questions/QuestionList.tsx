@@ -6,8 +6,11 @@ import { Edit2, Trash2, Eye } from 'lucide-react';
 import { Question } from '../../types';
 interface QuestionListProps {
   questions: Question[];
+  onView: (question: Question) => void;
+  onEdit: (question: Question) => void;
+  onDelete: (question: Question) => void;
 }
-export function QuestionList({ questions }: QuestionListProps) {
+export function QuestionList({ questions, onView, onEdit, onDelete }: QuestionListProps) {
   return (
     <div className="space-y-4">
       {questions.map((question) =>
@@ -50,16 +53,27 @@ export function QuestionList({ questions }: QuestionListProps) {
             </div>
 
             <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0"
+                onClick={() => onView(question)}
+              >
                 <Eye className="h-4 w-4 text-slate-500 dark:text-slate-400" />
               </Button>
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0"
+                onClick={() => onEdit(question)}
+              >
                 <Edit2 className="h-4 w-4 text-slate-500 dark:text-slate-400" />
               </Button>
               <Button
               variant="ghost"
               size="sm"
-              className="h-8 w-8 p-0 hover:text-red-600">
+              className="h-8 w-8 p-0 hover:text-red-600"
+              onClick={() => onDelete(question)}>
 
                 <Trash2 className="h-4 w-4" />
               </Button>
