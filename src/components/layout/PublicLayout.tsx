@@ -23,6 +23,12 @@ export function PublicLayout({ children }: PublicLayoutProps) {
             </Link>
             <div className="flex items-center gap-4">
               <Link
+                to="/features"
+                className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100"
+              >
+                Features
+              </Link>
+              <Link
                 to="/pricing"
                 className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100"
               >
@@ -62,9 +68,9 @@ export function PublicLayout({ children }: PublicLayoutProps) {
             <h4 className="text-white font-semibold mb-4">Platform</h4>
             <ul className="space-y-2 text-sm">
               <li>
-                <a href="#" className="hover:text-white">
+                <Link to="/features" className="hover:text-white">
                   Features
-                </a>
+                </Link>
               </li>
               <li>
                 <Link to="/pricing" className="hover:text-white">
