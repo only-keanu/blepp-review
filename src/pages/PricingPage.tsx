@@ -63,7 +63,7 @@ export function PricingPage() {
               </p>
               <div className="mb-6">
                 <span className="text-4xl font-extrabold text-slate-900">
-                  ₱499
+                  ₱299
                 </span>
                 <span className="text-slate-500">/month</span>
               </div>
@@ -96,7 +96,7 @@ export function PricingPage() {
               </p>
               <div className="mb-6">
                 <span className="text-4xl font-extrabold text-slate-900">
-                  ₱899
+                  ₱499
                 </span>
                 <span className="text-slate-500">/month</span>
               </div>
@@ -134,7 +134,7 @@ export function PricingPage() {
           </h2>
           <p className="text-teal-100 mb-6">
             Get 2 months free when you pay annually. That's ₱4,990/year for Pro
-            (save ?998).
+            (save ₱998).
           </p>
           <Link to="/auth/register">
             <Button
