@@ -10,6 +10,7 @@ import { apiFetch } from '../../lib/api';
 import { Topic } from '../../types';
 import { Modal } from '../../components/ui/Modal';
 import { TOPICS_DATA } from './TopicLessonsPage';
+import { fetchLessonProgress } from '../../lib/lessonProgressApi';
 
 const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   blue: Brain,
@@ -30,6 +31,7 @@ const COLORS = [
 
 export function TopicsPage() {
   const [topics, setTopics] = useState<Topic[]>([]);
+  const [progressByTopic, setProgressByTopic] = useState<Record<string, Set<string>>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [isAddOpen, setIsAddOpen] = useState(false);
@@ -54,6 +56,33 @@ export function TopicsPage() {
       }
     };
     loadTopics();
+  }, []);
+
+  useEffect(() => {
+    let isActive = true;
+    fetchLessonProgress()
+      .then((data) => {
+        if (!isActive) {
+          return;
+        }
+        const map: Record<string, Set<string>> = {};
+        data.forEach((item) => {
+          if (!map[item.topicSlug]) {
+            map[item.topicSlug] = new Set();
+          }
+          map[item.topicSlug].add(item.lessonId);
+        });
+        setProgressByTopic(map);
+      })
+      .catch(() => {
+        if (!isActive) {
+          return;
+        }
+        setProgressByTopic({});
+      });
+    return () => {
+      isActive = false;
+    };
   }, []);
 
   const topicCards = useMemo(() => {
@@ -88,7 +117,8 @@ export function TopicsPage() {
       const normalizedSlug = slug.toLowerCase();
       const matched = TOPICS_DATA[normalizedSlug as keyof typeof TOPICS_DATA];
       const lessons = matched?.lessons ?? [];
-      const completedLessons = lessons.filter((lesson) => lesson.completed).length;
+      const completedSet = matched ? (progressByTopic[normalizedSlug] ?? new Set<string>()) : new Set<string>();
+      const completedLessons = matched ? lessons.filter((lesson) => completedSet.has(lesson.id)).length : 0;
       const progress = lessons.length > 0 ? Math.round((completedLessons / lessons.length) * 100) : mastery;
       const questions = lessons.reduce((sum, lesson) => sum + lesson.questionsCount, 0);
       return {
@@ -103,7 +133,7 @@ export function TopicsPage() {
         questions
       };
     });
-  }, [topics, searchParams]);
+  }, [topics, searchParams, progressByTopic]);
 
   return (
     <AppLayout>
