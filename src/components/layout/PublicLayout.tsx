@@ -78,9 +78,9 @@ export function PublicLayout({ children }: PublicLayoutProps) {
                 </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-white">
+                <Link to="/about" className="hover:text-white">
                   About Us
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
