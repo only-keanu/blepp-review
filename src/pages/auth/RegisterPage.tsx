@@ -6,6 +6,24 @@ import { Button } from '../../components/ui/Button';
 import { useAuth } from '../../hooks/useAuth';
 import { Mail, Lock, User, Calendar, Clock } from 'lucide-react';
 import { buildFacebookAuthUrl, buildGoogleAuthUrl, openOAuthPopup } from '../../lib/oauth';
+
+const GoogleLogo = () => (
+  <svg viewBox="0 0 533.5 544.3" className="h-5 w-5" aria-hidden="true">
+    <path fill="#4285F4" d="M533.5 278.4c0-17.4-1.6-34.1-4.6-50.4H272v95.4h146.9c-6.3 34.2-25 63.2-53.5 82.6v68h86.5c50.6-46.6 81.6-115.4 81.6-195.6z"/>
+    <path fill="#34A853" d="M272 544.3c72.6 0 133.6-24.1 178.1-65.4l-86.5-68c-24.1 16.2-55 25.8-91.6 25.8-70.4 0-130.1-47.5-151.5-111.1H32.1v69.8C76.7 475.2 168.2 544.3 272 544.3z"/>
+    <path fill="#FBBC05" d="M120.5 325.6c-10.1-30.2-10.1-63 0-93.2v-69.8H32.1c-39.4 78.7-39.4 171.1 0 249.8l88.4-69.8z"/>
+    <path fill="#EA4335" d="M272 107.7c39.5-.6 77.4 14 106.3 40.9l79.2-79.2C403.5 24.7 338.6-1.2 272 0 168.2 0 76.7 69.1 32.1 169.2l88.4 69.8C141.9 155.2 201.6 107.7 272 107.7z"/>
+  </svg>
+);
+
+const FacebookLogo = () => (
+  <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
+    <path
+      fill="#1877F2"
+      d="M24 12.1c0-6.7-5.4-12.1-12.1-12.1C5.2 0 0 5.4 0 12.1c0 6 4.3 11 10 12v-8.5H7.1V12h2.9V9.4c0-2.9 1.7-4.5 4.4-4.5 1.3 0 2.6.2 2.6.2v2.9h-1.5c-1.5 0-2 1-2 1.9V12h3.4l-.5 3.6h-2.9V24c5.7-1 10-6 10-11.9z"
+    />
+  </svg>
+);
 export function RegisterPage() {
   const [formData, setFormData] = useState({
     fullName: '',
@@ -96,6 +114,7 @@ export function RegisterPage() {
             variant="outline"
             className="w-full"
             onClick={() => handleOAuth('google')}
+            leftIcon={<GoogleLogo />}
           >
             Continue with Google
           </Button>
@@ -104,6 +123,7 @@ export function RegisterPage() {
             variant="outline"
             className="w-full"
             onClick={() => handleOAuth('facebook')}
+            leftIcon={<FacebookLogo />}
           >
             Continue with Facebook
           </Button>
