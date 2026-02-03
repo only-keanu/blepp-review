@@ -10,6 +10,9 @@ interface AddQuestionModalProps {
   onClose: () => void;
   topics: Topic[];
   onSave: (payload: QuestionCreatePayload) => Promise<void>;
+  initialQuestion?: Question | null;
+  submitLabel?: string;
+  title?: string;
 }
 interface QuestionCreatePayload {
   text: string;
@@ -86,7 +89,10 @@ export function AddQuestionModal({
   isOpen,
   onClose,
   onSave,
-  topics
+  topics,
+  initialQuestion,
+  submitLabel,
+  title
 }: AddQuestionModalProps) {
   const [formData, setFormData] = useState({
     text: '',
@@ -100,6 +106,28 @@ export function AddQuestionModal({
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitError, setSubmitError] = useState('');
+
+  React.useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+    if (initialQuestion) {
+      setFormData({
+        text: initialQuestion.text,
+        choices: initialQuestion.choices ?? ['', '', '', ''],
+        correctAnswerIndex: initialQuestion.correctAnswerIndex ?? 0,
+        explanation: initialQuestion.explanation ?? '',
+        topicId: initialQuestion.topicId ?? '',
+        difficulty: initialQuestion.difficulty ?? 'medium',
+        category: initialQuestion.category ?? '',
+        tags: (initialQuestion.tags ?? []).join(', ')
+      });
+      setErrors({});
+      setSubmitError('');
+      return;
+    }
+    handleReset();
+  }, [isOpen, initialQuestion]);
   const handleChoiceChange = (index: number, value: string) => {
     const newChoices = [...formData.choices];
     newChoices[index] = value;
@@ -166,14 +194,14 @@ export function AddQuestionModal({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Add New Question"
+      title={title ?? 'Add New Question'}
       size="lg"
       footer={
       <>
           <Button variant="ghost" onClick={onClose}>
             Cancel
           </Button>
-          <Button onClick={handleSubmit}>Save Question</Button>
+          <Button onClick={handleSubmit}>{submitLabel ?? 'Save Question'}</Button>
         </>
       }>
 
