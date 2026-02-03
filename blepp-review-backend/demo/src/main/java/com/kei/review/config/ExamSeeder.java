@@ -28,10 +28,28 @@ public class ExamSeeder implements CommandLineRunner {
                 .description("Complete board exam simulation covering all 4 major subjects.")
                 .build(),
             MockExam.builder()
-                .title("General Psychology Test")
-                .totalQuestions(30)
-                .durationMinutes(45)
+                .title("General Psychology Mock Exam")
+                .totalQuestions(40)
+                .durationMinutes(60)
                 .description("Focused assessment on General Psychology concepts and theories.")
+                .build(),
+            MockExam.builder()
+                .title("Abnormal Psychology Mock Exam")
+                .totalQuestions(40)
+                .durationMinutes(60)
+                .description("Test your mastery of psychological disorders, diagnostics, and treatment.")
+                .build(),
+            MockExam.builder()
+                .title("Industrial/Organizational Psychology Mock Exam")
+                .totalQuestions(40)
+                .durationMinutes(60)
+                .description("Workplace psychology, leadership, and organizational behavior practice exam.")
+                .build(),
+            MockExam.builder()
+                .title("Psychological Assessment Mock Exam")
+                .totalQuestions(40)
+                .durationMinutes(60)
+                .description("Assessment tools, testing principles, and interpretation review exam.")
                 .build(),
             MockExam.builder()
                 .title("Quick Practice")
