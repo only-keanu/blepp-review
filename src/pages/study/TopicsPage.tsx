@@ -7,7 +7,7 @@ import { Badge } from '../../components/ui/Badge';
 import { BookOpen, Brain, Activity, Users, Scale, ChevronRight } from 'lucide-react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { apiFetch } from '../../lib/api';
-import { Topic } from '../../types';
+import { Question, Topic } from '../../types';
 import { Modal } from '../../components/ui/Modal';
 import { TOPICS_DATA, TOPIC_SLUG_ALIASES } from './TopicLessonsPage';
 import { fetchLessonProgress } from '../../lib/lessonProgressApi';
@@ -32,6 +32,7 @@ const COLORS = [
 export function TopicsPage() {
   const [topics, setTopics] = useState<Topic[]>([]);
   const [progressByTopic, setProgressByTopic] = useState<Record<string, Set<string>>>({});
+  const [questionCounts, setQuestionCounts] = useState<Record<string, number>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [isAddOpen, setIsAddOpen] = useState(false);
@@ -56,6 +57,30 @@ export function TopicsPage() {
       }
     };
     loadTopics();
+  }, []);
+
+  useEffect(() => {
+    let isActive = true;
+    apiFetch<Question[]>('/api/questions')
+      .then((data) => {
+        if (!isActive) {
+          return;
+        }
+        const counts: Record<string, number> = {};
+        data.forEach((question) => {
+          counts[question.topicId] = (counts[question.topicId] ?? 0) + 1;
+        });
+        setQuestionCounts(counts);
+      })
+      .catch(() => {
+        if (!isActive) {
+          return;
+        }
+        setQuestionCounts({});
+      });
+    return () => {
+      isActive = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -121,7 +146,7 @@ export function TopicsPage() {
       const completedSet = matched ? (progressByTopic[canonicalSlug] ?? new Set<string>()) : new Set<string>();
       const completedLessons = matched ? lessons.filter((lesson) => completedSet.has(lesson.id)).length : 0;
       const progress = lessons.length > 0 ? Math.round((completedLessons / lessons.length) * 100) : mastery;
-      const questions = lessons.reduce((sum, lesson) => sum + lesson.questionsCount, 0);
+      const questions = questionCounts[topic.id] ?? lessons.reduce((sum, lesson) => sum + lesson.questionsCount, 0);
       return {
         ...topic,
         Icon,
@@ -134,7 +159,7 @@ export function TopicsPage() {
         questions
       };
     });
-  }, [topics, searchParams, progressByTopic]);
+  }, [topics, searchParams, progressByTopic, questionCounts]);
 
   return (
     <AppLayout>
