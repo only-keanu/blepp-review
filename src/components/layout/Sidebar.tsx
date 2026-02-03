@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -11,12 +11,66 @@ import {
   Layers } from
 'lucide-react';
 import { Button } from '../ui/Button';
+import { apiFetch } from '../../lib/api';
+import { User } from '../../types';
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
 }
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const location = useLocation();
+  const [profile, setProfile] = useState<User | null>(null);
+
+  useEffect(() => {
+    let isActive = true;
+    apiFetch<User>('/api/me')
+      .then((data) => {
+        if (!isActive) {
+          return;
+        }
+        setProfile(data);
+      })
+      .catch(() => {
+        if (!isActive) {
+          return;
+        }
+        setProfile(null);
+      });
+    return () => {
+      isActive = false;
+    };
+  }, []);
+
+  const examDateLabel = useMemo(() => {
+    if (!profile?.targetExamDate) {
+      return 'Not set';
+    }
+    const date = new Date(profile.targetExamDate);
+    if (Number.isNaN(date.getTime())) {
+      return 'Not set';
+    }
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
+  }, [profile?.targetExamDate]);
+
+  const daysRemaining = useMemo(() => {
+    if (!profile?.targetExamDate) {
+      return null;
+    }
+    const date = new Date(profile.targetExamDate);
+    if (Number.isNaN(date.getTime())) {
+      return null;
+    }
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const target = new Date(date);
+    target.setHours(0, 0, 0, 0);
+    const diffMs = target.getTime() - today.getTime();
+    return Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+  }, [profile?.targetExamDate]);
   const navigation = [
   {
     name: 'Dashboard',
@@ -122,8 +176,24 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             <h4 className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
               Exam Date
             </h4>
-            <p className="text-sm font-medium text-slate-900 dark:text-slate-100">Aug 15, 2024</p>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">124 days remaining</p>
+            <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
+              {examDateLabel}
+            </p>
+            {daysRemaining !== null && (
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                {daysRemaining >= 0
+                  ? `${daysRemaining} days remaining`
+                  : `${Math.abs(daysRemaining)} days past`}
+              </p>
+            )}
+            {!profile?.targetExamDate && (
+              <Link
+                to="/dashboard/settings"
+                className="text-xs text-teal-600 hover:underline mt-2 inline-block"
+              >
+                Set exam date
+              </Link>
+            )}
           </div>
         </div>
       </div>
