@@ -9,7 +9,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { apiFetch } from '../../lib/api';
 import { Topic } from '../../types';
 import { Modal } from '../../components/ui/Modal';
-import { TOPICS_DATA } from './TopicLessonsPage';
+import { TOPICS_DATA, TOPIC_SLUG_ALIASES } from './TopicLessonsPage';
 import { fetchLessonProgress } from '../../lib/lessonProgressApi';
 
 const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -115,9 +115,10 @@ export function TopicsPage() {
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/(^-|-$)/g, '');
       const normalizedSlug = slug.toLowerCase();
-      const matched = TOPICS_DATA[normalizedSlug as keyof typeof TOPICS_DATA];
+      const canonicalSlug = TOPIC_SLUG_ALIASES[normalizedSlug] ?? normalizedSlug;
+      const matched = TOPICS_DATA[canonicalSlug as keyof typeof TOPICS_DATA];
       const lessons = matched?.lessons ?? [];
-      const completedSet = matched ? (progressByTopic[normalizedSlug] ?? new Set<string>()) : new Set<string>();
+      const completedSet = matched ? (progressByTopic[canonicalSlug] ?? new Set<string>()) : new Set<string>();
       const completedLessons = matched ? lessons.filter((lesson) => completedSet.has(lesson.id)).length : 0;
       const progress = lessons.length > 0 ? Math.round((completedLessons / lessons.length) * 100) : mastery;
       const questions = lessons.reduce((sum, lesson) => sum + lesson.questionsCount, 0);
@@ -126,7 +127,7 @@ export function TopicsPage() {
         Icon,
         mastery,
         colorClass: colorClasses[topic.color] ?? colorClasses.gray,
-        topicSlug: slug,
+        topicSlug: canonicalSlug,
         lessonsCount: lessons.length,
         completedLessons,
         progress,

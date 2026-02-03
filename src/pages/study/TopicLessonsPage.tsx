@@ -545,7 +545,7 @@ export const TOPICS_DATA: Record<
   }
 };
 
-const TOPIC_SLUG_ALIASES: Record<string, string> = {
+export const TOPIC_SLUG_ALIASES: Record<string, string> = {
   'general-psychology': 'general',
   'abnormal-psychology': 'abnormal',
   'psychological-assessment': 'assessment',
