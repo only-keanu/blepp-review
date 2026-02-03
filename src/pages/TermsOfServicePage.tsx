@@ -1,0 +1,208 @@
+import React from 'react';
+import { PublicLayout } from '../components/layout/PublicLayout';
+
+export function TermsOfServicePage() {
+  return (
+    <PublicLayout>
+      <div className="py-16">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h1 className="text-3xl font-bold text-slate-900 mb-2">
+            Terms of Service
+          </h1>
+          <p className="text-slate-500 mb-12">Last updated: January 15, 2024</p>
+
+          <div className="prose prose-slate max-w-none">
+            <p className="text-lg text-slate-600 mb-8">
+              Welcome to BLEPP Review. By accessing or using our platform, you
+              agree to be bound by these Terms of Service. Please read them
+              carefully.
+            </p>
+
+            <Section title="1. Acceptance of Terms">
+              <p>
+                By creating an account or using BLEPP Review, you agree to these
+                Terms of Service and our Privacy Policy. If you do not agree to
+                these terms, please do not use our services.
+              </p>
+            </Section>
+
+            <Section title="2. Description of Service">
+              <p>
+                BLEPP Review is an online learning platform designed to help
+                users prepare for the Philippine Psychology Licensure
+                Examination (BLEPP). Our services include:
+              </p>
+              <ul>
+                <li>Practice questions and mock examinations</li>
+                <li>AI-powered question generation from uploaded materials</li>
+                <li>Flashcard creation and spaced repetition study tools</li>
+                <li>Progress tracking and readiness analytics</li>
+                <li>Structured lesson content</li>
+              </ul>
+            </Section>
+
+            <Section title="3. User Accounts">
+              <p>To use our services, you must:</p>
+              <ul>
+                <li>Be at least 16 years of age</li>
+                <li>Provide accurate and complete registration information</li>
+                <li>Maintain the security of your account credentials</li>
+                <li>Notify us immediately of any unauthorized access</li>
+              </ul>
+              <p>
+                You are responsible for all activities that occur under your
+                account. We reserve the right to suspend or terminate accounts
+                that violate these terms.
+              </p>
+            </Section>
+
+            <Section title="4. Subscription and Payment">
+              <p>
+                <strong>Free Plan:</strong> Basic features are available at no
+                cost with limitations.
+              </p>
+              <p>
+                <strong>Paid Plans:</strong> Premium features require a paid
+                subscription. By subscribing, you agree to:
+              </p>
+              <ul>
+                <li>
+                  Pay all applicable fees as described at the time of purchase
+                </li>
+                <li>
+                  Automatic renewal unless cancelled before the renewal date
+                </li>
+                <li>
+                  No refunds for partial subscription periods, except as
+                  required by law
+                </li>
+              </ul>
+              <p>
+                We reserve the right to change our pricing with 30 days' notice.
+                Price changes will not affect your current subscription period.
+              </p>
+            </Section>
+
+            <Section title="5. Acceptable Use">
+              <p>You agree NOT to:</p>
+              <ul>
+                <li>Share your account credentials with others</li>
+                <li>
+                  Copy, distribute, or sell our content without permission
+                </li>
+                <li>
+                  Upload copyrighted materials you don't have rights to use
+                </li>
+                <li>Use the platform for any illegal purpose</li>
+                <li>Attempt to reverse engineer or hack our systems</li>
+                <li>Interfere with other users' access to the platform</li>
+                <li>
+                  Use automated tools to access our services without permission
+                </li>
+              </ul>
+            </Section>
+
+            <Section title="6. Intellectual Property">
+              <p>
+                <strong>Our Content:</strong> All content on BLEPP Review,
+                including questions, lessons, and software, is owned by us or
+                our licensors and protected by intellectual property laws.
+              </p>
+              <p>
+                <strong>Your Content:</strong> You retain ownership of materials
+                you upload (e.g., PDFs). By uploading content, you grant us a
+                limited license to process it for AI question generation.
+              </p>
+              <p>
+                <strong>Generated Questions:</strong> Questions generated by our
+                AI from your uploaded materials are licensed to you for
+                personal, non-commercial study use only.
+              </p>
+            </Section>
+
+            <Section title="7. Disclaimer of Warranties">
+              <p>
+                BLEPP Review is provided &quot;as is&quot; without warranties of any kind.
+                While we strive for accuracy, we do not guarantee that:
+              </p>
+              <ul>
+                <li>Our content is error-free or complete</li>
+                <li>
+                  Using our platform will guarantee passing the board exam
+                </li>
+                <li>The service will be uninterrupted or secure</li>
+              </ul>
+              <p>
+                Our platform is a study aid and should be used alongside other
+                review materials and methods. We are not affiliated with or
+                endorsed by the Professional Regulation Commission (PRC).
+              </p>
+            </Section>
+
+            <Section title="8. Limitation of Liability">
+              <p>
+                To the maximum extent permitted by law, BLEPP Review and its
+                affiliates shall not be liable for any indirect, incidental,
+                special, consequential, or punitive damages arising from your
+                use of our services.
+              </p>
+              <p>
+                Our total liability shall not exceed the amount you paid us in
+                the 12 months preceding the claim.
+              </p>
+            </Section>
+
+            <Section title="9. Termination">
+              <p>
+                You may terminate your account at any time by contacting us or
+                using the account settings. We may terminate or suspend your
+                account if you violate these terms.
+              </p>
+              <p>
+                Upon termination, your right to use the service ceases
+                immediately. We may retain certain data as required by law or
+                for legitimate business purposes.
+              </p>
+            </Section>
+
+            <Section title="10. Changes to Terms">
+              <p>
+                We may modify these Terms of Service at any time. We will notify
+                you of material changes via email or through the platform.
+                Continued use after changes constitutes acceptance of the new
+                terms.
+              </p>
+            </Section>
+
+            <Section title="11. Governing Law">
+              <p>
+                These Terms shall be governed by the laws of the Republic of the
+                Philippines. Any disputes shall be resolved in the courts of
+                Quezon City, Philippines.
+              </p>
+            </Section>
+
+            <Section title="12. Contact Information">
+              <p>
+                For questions about these Terms of Service, please contact us:
+              </p>
+              <ul>
+                <li>Email: legal@bleppreview.com</li>
+                <li>Address: 123 Psychology Lane, Quezon City, Philippines</li>
+              </ul>
+            </Section>
+          </div>
+        </div>
+      </div>
+    </PublicLayout>
+  );
+}
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className="mb-10">
+      <h2 className="text-xl font-bold text-slate-900 mb-4">{title}</h2>
+      <div className="text-slate-600 space-y-4">{children}</div>
+    </section>
+  );
+}
