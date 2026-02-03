@@ -11,6 +11,7 @@ import { FeaturesPage } from './pages/FeaturesPage';
 import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
 import { TermsOfServicePage } from './pages/TermsOfServicePage';
 import { AboutPage } from './pages/AboutPage';
+import { ScrollToTop } from './components/layout/ScrollToTop';
 import { LoginPage } from './pages/auth/LoginPage';
 import { RegisterPage } from './pages/auth/RegisterPage';
 import { OAuthCallbackPage } from './pages/auth/OAuthCallbackPage';
@@ -70,6 +71,7 @@ function PublicRoute({ children }: {children: React.ReactNode;}) {
 export function App() {
   return (
     <Router>
+      <ScrollToTop />
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/features" element={<FeaturesPage />} />
