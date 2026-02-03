@@ -120,6 +120,7 @@ public class AuthServiceImpl implements AuthService {
         if (googleClientId == null || googleClientId.isBlank() ||
             googleClientSecret == null || googleClientSecret.isBlank()) {
             throw new IllegalStateException("Google OAuth is not configured");
+
         }
 
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
