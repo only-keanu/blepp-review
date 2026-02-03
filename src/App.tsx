@@ -6,6 +6,7 @@ import {
   Navigate } from
 'react-router-dom';
 import { LandingPage } from './pages/LandingPage';
+import { PricingPage } from './pages/PricingPage';
 import { LoginPage } from './pages/auth/LoginPage';
 import { RegisterPage } from './pages/auth/RegisterPage';
 import { OAuthCallbackPage } from './pages/auth/OAuthCallbackPage';
@@ -67,6 +68,7 @@ export function App() {
     <Router>
       <Routes>
         <Route path="/" element={<LandingPage />} />
+        <Route path="/pricing" element={<PricingPage />} />
 
         <Route
           path="/auth/login"
