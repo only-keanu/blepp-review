@@ -5,6 +5,7 @@ import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
 import { Select } from '../../components/ui/Select';
 import { AddFlashcardModal } from '../../components/study/AddFlashcardModal';
+import { Modal } from '../../components/ui/Modal';
 import {
   Plus,
   Search,
@@ -32,6 +33,7 @@ export function ManageFlashcardsPage() {
   const [topicFilter, setTopicFilter] = useState('all');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingFlashcard, setEditingFlashcard] = useState<Flashcard | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Flashcard | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [searchParams] = useSearchParams();
@@ -120,9 +122,6 @@ export function ManageFlashcardsPage() {
   };
 
   const handleDeleteFlashcard = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this flashcard?')) {
-      return;
-    }
     setIsLoading(true);
     setError('');
     try {
@@ -359,7 +358,7 @@ export function ManageFlashcardsPage() {
                     variant="ghost"
                     size="sm"
                     className="h-8 w-8 p-0 hover:text-red-600"
-                    onClick={() => handleDeleteFlashcard(flashcard.id)}>
+                    onClick={() => setDeleteTarget(flashcard)}>
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
@@ -385,6 +384,39 @@ export function ManageFlashcardsPage() {
           category: editingFlashcard.category
         } : undefined}
       />
+
+      <Modal
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        title="Delete Flashcard"
+        size="sm"
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setDeleteTarget(null)}>
+              Cancel
+            </Button>
+            <Button
+              variant="danger"
+              onClick={async () => {
+                if (!deleteTarget) return;
+                await handleDeleteFlashcard(deleteTarget.id);
+                setDeleteTarget(null);
+              }}
+            >
+              Delete
+            </Button>
+          </>
+        }
+      >
+        {deleteTarget && (
+          <div className="space-y-2 text-sm text-slate-600 dark:text-slate-300">
+            <p>This action cannot be undone.</p>
+            <p className="font-medium text-slate-900 dark:text-slate-100">
+              {deleteTarget.front}
+            </p>
+          </div>
+        )}
+      </Modal>
     </AppLayout>
   );
 }
