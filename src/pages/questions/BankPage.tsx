@@ -31,6 +31,7 @@ export function BankPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
   const [viewQuestion, setViewQuestion] = useState<Question | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Question | null>(null);
   const [searchParams] = useSearchParams();
 
   useEffect(() => {
@@ -174,9 +175,6 @@ export function BankPage() {
   };
 
   const handleDeleteQuestion = async (question: Question) => {
-    if (!confirm('Are you sure you want to delete this question?')) {
-      return;
-    }
     setIsLoading(true);
     setError('');
     try {
@@ -272,7 +270,7 @@ export function BankPage() {
               setEditingQuestion(question);
               setIsAddModalOpen(true);
             }}
-            onDelete={handleDeleteQuestion}
+            onDelete={(question) => setDeleteTarget(question)}
           />
         )}
       </div>
@@ -323,6 +321,41 @@ export function BankPage() {
                 <p className="text-sm text-slate-600 dark:text-slate-300">{viewQuestion.explanation}</p>
               </div>
             )}
+          </div>
+        )}
+      </Modal>
+
+      <Modal
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        title="Delete Question"
+        size="sm"
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setDeleteTarget(null)}>
+              Cancel
+            </Button>
+            <Button
+              variant="danger"
+              onClick={async () => {
+                if (!deleteTarget) {
+                  return;
+                }
+                await handleDeleteQuestion(deleteTarget);
+                setDeleteTarget(null);
+              }}
+            >
+              Delete
+            </Button>
+          </>
+        }
+      >
+        {deleteTarget && (
+          <div className="space-y-2 text-sm text-slate-600 dark:text-slate-300">
+            <p>This action cannot be undone.</p>
+            <p className="font-medium text-slate-900 dark:text-slate-100">
+              {deleteTarget.text}
+            </p>
           </div>
         )}
       </Modal>
