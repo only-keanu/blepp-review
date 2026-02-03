@@ -1,4 +1,4 @@
-import React, { ComponentType } from 'react';
+import React, { ComponentType, useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { AppLayout } from '../../components/layout/AppLayout';
 import { Card } from '../../components/ui/Card';
@@ -19,6 +19,7 @@ import {
   FileText
 } from 'lucide-react';
 import { Lesson } from '../../types';
+import { fetchLessonProgress } from '../../lib/lessonProgressApi';
 
 export const TOPICS_DATA: Record<
   string,
@@ -570,6 +571,30 @@ export function TopicLessonsPage() {
   const normalizedSlug = slug ? slug.toLowerCase() : '';
   const resolvedSlug = normalizedSlug ? (TOPIC_SLUG_ALIASES[normalizedSlug] ?? normalizedSlug) : '';
   const topicData = resolvedSlug ? TOPICS_DATA[resolvedSlug] : null;
+  const [completedSet, setCompletedSet] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    let isActive = true;
+    if (!resolvedSlug) {
+      return undefined;
+    }
+    fetchLessonProgress(resolvedSlug)
+      .then((data) => {
+        if (!isActive) {
+          return;
+        }
+        setCompletedSet(new Set(data.map((item) => item.lessonId)));
+      })
+      .catch(() => {
+        if (!isActive) {
+          return;
+        }
+        setCompletedSet(new Set());
+      });
+    return () => {
+      isActive = false;
+    };
+  }, [resolvedSlug]);
 
   if (!topicData) {
     return (
@@ -587,12 +612,16 @@ export function TopicLessonsPage() {
     );
   }
 
-  const completedLessons = topicData.lessons.filter((l) => l.completed).length;
-  const totalLessons = topicData.lessons.length;
+  const derivedLessons = topicData.lessons.map((lesson) => ({
+    ...lesson,
+    completed: completedSet.has(lesson.id)
+  }));
+  const completedLessons = derivedLessons.filter((l) => l.completed).length;
+  const totalLessons = derivedLessons.length;
   const progress = Math.round((completedLessons / totalLessons) * 100);
-  const totalQuestions = topicData.lessons.reduce((sum, l) => sum + l.questionsCount, 0);
-  const totalDuration = topicData.lessons.reduce((sum, l) => sum + l.duration, 0);
-  const nextLesson = topicData.lessons.find((l) => !l.completed);
+  const totalQuestions = derivedLessons.reduce((sum, l) => sum + l.questionsCount, 0);
+  const totalDuration = derivedLessons.reduce((sum, l) => sum + l.duration, 0);
+  const nextLesson = derivedLessons.find((l) => !l.completed);
   const colorStyle = COLOR_STYLES[topicData.color] ?? COLOR_STYLES.gray;
 
   return (
@@ -674,14 +703,14 @@ export function TopicLessonsPage() {
         <div>
           <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-4">Curriculum</h2>
           <div className="space-y-3">
-            {topicData.lessons.map((lesson, index) => {
+            {derivedLessons.map((lesson, index) => {
               const isLocked =
                 index > 0 &&
-                !topicData.lessons[index - 1].completed &&
+                !derivedLessons[index - 1].completed &&
                 !lesson.completed;
               const isCurrent =
                 !lesson.completed &&
-                (index === 0 || topicData.lessons[index - 1].completed);
+                (index === 0 || derivedLessons[index - 1].completed);
 
               return (
                 <div
