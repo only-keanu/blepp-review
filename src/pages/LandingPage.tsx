@@ -26,6 +26,12 @@ export function LandingPage() {
             </div>
             <div className="flex items-center gap-4">
               <Link
+                to="/pricing"
+                className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100">
+
+                Pricing
+              </Link>
+              <Link
                 to="/auth/login"
                 className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100">
 
@@ -65,18 +71,18 @@ export function LandingPage() {
               questions from your own materials.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link to="/auth/register">
-                <Button size="lg" className="w-full sm:w-auto px-8">
-                  Start Free Trial
-                </Button>
-              </Link>
-              <Link to="/auth/login">
+              <Link to="/pricing">
                 <Button
                   variant="outline"
                   size="lg"
                   className="w-full sm:w-auto px-8">
 
-                  View Demo
+                  View Pricing
+                </Button>
+              </Link>
+              <Link to="/auth/register">
+                <Button size="lg" className="w-full sm:w-auto px-8">
+                  Start Free Trial
                 </Button>
               </Link>
             </div>
@@ -211,9 +217,9 @@ export function LandingPage() {
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-white">
+                <Link to="/pricing" className="hover:text-white">
                   Pricing
-                </a>
+                </Link>
               </li>
               <li>
                 <a href="#" className="hover:text-white">
