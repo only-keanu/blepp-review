@@ -125,25 +125,54 @@ export function AnalyticsPage() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Accuracy Trend (Mock Chart) */}
+          {/* Accuracy Trend */}
           <Card title="Accuracy Trend">
-            <div className="h-64 flex items-end justify-between gap-2 px-4 pb-4">
-              {accuracyTrend.map((h, i) =>
-              <div
-                key={i}
-                className="w-full bg-teal-100 dark:bg-teal-950/40 rounded-t-sm relative group">
-
-                  <div
-                  className="absolute bottom-0 w-full bg-teal-500 dark:bg-teal-400 rounded-t-sm transition-all duration-500"
-                  style={{
-                    height: `${h}%`
-                  }}>
+            <div className="h-64 px-4 pb-4 pt-2">
+              <div className="h-full relative">
+                <svg
+                  className="w-full h-full"
+                  viewBox="0 0 100 100"
+                  preserveAspectRatio="none"
+                >
+                  <defs>
+                    <linearGradient id="accuracyLine" x1="0" x2="0" y1="0" y2="1">
+                      <stop offset="0%" stopColor="#14b8a6" stopOpacity="0.4" />
+                      <stop offset="100%" stopColor="#14b8a6" stopOpacity="0" />
+                    </linearGradient>
+                  </defs>
+                  <polyline
+                    fill="none"
+                    stroke="#14b8a6"
+                    strokeWidth="2"
+                    points={accuracyTrend.map((value, index) => {
+                      const x = accuracyTrend.length === 1 ? 50 : (index / (accuracyTrend.length - 1)) * 100;
+                      const y = 100 - Math.max(0, Math.min(100, value));
+                      return `${x},${y}`;
+                    }).join(' ')}
+                  />
+                  <polygon
+                    fill="url(#accuracyLine)"
+                    points={`0,100 ${accuracyTrend.map((value, index) => {
+                      const x = accuracyTrend.length === 1 ? 50 : (index / (accuracyTrend.length - 1)) * 100;
+                      const y = 100 - Math.max(0, Math.min(100, value));
+                      return `${x},${y}`;
+                    }).join(' ')} 100,100`}
+                  />
+                </svg>
+                <div className="absolute inset-0 flex items-end">
+                  {accuracyTrend.map((value, index) => (
+                    <div key={index} className="flex-1 h-full relative">
+                      <div
+                        className="absolute -bottom-2 left-1/2 h-2 w-2 -translate-x-1/2 rounded-full bg-teal-500"
+                        style={{ top: `${100 - Math.max(0, Math.min(100, value))}%` }}
+                      />
+                      <div className="opacity-0 hover:opacity-100 absolute -top-9 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-xs py-1 px-2 rounded">
+                        {trendPoints[index]?.label ? `${trendPoints[index].label}: ` : ''}{value}%
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                  <div className="opacity-0 group-hover:opacity-100 absolute -top-9 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white text-xs py-1 px-2 rounded">
-                    {trendPoints[i]?.label ? `${trendPoints[i].label}: ` : ''}{h}%
-                  </div>
-                </div>
-              )}
+              </div>
             </div>
             <div className="flex justify-between text-xs text-slate-400 dark:text-slate-500 px-4">
               <span>{trendLabels.start}</span>

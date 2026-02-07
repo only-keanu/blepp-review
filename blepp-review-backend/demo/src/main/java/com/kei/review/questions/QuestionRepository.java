@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface QuestionRepository extends JpaRepository<Question, UUID>, JpaSpecificationExecutor<Question> {
     List<Question> findByOwnerId(UUID ownerId);
+    List<Question> findByOwnerIdAndTopicId(UUID ownerId, UUID topicId);
 }

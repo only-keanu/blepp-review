@@ -1,5 +1,7 @@
 package com.kei.review.practice;
 
+import com.kei.review.lessons.LessonCatalog;
+import com.kei.review.lessons.LessonProgressRepository;
 import com.kei.review.practice.dto.AnswerAttemptRequest;
 import com.kei.review.practice.dto.CreatePracticeSessionRequest;
 import com.kei.review.practice.dto.PracticeSessionResponse;
@@ -29,6 +31,8 @@ public class PracticeServiceImpl implements PracticeService {
     private final UserTopicRepository userTopicRepository;
     private final UserRepository userRepository;
     private final QuestionRepository questionRepository;
+    private final LessonProgressRepository lessonProgressRepository;
+    private final LessonCatalog lessonCatalog;
 
     public PracticeServiceImpl(
         PracticeSessionRepository practiceSessionRepository,
@@ -36,7 +40,9 @@ public class PracticeServiceImpl implements PracticeService {
         TopicRepository topicRepository,
         UserTopicRepository userTopicRepository,
         UserRepository userRepository,
-        QuestionRepository questionRepository
+        QuestionRepository questionRepository,
+        LessonProgressRepository lessonProgressRepository,
+        LessonCatalog lessonCatalog
     ) {
         this.practiceSessionRepository = practiceSessionRepository;
         this.answerAttemptRepository = answerAttemptRepository;
@@ -44,6 +50,8 @@ public class PracticeServiceImpl implements PracticeService {
         this.userTopicRepository = userTopicRepository;
         this.userRepository = userRepository;
         this.questionRepository = questionRepository;
+        this.lessonProgressRepository = lessonProgressRepository;
+        this.lessonCatalog = lessonCatalog;
     }
 
     @Override
@@ -115,7 +123,15 @@ public class PracticeServiceImpl implements PracticeService {
 
         long totalAttempts = answerAttemptRepository.countByUserIdAndQuestionTopicId(userId, topic.getId());
         long correctAttempts = answerAttemptRepository.countByUserIdAndQuestionTopicIdAndCorrectTrue(userId, topic.getId());
-        int masteryPct = totalAttempts == 0 ? 0 : (int) Math.round((correctAttempts * 100.0) / totalAttempts);
+        int practiceAccuracy = totalAttempts == 0 ? 0 : (int) Math.round((correctAttempts * 100.0) / totalAttempts);
+        int totalLessons = lessonCatalog.getTotalLessons(topic.getSlug());
+        long completedLessons = totalLessons == 0
+            ? 0
+            : lessonProgressRepository.countByUserIdAndTopicSlug(userId, topic.getSlug());
+        int lessonCompletion = totalLessons == 0
+            ? 0
+            : (int) Math.round((completedLessons * 100.0) / totalLessons);
+        int masteryPct = (int) Math.round(practiceAccuracy * 0.7 + lessonCompletion * 0.3);
         userTopic.setMasteryPct(masteryPct);
         userTopicRepository.save(userTopic);
     }
