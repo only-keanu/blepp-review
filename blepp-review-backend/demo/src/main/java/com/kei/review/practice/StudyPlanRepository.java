@@ -1,0 +1,7 @@
+package com.kei.review.practice;
+
+import java.util.UUID;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface StudyPlanRepository extends JpaRepository<StudyPlan, UUID> {
+}
