@@ -222,7 +222,9 @@ public class ExamServiceImpl implements ExamService {
     }
 
     private void assignQuestions(ExamSession session, UUID userId) {
-        List<Question> pool = questionRepository.findByOwnerId(userId);
+        List<Question> pool = session.getMockExam().getTopic() != null
+            ? questionRepository.findByOwnerIdAndTopicId(userId, session.getMockExam().getTopic().getId())
+            : questionRepository.findByOwnerId(userId);
         if (pool.isEmpty()) {
             return;
         }
