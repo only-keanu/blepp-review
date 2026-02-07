@@ -2,6 +2,11 @@ package com.kei.review.lessons;
 
 import com.kei.review.lessons.dto.LessonProgressRequest;
 import com.kei.review.lessons.dto.LessonProgressResponse;
+import com.kei.review.practice.AnswerAttemptRepository;
+import com.kei.review.topics.Topic;
+import com.kei.review.topics.TopicRepository;
+import com.kei.review.topics.UserTopic;
+import com.kei.review.topics.UserTopicRepository;
 import com.kei.review.users.User;
 import com.kei.review.users.UserRepository;
 import java.time.Instant;
@@ -14,13 +19,25 @@ import org.springframework.stereotype.Service;
 public class LessonProgressServiceImpl implements LessonProgressService {
     private final LessonProgressRepository lessonProgressRepository;
     private final UserRepository userRepository;
+    private final TopicRepository topicRepository;
+    private final UserTopicRepository userTopicRepository;
+    private final AnswerAttemptRepository answerAttemptRepository;
+    private final LessonCatalog lessonCatalog;
 
     public LessonProgressServiceImpl(
         LessonProgressRepository lessonProgressRepository,
-        UserRepository userRepository
+        UserRepository userRepository,
+        TopicRepository topicRepository,
+        UserTopicRepository userTopicRepository,
+        AnswerAttemptRepository answerAttemptRepository,
+        LessonCatalog lessonCatalog
     ) {
         this.lessonProgressRepository = lessonProgressRepository;
         this.userRepository = userRepository;
+        this.topicRepository = topicRepository;
+        this.userTopicRepository = userTopicRepository;
+        this.answerAttemptRepository = answerAttemptRepository;
+        this.lessonCatalog = lessonCatalog;
     }
 
     @Override
@@ -61,6 +78,7 @@ public class LessonProgressServiceImpl implements LessonProgressService {
             .build();
 
         LessonProgress saved = lessonProgressRepository.save(created);
+        updateMasteryFromLesson(userId, request.topicSlug());
         return toResponse(saved);
     }
 
@@ -80,5 +98,43 @@ public class LessonProgressServiceImpl implements LessonProgressService {
             progress.getLessonId(),
             progress.getCompletedAt()
         );
+    }
+
+    private void updateMasteryFromLesson(UUID userId, String topicSlug) {
+        if (topicSlug == null || topicSlug.isBlank()) {
+            return;
+        }
+        Topic topic = topicRepository.findBySlug(topicSlug)
+            .orElse(null);
+        if (topic == null) {
+            return;
+        }
+
+        long totalAttempts = answerAttemptRepository.countByUserIdAndQuestionTopicId(userId, topic.getId());
+        long correctAttempts = answerAttemptRepository.countByUserIdAndQuestionTopicIdAndCorrectTrue(userId, topic.getId());
+        int practiceAccuracy = totalAttempts == 0 ? 0 : (int) Math.round((correctAttempts * 100.0) / totalAttempts);
+
+        int totalLessons = lessonCatalog.getTotalLessons(topicSlug);
+        long completedLessons = totalLessons == 0
+            ? 0
+            : lessonProgressRepository.countByUserIdAndTopicSlug(userId, topicSlug);
+        int lessonCompletion = totalLessons == 0
+            ? 0
+            : (int) Math.round((completedLessons * 100.0) / totalLessons);
+
+        int masteryPct = (int) Math.round(practiceAccuracy * 0.7 + lessonCompletion * 0.3);
+
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new IllegalStateException("User not found"));
+        UserTopic userTopic = userTopicRepository.findByUserIdAndTopicId(userId, topic.getId())
+            .orElseGet(() -> UserTopic.builder()
+                .user(user)
+                .topic(topic)
+                .weak(false)
+                .masteryPct(0)
+                .build()
+            );
+        userTopic.setMasteryPct(masteryPct);
+        userTopicRepository.save(userTopic);
     }
 }
