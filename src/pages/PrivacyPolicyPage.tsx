@@ -6,13 +6,13 @@ export function PrivacyPolicyPage() {
     <PublicLayout>
       <div className="py-16">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-2">
             Privacy Policy
           </h1>
-          <p className="text-slate-500 mb-12">Last updated: January 15, 2024</p>
+          <p className="text-slate-500 dark:text-slate-400 mb-12">Last updated: January 15, 2024</p>
 
-          <div className="prose prose-slate max-w-none">
-            <p className="text-lg text-slate-600 mb-8">
+          <div className="prose prose-slate dark:prose-invert max-w-none">
+            <p className="text-lg text-slate-600 dark:text-slate-300 mb-8">
               At BLEPP Review, we take your privacy seriously. This Privacy
               Policy explains how we collect, use, disclose, and safeguard your
               information when you use our platform.
@@ -187,8 +187,8 @@ export function PrivacyPolicyPage() {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="mb-10">
-      <h2 className="text-xl font-bold text-slate-900 mb-4">{title}</h2>
-      <div className="text-slate-600 space-y-4">{children}</div>
+      <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-4">{title}</h2>
+      <div className="text-slate-600 dark:text-slate-300 space-y-4">{children}</div>
     </section>
   );
 }

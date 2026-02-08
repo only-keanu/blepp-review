@@ -7,12 +7,12 @@ import { Heart, Target, Users, Award } from 'lucide-react';
 export function AboutPage() {
   return (
     <PublicLayout>
-      <div className="bg-slate-50 py-20">
+      <div className="bg-slate-50 dark:bg-slate-900 py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 mb-6">
+          <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 dark:text-slate-100 mb-6">
             About <span className="text-teal-600">BLEPP Review</span>
           </h1>
-          <p className="text-xl text-slate-600 max-w-2xl mx-auto">
+          <p className="text-xl text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
             We're on a mission to help every aspiring Filipino Psychologist pass
             the board exam with confidence.
           </p>
@@ -21,23 +21,23 @@ export function AboutPage() {
 
       <div className="py-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-2xl font-bold text-slate-900 mb-6">Our Story</h2>
-          <div className="prose prose-slate max-w-none">
-            <p className="text-lg text-slate-600 mb-6">
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-6">Our Story</h2>
+          <div className="prose prose-slate dark:prose-invert max-w-none">
+            <p className="text-lg text-slate-600 dark:text-slate-300 mb-6">
               BLEPP Review was born from a simple frustration: preparing for the
               Psychology Licensure Exam shouldn't be this hard. As former board
               exam takers ourselves, we experienced firsthand the challenges of
               scattered review materials, ineffective study methods, and the
               anxiety of not knowing if we were truly ready.
             </p>
-            <p className="text-lg text-slate-600 mb-6">
+            <p className="text-lg text-slate-600 dark:text-slate-300 mb-6">
               In 2023, we set out to build the review platform we wished we had.
               Combining modern learning science—spaced repetition, active
               recall, and interleaving—with the power of AI, we created a tool
               that adapts to each student's needs and makes board exam
               preparation more efficient and less stressful.
             </p>
-            <p className="text-lg text-slate-600">
+            <p className="text-lg text-slate-600 dark:text-slate-300">
               Today, BLEPP Review helps thousands of psychology students across
               the Philippines prepare smarter, not harder. We're proud to be
               part of their journey toward becoming licensed Psychologists and
@@ -47,48 +47,48 @@ export function AboutPage() {
         </div>
       </div>
 
-      <div className="bg-slate-50 py-20">
+      <div className="bg-slate-50 dark:bg-slate-900 py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-2xl font-bold text-slate-900 text-center mb-12">
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 text-center mb-12">
             Our Values
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             <div className="text-center">
-              <div className="w-16 h-16 bg-teal-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Target className="h-8 w-8 text-teal-600" />
+              <div className="w-16 h-16 bg-teal-100 dark:bg-teal-950/40 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Target className="h-8 w-8 text-teal-600 dark:text-teal-300" />
               </div>
-              <h3 className="font-bold text-slate-900 mb-2">Student-First</h3>
-              <p className="text-sm text-slate-600">
+              <h3 className="font-bold text-slate-900 dark:text-slate-100 mb-2">Student-First</h3>
+              <p className="text-sm text-slate-600 dark:text-slate-300">
                 Every feature we build starts with one question: will this help
                 students pass?
               </p>
             </div>
             <div className="text-center">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Award className="h-8 w-8 text-blue-600" />
+              <div className="w-16 h-16 bg-blue-100 dark:bg-blue-950/40 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Award className="h-8 w-8 text-blue-600 dark:text-blue-300" />
               </div>
-              <h3 className="font-bold text-slate-900 mb-2">Excellence</h3>
-              <p className="text-sm text-slate-600">
+              <h3 className="font-bold text-slate-900 dark:text-slate-100 mb-2">Excellence</h3>
+              <p className="text-sm text-slate-600 dark:text-slate-300">
                 We hold ourselves to the highest standards in content accuracy
                 and platform quality.
               </p>
             </div>
             <div className="text-center">
-              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Users className="h-8 w-8 text-purple-600" />
+              <div className="w-16 h-16 bg-purple-100 dark:bg-purple-950/40 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Users className="h-8 w-8 text-purple-600 dark:text-purple-300" />
               </div>
-              <h3 className="font-bold text-slate-900 mb-2">Accessibility</h3>
-              <p className="text-sm text-slate-600">
+              <h3 className="font-bold text-slate-900 dark:text-slate-100 mb-2">Accessibility</h3>
+              <p className="text-sm text-slate-600 dark:text-slate-300">
                 Quality board exam prep should be affordable and accessible to
                 all Filipino students.
               </p>
             </div>
             <div className="text-center">
-              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Heart className="h-8 w-8 text-red-600" />
+              <div className="w-16 h-16 bg-red-100 dark:bg-red-950/40 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Heart className="h-8 w-8 text-red-600 dark:text-red-300" />
               </div>
-              <h3 className="font-bold text-slate-900 mb-2">Community</h3>
-              <p className="text-sm text-slate-600">
+              <h3 className="font-bold text-slate-900 dark:text-slate-100 mb-2">Community</h3>
+              <p className="text-sm text-slate-600 dark:text-slate-300">
                 We're building more than a product—we're building a community of
                 future psychologists.
               </p>
@@ -99,10 +99,10 @@ export function AboutPage() {
 
       <div className="py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-2xl font-bold text-slate-900 text-center mb-4">
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 text-center mb-4">
             Meet the Team
           </h2>
-          <p className="text-slate-600 text-center mb-12 max-w-2xl mx-auto">
+          <p className="text-slate-600 dark:text-slate-300 text-center mb-12 max-w-2xl mx-auto">
             We're a small team of educators, psychologists, and engineers
             passionate about transforming how Filipinos prepare for professional
             licensure exams.
@@ -163,10 +163,10 @@ export function AboutPage() {
 function TeamMember({ name, role, bio }: { name: string; role: string; bio: string }) {
   return (
     <div className="text-center">
-      <div className="w-24 h-24 bg-slate-200 rounded-full mx-auto mb-4"></div>
-      <h3 className="font-bold text-slate-900">{name}</h3>
-      <p className="text-sm text-teal-600 mb-2">{role}</p>
-      <p className="text-sm text-slate-600">{bio}</p>
+      <div className="w-24 h-24 bg-slate-200 dark:bg-slate-800 rounded-full mx-auto mb-4"></div>
+      <h3 className="font-bold text-slate-900 dark:text-slate-100">{name}</h3>
+      <p className="text-sm text-teal-600 dark:text-teal-300 mb-2">{role}</p>
+      <p className="text-sm text-slate-600 dark:text-slate-300">{bio}</p>
     </div>
   );
 }

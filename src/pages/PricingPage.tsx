@@ -7,12 +7,12 @@ import { CheckCircle2, X } from 'lucide-react';
 export function PricingPage() {
   return (
     <PublicLayout>
-      <div className="bg-slate-50 py-20">
+      <div className="bg-slate-50 dark:bg-slate-900 py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 mb-6">
+          <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 dark:text-slate-100 mb-6">
             Simple, Transparent <span className="text-teal-600">Pricing</span>
           </h1>
-          <p className="text-xl text-slate-600 max-w-2xl mx-auto">
+          <p className="text-xl text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
             Choose the plan that fits your study timeline. All plans include a
             7-day free trial.
           </p>
@@ -22,16 +22,16 @@ export function PricingPage() {
       <div className="py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            <div className="bg-white rounded-2xl border border-slate-200 p-8">
-              <h3 className="text-lg font-bold text-slate-900 mb-2">Free</h3>
-              <p className="text-sm text-slate-500 mb-6">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-8">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-2">Free</h3>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
                 Get started with basic features
               </p>
               <div className="mb-6">
-                <span className="text-4xl font-extrabold text-slate-900">
+                <span className="text-4xl font-extrabold text-slate-900 dark:text-slate-100">
                   ₱0
                 </span>
-                <span className="text-slate-500">/month</span>
+                <span className="text-slate-500 dark:text-slate-400">/month</span>
               </div>
               <Link to="/auth/register">
                 <Button variant="outline" className="w-full mb-8">
@@ -51,21 +51,21 @@ export function PricingPage() {
               </ul>
             </div>
 
-            <div className="bg-white rounded-2xl border-2 border-teal-500 p-8 relative shadow-xl">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border-2 border-teal-500 dark:border-teal-400 p-8 relative shadow-xl">
               <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
                 <span className="bg-teal-500 text-white text-sm font-bold px-4 py-1 rounded-full">
                   Most Popular
                 </span>
               </div>
-              <h3 className="text-lg font-bold text-slate-900 mb-2">Pro</h3>
-              <p className="text-sm text-slate-500 mb-6">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-2">Pro</h3>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
                 Everything you need to pass
               </p>
               <div className="mb-6">
-                <span className="text-4xl font-extrabold text-slate-900">
+                <span className="text-4xl font-extrabold text-slate-900 dark:text-slate-100">
                   ₱299
                 </span>
-                <span className="text-slate-500">/month</span>
+                <span className="text-slate-500 dark:text-slate-400">/month</span>
               </div>
               <Link to="/auth/register">
                 <Button className="w-full mb-8">Start Free Trial</Button>
@@ -89,16 +89,16 @@ export function PricingPage() {
               </ul>
             </div>
 
-            <div className="bg-white rounded-2xl border border-slate-200 p-8">
-              <h3 className="text-lg font-bold text-slate-900 mb-2">Premium</h3>
-              <p className="text-sm text-slate-500 mb-6">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-8">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-2">Premium</h3>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
                 For serious board exam prep
               </p>
               <div className="mb-6">
-                <span className="text-4xl font-extrabold text-slate-900">
+                <span className="text-4xl font-extrabold text-slate-900 dark:text-slate-100">
                   ₱499
                 </span>
-                <span className="text-slate-500">/month</span>
+                <span className="text-slate-500 dark:text-slate-400">/month</span>
               </div>
               <Link to="/auth/register">
                 <Button variant="outline" className="w-full mb-8">
@@ -149,7 +149,7 @@ export function PricingPage() {
 
       <div className="py-20">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-2xl font-bold text-slate-900 text-center mb-12">
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 text-center mb-12">
             Frequently Asked Questions
           </h2>
           <div className="space-y-8">
@@ -186,11 +186,17 @@ function PricingFeature({
   return (
     <li className="flex items-center gap-3">
       {included ? (
-        <CheckCircle2 className="h-5 w-5 text-teal-500 flex-shrink-0" />
+        <CheckCircle2 className="h-5 w-5 text-teal-500 dark:text-teal-300 flex-shrink-0" />
       ) : (
-        <X className="h-5 w-5 text-slate-300 flex-shrink-0" />
+        <X className="h-5 w-5 text-slate-300 dark:text-slate-600 flex-shrink-0" />
       )}
-      <span className={included ? 'text-slate-700' : 'text-slate-400'}>
+      <span
+        className={
+          included
+            ? 'text-slate-700 dark:text-slate-200'
+            : 'text-slate-400 dark:text-slate-500'
+        }
+      >
         {children}
       </span>
     </li>
@@ -200,8 +206,8 @@ function PricingFeature({
 function FAQ({ question, answer }: { question: string; answer: string }) {
   return (
     <div>
-      <h3 className="font-bold text-slate-900 mb-2">{question}</h3>
-      <p className="text-slate-600">{answer}</p>
+      <h3 className="font-bold text-slate-900 dark:text-slate-100 mb-2">{question}</h3>
+      <p className="text-slate-600 dark:text-slate-300">{answer}</p>
     </div>
   );
 }

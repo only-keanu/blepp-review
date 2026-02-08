@@ -19,13 +19,13 @@ import {
 export function FeaturesPage() {
   return (
     <PublicLayout>
-      <div className="bg-slate-50 py-20">
+      <div className="bg-slate-50 dark:bg-slate-900 py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 mb-6">
+          <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 dark:text-slate-100 mb-6">
             Powerful Features for{' '}
             <span className="text-teal-600">Smarter Studying</span>
           </h1>
-          <p className="text-xl text-slate-600 max-w-2xl mx-auto">
+          <p className="text-xl text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
             Everything you need to prepare for the Psychology Board Exam, built
             on proven learning science principles.
           </p>
@@ -37,15 +37,15 @@ export function FeaturesPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
             <div className="flex gap-6">
               <div className="flex-shrink-0">
-                <div className="w-14 h-14 bg-teal-100 rounded-xl flex items-center justify-center">
-                  <Brain className="h-7 w-7 text-teal-600" />
+                <div className="w-14 h-14 bg-teal-100 dark:bg-teal-950/40 rounded-xl flex items-center justify-center">
+                  <Brain className="h-7 w-7 text-teal-600 dark:text-teal-300" />
                 </div>
               </div>
               <div>
-                <h3 className="text-xl font-bold text-slate-900 mb-3">
+                <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-3">
                   AI Question Generator
                 </h3>
-                <p className="text-slate-600 mb-4">
+                <p className="text-slate-600 dark:text-slate-300 mb-4">
                   Upload your PDF reviewers and textbooks. Our AI analyzes the
                   content and generates board-style multiple choice questions
                   instantly. Save hours of manual question creation.
@@ -58,9 +58,9 @@ export function FeaturesPage() {
                   ].map((item, i) => (
                     <li
                       key={i}
-                      className="flex items-center gap-2 text-sm text-slate-600"
+                      className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300"
                     >
-                      <CheckCircle2 className="h-4 w-4 text-teal-500" />
+                      <CheckCircle2 className="h-4 w-4 text-teal-500 dark:text-teal-300" />
                       {item}
                     </li>
                   ))}
@@ -70,15 +70,15 @@ export function FeaturesPage() {
 
             <div className="flex gap-6">
               <div className="flex-shrink-0">
-                <div className="w-14 h-14 bg-blue-100 rounded-xl flex items-center justify-center">
-                  <Clock className="h-7 w-7 text-blue-600" />
+                <div className="w-14 h-14 bg-blue-100 dark:bg-blue-950/40 rounded-xl flex items-center justify-center">
+                  <Clock className="h-7 w-7 text-blue-600 dark:text-blue-300" />
                 </div>
               </div>
               <div>
-                <h3 className="text-xl font-bold text-slate-900 mb-3">
+                <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-3">
                   Spaced Repetition System
                 </h3>
-                <p className="text-slate-600 mb-4">
+                <p className="text-slate-600 dark:text-slate-300 mb-4">
                   Our algorithm schedules reviews at scientifically optimal
                   intervals. Questions you struggle with appear more often;
                   mastered content fades into longer intervals.
@@ -91,9 +91,9 @@ export function FeaturesPage() {
                   ].map((item, i) => (
                     <li
                       key={i}
-                      className="flex items-center gap-2 text-sm text-slate-600"
+                      className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300"
                     >
-                      <CheckCircle2 className="h-4 w-4 text-blue-500" />
+                      <CheckCircle2 className="h-4 w-4 text-blue-500 dark:text-blue-300" />
                       {item}
                     </li>
                   ))}
@@ -103,15 +103,15 @@ export function FeaturesPage() {
 
             <div className="flex gap-6">
               <div className="flex-shrink-0">
-                <div className="w-14 h-14 bg-purple-100 rounded-xl flex items-center justify-center">
-                  <BarChart3 className="h-7 w-7 text-purple-600" />
+                <div className="w-14 h-14 bg-purple-100 dark:bg-purple-950/40 rounded-xl flex items-center justify-center">
+                  <BarChart3 className="h-7 w-7 text-purple-600 dark:text-purple-300" />
                 </div>
               </div>
               <div>
-                <h3 className="text-xl font-bold text-slate-900 mb-3">
+                <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-3">
                   Readiness Analytics
                 </h3>
-                <p className="text-slate-600 mb-4">
+                <p className="text-slate-600 dark:text-slate-300 mb-4">
                   Know exactly when you're ready to take the exam. Our readiness
                   score combines accuracy, consistency, coverage, and mock exam
                   performance into one clear metric.
@@ -124,9 +124,9 @@ export function FeaturesPage() {
                   ].map((item, i) => (
                     <li
                       key={i}
-                      className="flex items-center gap-2 text-sm text-slate-600"
+                      className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300"
                     >
-                      <CheckCircle2 className="h-4 w-4 text-purple-500" />
+                      <CheckCircle2 className="h-4 w-4 text-purple-500 dark:text-purple-300" />
                       {item}
                     </li>
                   ))}
@@ -136,15 +136,15 @@ export function FeaturesPage() {
 
             <div className="flex gap-6">
               <div className="flex-shrink-0">
-                <div className="w-14 h-14 bg-amber-100 rounded-xl flex items-center justify-center">
-                  <FileText className="h-7 w-7 text-amber-600" />
+                <div className="w-14 h-14 bg-amber-100 dark:bg-amber-950/40 rounded-xl flex items-center justify-center">
+                  <FileText className="h-7 w-7 text-amber-600 dark:text-amber-300" />
                 </div>
               </div>
               <div>
-                <h3 className="text-xl font-bold text-slate-900 mb-3">
+                <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-3">
                   Realistic Mock Exams
                 </h3>
-                <p className="text-slate-600 mb-4">
+                <p className="text-slate-600 dark:text-slate-300 mb-4">
                   Simulate the actual board exam experience with timed tests
                   covering all subjects. Get detailed score breakdowns and
                   review your mistakes.
@@ -157,9 +157,9 @@ export function FeaturesPage() {
                   ].map((item, i) => (
                     <li
                       key={i}
-                      className="flex items-center gap-2 text-sm text-slate-600"
+                      className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300"
                     >
-                      <CheckCircle2 className="h-4 w-4 text-amber-500" />
+                      <CheckCircle2 className="h-4 w-4 text-amber-500 dark:text-amber-300" />
                       {item}
                     </li>
                   ))}
@@ -169,15 +169,15 @@ export function FeaturesPage() {
 
             <div className="flex gap-6">
               <div className="flex-shrink-0">
-                <div className="w-14 h-14 bg-green-100 rounded-xl flex items-center justify-center">
-                  <Layers className="h-7 w-7 text-green-600" />
+                <div className="w-14 h-14 bg-green-100 dark:bg-green-950/40 rounded-xl flex items-center justify-center">
+                  <Layers className="h-7 w-7 text-green-600 dark:text-green-300" />
                 </div>
               </div>
               <div>
-                <h3 className="text-xl font-bold text-slate-900 mb-3">
+                <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-3">
                   Smart Flashcards
                 </h3>
-                <p className="text-slate-600 mb-4">
+                <p className="text-slate-600 dark:text-slate-300 mb-4">
                   Create and study flashcards with our beautiful flip-card
                   interface. Rate your confidence and let the system optimize
                   your review schedule.
@@ -190,9 +190,9 @@ export function FeaturesPage() {
                   ].map((item, i) => (
                     <li
                       key={i}
-                      className="flex items-center gap-2 text-sm text-slate-600"
+                      className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300"
                     >
-                      <CheckCircle2 className="h-4 w-4 text-green-500" />
+                      <CheckCircle2 className="h-4 w-4 text-green-500 dark:text-green-300" />
                       {item}
                     </li>
                   ))}
@@ -202,15 +202,15 @@ export function FeaturesPage() {
 
             <div className="flex gap-6">
               <div className="flex-shrink-0">
-                <div className="w-14 h-14 bg-red-100 rounded-xl flex items-center justify-center">
-                  <BookOpen className="h-7 w-7 text-red-600" />
+                <div className="w-14 h-14 bg-red-100 dark:bg-red-950/40 rounded-xl flex items-center justify-center">
+                  <BookOpen className="h-7 w-7 text-red-600 dark:text-red-300" />
                 </div>
               </div>
               <div>
-                <h3 className="text-xl font-bold text-slate-900 mb-3">
+                <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-3">
                   Structured Curriculum
                 </h3>
-                <p className="text-slate-600 mb-4">
+                <p className="text-slate-600 dark:text-slate-300 mb-4">
                   Follow our expertly designed lesson plans covering all board
                   exam topics. Learn concepts before testing yourself with
                   practice questions.
@@ -223,9 +223,9 @@ export function FeaturesPage() {
                   ].map((item, i) => (
                     <li
                       key={i}
-                      className="flex items-center gap-2 text-sm text-slate-600"
+                      className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300"
                     >
-                      <CheckCircle2 className="h-4 w-4 text-red-500" />
+                      <CheckCircle2 className="h-4 w-4 text-red-500 dark:text-red-300" />
                       {item}
                     </li>
                   ))}
@@ -236,32 +236,32 @@ export function FeaturesPage() {
         </div>
       </div>
 
-      <div className="bg-slate-50 py-20">
+      <div className="bg-slate-50 dark:bg-slate-900 py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-2xl font-bold text-slate-900 text-center mb-12">
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 text-center mb-12">
             And Much More...
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-white p-6 rounded-xl border border-slate-200 text-center">
-              <Smartphone className="h-8 w-8 text-teal-600 mx-auto mb-4" />
-              <h3 className="font-bold text-slate-900 mb-2">Mobile Friendly</h3>
-              <p className="text-sm text-slate-600">
+            <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 text-center">
+              <Smartphone className="h-8 w-8 text-teal-600 dark:text-teal-300 mx-auto mb-4" />
+              <h3 className="font-bold text-slate-900 dark:text-slate-100 mb-2">Mobile Friendly</h3>
+              <p className="text-sm text-slate-600 dark:text-slate-300">
                 Study anywhere on any device with our responsive design.
               </p>
             </div>
-            <div className="bg-white p-6 rounded-xl border border-slate-200 text-center">
-              <Shield className="h-8 w-8 text-teal-600 mx-auto mb-4" />
-              <h3 className="font-bold text-slate-900 mb-2">
+            <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 text-center">
+              <Shield className="h-8 w-8 text-teal-600 dark:text-teal-300 mx-auto mb-4" />
+              <h3 className="font-bold text-slate-900 dark:text-slate-100 mb-2">
                 Secure & Private
               </h3>
-              <p className="text-sm text-slate-600">
+              <p className="text-sm text-slate-600 dark:text-slate-300">
                 Your data is encrypted and never shared with third parties.
               </p>
             </div>
-            <div className="bg-white p-6 rounded-xl border border-slate-200 text-center">
-              <Zap className="h-8 w-8 text-teal-600 mx-auto mb-4" />
-              <h3 className="font-bold text-slate-900 mb-2">Fast & Reliable</h3>
-              <p className="text-sm text-slate-600">
+            <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 text-center">
+              <Zap className="h-8 w-8 text-teal-600 dark:text-teal-300 mx-auto mb-4" />
+              <h3 className="font-bold text-slate-900 dark:text-slate-100 mb-2">Fast & Reliable</h3>
+              <p className="text-sm text-slate-600 dark:text-slate-300">
                 Lightning-fast performance so you can focus on studying.
               </p>
             </div>
@@ -271,10 +271,10 @@ export function FeaturesPage() {
 
       <div className="py-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold text-slate-900 mb-6">
+          <h2 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-6">
             Ready to experience these features?
           </h2>
-          <p className="text-lg text-slate-600 mb-8">
+          <p className="text-lg text-slate-600 dark:text-slate-300 mb-8">
             Start your free trial today and see the difference.
           </p>
           <Link to="/auth/register">
