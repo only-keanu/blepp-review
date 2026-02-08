@@ -17,6 +17,7 @@ import { RegisterPage } from './pages/auth/RegisterPage';
 import { OAuthCallbackPage } from './pages/auth/OAuthCallbackPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { useAuth } from './hooks/useAuth';
+import { AuthProvider } from './context/AuthContext';
 // Study Pages
 import { TopicsPage } from './pages/study/TopicsPage';
 import { PracticePage } from './pages/study/PracticePage';
@@ -70,9 +71,10 @@ function PublicRoute({ children }: {children: React.ReactNode;}) {
 }
 export function App() {
   return (
-    <Router>
-      <ScrollToTop />
-      <Routes>
+    <AuthProvider>
+      <Router>
+        <ScrollToTop />
+        <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/features" element={<FeaturesPage />} />
         <Route path="/pricing" element={<PricingPage />} />
@@ -282,8 +284,9 @@ export function App() {
 
 
         {/* Catch all redirect */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </Router>);
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Router>
+    </AuthProvider>);
 
 }
