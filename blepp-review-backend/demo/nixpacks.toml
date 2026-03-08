@@ -1,3 +1,6 @@
+[phases.setup]
+nixPkgs = ["jdk21", "gradle"]
+
 [phases.build]
 cmds = ["bash ./gradlew bootJar -x test"]
 
