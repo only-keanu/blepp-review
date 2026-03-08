@@ -2,6 +2,8 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080
 
 export const ACCESS_TOKEN_KEY = 'blepp_access_token';
 export const REFRESH_TOKEN_KEY = 'blepp_refresh_token';
+export const AUTH_NOTICE_KEY = 'blepp_auth_notice';
+export const AUTH_NOTICE_EVENT = 'auth:notice';
 const REFRESH_ENDPOINT = '/api/auth/refresh';
 const REFRESH_SKEW_MS = 60_000;
 const REFRESH_EARLY_MS = 2 * 60_000;
@@ -155,6 +157,7 @@ async function refreshAccessToken(): Promise<string | null> {
         }
       });
       if (!response.ok) {
+        setAuthNotice('Session expired. Please log in again.');
         clearTokens();
         return null;
       }
@@ -171,4 +174,15 @@ async function refreshAccessToken(): Promise<string | null> {
     }
   })();
   return refreshInFlight;
+}
+
+function setAuthNotice(message: string) {
+  try {
+    sessionStorage.setItem(AUTH_NOTICE_KEY, message);
+  } catch {
+    // Ignore storage failures.
+  }
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent(AUTH_NOTICE_EVENT, { detail: message }));
+  }
 }

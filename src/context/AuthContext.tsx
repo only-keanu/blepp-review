@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { User } from '../types';
-import { apiFetch, clearTokens, getAccessToken, initAuth, setTokens } from '../lib/api';
+import { apiFetch, AUTH_NOTICE_EVENT, AUTH_NOTICE_KEY, clearTokens, getAccessToken, initAuth, setTokens } from '../lib/api';
+import { AuthToast } from '../components/layout/AuthToast';
 
 interface AuthContextType {
   user: User | null;
@@ -23,10 +24,15 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: {children: React.ReactNode;}) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [notice, setNotice] = useState<string | null>(null);
 
   useEffect(() => {
     const loadProfile = async () => {
       initAuth();
+      const storedNotice = getStoredNotice();
+      if (storedNotice) {
+        setNotice(storedNotice);
+      }
       const token = getAccessToken();
       if (!token) {
         setIsLoading(false);
@@ -43,6 +49,29 @@ export function AuthProvider({ children }: {children: React.ReactNode;}) {
       }
     };
     loadProfile();
+  }, []);
+
+  useEffect(() => {
+    if (!notice) {
+      return;
+    }
+    const timeoutId = window.setTimeout(() => setNotice(null), 4000);
+    return () => window.clearTimeout(timeoutId);
+  }, [notice]);
+
+  useEffect(() => {
+    const handleNotice = (event: Event) => {
+      const custom = event as CustomEvent<string>;
+      const message = typeof custom.detail === 'string' ? custom.detail : 'Session expired. Please log in again.';
+      setNotice(message);
+      setUser(null);
+      setIsLoading(false);
+      if (!window.location.pathname.startsWith('/auth/')) {
+        window.location.assign('/auth/login');
+      }
+    };
+    window.addEventListener(AUTH_NOTICE_EVENT, handleNotice);
+    return () => window.removeEventListener(AUTH_NOTICE_EVENT, handleNotice);
   }, []);
 
   const login = async (email: string, password: string) => {
@@ -114,7 +143,12 @@ export function AuthProvider({ children }: {children: React.ReactNode;}) {
     [user, isLoading]
   );
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+      {notice && <AuthToast message={notice} />}
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuth() {
@@ -123,4 +157,17 @@ export function useAuth() {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
+}
+
+function getStoredNotice() {
+  try {
+    const message = sessionStorage.getItem(AUTH_NOTICE_KEY);
+    if (message) {
+      sessionStorage.removeItem(AUTH_NOTICE_KEY);
+      return message;
+    }
+  } catch {
+    return null;
+  }
+  return null;
 }
