@@ -82,7 +82,16 @@ export async function apiFetch<T>(path: string, options: RequestInit = {}): Prom
   }
 
   if (!response.ok) {
-    const message = await response.text();
+    const text = await response.text();
+    let message = text;
+    if (text) {
+      try {
+        const errorBody = JSON.parse(text) as { message?: string };
+        message = errorBody.message || text;
+      } catch (error) {
+        message = text;
+      }
+    }
     throw new Error(message || `Request failed with status ${response.status}`);
   }
 

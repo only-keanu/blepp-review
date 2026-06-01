@@ -52,8 +52,8 @@ public class JwtService {
         Instant now = Instant.now();
         Instant expiry = now.plusSeconds(minutes * 60);
         return Jwts.builder()
-            .subject(subject)
             .claims(claims)
+            .subject(subject)
             .issuedAt(Date.from(now))
             .expiration(Date.from(expiry))
             .signWith(signingKey)

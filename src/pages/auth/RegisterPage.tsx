@@ -99,7 +99,7 @@ export function RegisterPage() {
       });
       navigate('/dashboard');
     } catch (err) {
-      setError('Failed to create account. Please try again.');
+      setError(err instanceof Error ? err.message : 'Failed to create account. Please try again.');
     }
   };
   return (
