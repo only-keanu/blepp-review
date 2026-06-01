@@ -67,7 +67,7 @@ export function LoginPage() {
       await oauthLogin(provider, result.code, redirectUri);
       navigate('/dashboard');
     } catch (err) {
-      setError('Social login failed. Please try again.');
+      setError(err instanceof Error ? err.message : 'Social login failed. Please try again.');
     }
   };
   const handleSubmit = async (e: React.FormEvent) => {
@@ -81,7 +81,7 @@ export function LoginPage() {
       await login(email, password);
       navigate('/dashboard');
     } catch (err) {
-      setError('Failed to sign in. Please try again.');
+      setError(err instanceof Error ? err.message : 'Failed to sign in. Please try again.');
     }
   };
   return (

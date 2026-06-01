@@ -8,6 +8,7 @@ import com.kei.review.exams.dto.ExamResultResponse;
 import com.kei.review.exams.dto.ExamSessionQuestionResponse;
 import com.kei.review.exams.dto.ExamSessionResponse;
 import com.kei.review.exams.dto.ExamSubmitResponse;
+import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.http.ResponseEntity;
@@ -44,7 +45,7 @@ public class ExamController {
     @PostMapping("/session/{sessionId}/answer")
     public ResponseEntity<Void> recordAnswer(
         @PathVariable UUID sessionId,
-        @RequestBody ExamAnswerRequest request,
+        @Valid @RequestBody ExamAnswerRequest request,
         @AuthenticationPrincipal UserPrincipal principal
     ) {
         examService.recordAnswer(principal.getId(), sessionId, request);

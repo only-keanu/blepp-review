@@ -104,6 +104,8 @@ public class PracticeServiceImpl implements PracticeService {
                     question.getTopic().getName(),
                     question.getText(),
                     question.getChoices(),
+                    question.getCorrectAnswerIndex(),
+                    question.getExplanation(),
                     question.getDifficulty()
                 );
             })
@@ -187,10 +189,9 @@ public class PracticeServiceImpl implements PracticeService {
 
     @Override
     public List<UUID> listMistakeQuestionIds(UUID userId) {
-        return answerAttemptRepository.findByUserIdAndCorrectFalse(userId)
+        return activeMistakeAttempts(answerAttemptRepository.findByUserIdOrderByCreatedAtDesc(userId))
             .stream()
             .map(attempt -> attempt.getQuestion().getId())
-            .distinct()
             .toList();
     }
 
@@ -198,13 +199,9 @@ public class PracticeServiceImpl implements PracticeService {
     @Transactional(readOnly = true)
     public List<MistakeQuestionResponse> listMistakeQuestions(UUID userId) {
         List<AnswerAttempt> attempts =
-            answerAttemptRepository.findByUserIdAndCorrectFalseOrderByCreatedAtDesc(userId);
-        Map<UUID, MistakeQuestionResponse> latestByQuestion = new LinkedHashMap<>();
+            activeMistakeAttempts(answerAttemptRepository.findByUserIdOrderByCreatedAtDesc(userId));
+        List<MistakeQuestionResponse> mistakes = new ArrayList<>();
         for (AnswerAttempt attempt : attempts) {
-            UUID questionId = attempt.getQuestion().getId();
-            if (latestByQuestion.containsKey(questionId)) {
-                continue;
-            }
             Question question = attempt.getQuestion();
             String userAnswer = attempt.getSelectedAnswerIndex() != null &&
                 attempt.getSelectedAnswerIndex() >= 0 &&
@@ -212,10 +209,9 @@ public class PracticeServiceImpl implements PracticeService {
                 ? question.getChoices().get(attempt.getSelectedAnswerIndex())
                 : null;
             String correctAnswer = question.getChoices().get(question.getCorrectAnswerIndex());
-            latestByQuestion.put(
-                questionId,
+            mistakes.add(
                 new MistakeQuestionResponse(
-                    questionId,
+                    question.getId(),
                     question.getTopic().getId(),
                     question.getTopic().getName(),
                     question.getText(),
@@ -225,20 +221,16 @@ public class PracticeServiceImpl implements PracticeService {
                 )
             );
         }
-        return List.copyOf(latestByQuestion.values());
+        return mistakes;
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<QuestionResponse> listMistakeQuestionsByTopic(UUID userId, UUID topicId) {
         List<AnswerAttempt> attempts =
-            answerAttemptRepository.findByUserIdAndCorrectFalseAndQuestionTopicIdOrderByCreatedAtDesc(userId, topicId);
-        Map<UUID, Question> byQuestion = new LinkedHashMap<>();
-        for (AnswerAttempt attempt : attempts) {
-            Question question = attempt.getQuestion();
-            byQuestion.putIfAbsent(question.getId(), question);
-        }
-        return byQuestion.values().stream()
+            activeMistakeAttempts(answerAttemptRepository.findByUserIdAndQuestionTopicIdOrderByCreatedAtDesc(userId, topicId));
+        return attempts.stream()
+            .map(AnswerAttempt::getQuestion)
             .map(this::toQuestionResponse)
             .toList();
     }
@@ -252,7 +244,7 @@ public class PracticeServiceImpl implements PracticeService {
             .orElseThrow(() -> new IllegalStateException("Topic not found"));
 
         List<Question> mistakeQuestions = uniqueAttemptQuestions(
-            answerAttemptRepository.findByUserIdAndCorrectFalseAndQuestionTopicIdOrderByCreatedAtDesc(userId, topicId)
+            activeMistakeAttempts(answerAttemptRepository.findByUserIdAndQuestionTopicIdOrderByCreatedAtDesc(userId, topicId))
         );
         int questionCount = mistakeQuestions.size();
 
@@ -273,13 +265,9 @@ public class PracticeServiceImpl implements PracticeService {
     @Transactional(readOnly = true)
     public List<QuestionResponse> listMistakeQuestionsAll(UUID userId) {
         List<AnswerAttempt> attempts =
-            answerAttemptRepository.findByUserIdAndCorrectFalseOrderByCreatedAtDesc(userId);
-        Map<UUID, Question> byQuestion = new LinkedHashMap<>();
-        for (AnswerAttempt attempt : attempts) {
-            Question question = attempt.getQuestion();
-            byQuestion.putIfAbsent(question.getId(), question);
-        }
-        return byQuestion.values().stream()
+            activeMistakeAttempts(answerAttemptRepository.findByUserIdOrderByCreatedAtDesc(userId));
+        return attempts.stream()
+            .map(AnswerAttempt::getQuestion)
             .map(this::toQuestionResponse)
             .toList();
     }
@@ -299,7 +287,7 @@ public class PracticeServiceImpl implements PracticeService {
             ));
 
         List<Question> mistakeQuestions = uniqueAttemptQuestions(
-            answerAttemptRepository.findByUserIdAndCorrectFalseOrderByCreatedAtDesc(userId)
+            activeMistakeAttempts(answerAttemptRepository.findByUserIdOrderByCreatedAtDesc(userId))
         );
         int questionCount = mistakeQuestions.size();
 
@@ -370,6 +358,16 @@ public class PracticeServiceImpl implements PracticeService {
             byQuestion.putIfAbsent(question.getId(), question);
         }
         return List.copyOf(byQuestion.values());
+    }
+
+    private List<AnswerAttempt> activeMistakeAttempts(List<AnswerAttempt> attemptsNewestFirst) {
+        Map<UUID, AnswerAttempt> latestByQuestion = new LinkedHashMap<>();
+        for (AnswerAttempt attempt : attemptsNewestFirst) {
+            latestByQuestion.putIfAbsent(attempt.getQuestion().getId(), attempt);
+        }
+        return latestByQuestion.values().stream()
+            .filter(attempt -> !attempt.isCorrect())
+            .toList();
     }
 
     private PracticeSessionResultResponse buildSessionResult(PracticeSession session) {

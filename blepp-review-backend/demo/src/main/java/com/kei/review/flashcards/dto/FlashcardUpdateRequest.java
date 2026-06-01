@@ -1,8 +1,10 @@
 package com.kei.review.flashcards.dto;
 
+import jakarta.validation.constraints.Size;
+
 public record FlashcardUpdateRequest(
-    String front,
-    String back,
+    @Size(min = 1) String front,
+    @Size(min = 1) String back,
     String category
 ) {
 }

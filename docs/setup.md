@@ -18,6 +18,25 @@ GRANT ALL PRIVILEGES ON DATABASE blepp_review TO blepp;
 `application.properties` enables the `local` profile by default.
 Configuration is in `application-local.properties`.
 
+Nixpacks deployments default to the `prod` profile. Production requires:
+
+```text
+SPRING_DATASOURCE_URL
+SPRING_DATASOURCE_USERNAME
+SPRING_DATASOURCE_PASSWORD
+SPRING_JPA_HIBERNATE_DDL_AUTO
+APP_JWT_SECRET
+```
+
+Google/Facebook login also requires the matching backend OAuth values:
+
+```text
+APP_OAUTH_GOOGLE_CLIENT_ID
+APP_OAUTH_GOOGLE_CLIENT_SECRET
+APP_OAUTH_FACEBOOK_APP_ID
+APP_OAUTH_FACEBOOK_APP_SECRET
+```
+
 ## JWT secret
 Replace the dev secret in `application-local.properties` for real deployments.
 

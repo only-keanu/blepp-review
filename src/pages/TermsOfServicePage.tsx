@@ -56,30 +56,16 @@ export function TermsOfServicePage() {
               </p>
             </Section>
 
-            <Section title="4. Subscription and Payment">
+            <Section title="4. Beta Access and Payment">
               <p>
-                <strong>Free Plan:</strong> Basic features are available at no
-                cost with limitations.
+                BLEPP Review is currently offered as a free beta. We do not
+                currently charge subscription fees, process payments, or enforce
+                paid plan quotas in the product.
               </p>
               <p>
-                <strong>Paid Plans:</strong> Premium features require a paid
-                subscription. By subscribing, you agree to:
-              </p>
-              <ul>
-                <li>
-                  Pay all applicable fees as described at the time of purchase
-                </li>
-                <li>
-                  Automatic renewal unless cancelled before the renewal date
-                </li>
-                <li>
-                  No refunds for partial subscription periods, except as
-                  required by law
-                </li>
-              </ul>
-              <p>
-                We reserve the right to change our pricing with 30 days' notice.
-                Price changes will not affect your current subscription period.
+                If paid plans are introduced later, pricing, billing terms,
+                cancellation rules, and usage limits will be shown before any
+                payment is collected.
               </p>
             </Section>
 
@@ -147,8 +133,8 @@ export function TermsOfServicePage() {
                 use of our services.
               </p>
               <p>
-                Our total liability shall not exceed the amount you paid us in
-                the 12 months preceding the claim.
+                Our total liability shall not exceed the greater of the amount
+                you paid us in the 12 months preceding the claim or PHP 1,000.
               </p>
             </Section>
 

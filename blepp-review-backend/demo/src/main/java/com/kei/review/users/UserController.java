@@ -4,6 +4,7 @@ import com.kei.review.auth.UserPrincipal;
 import com.kei.review.users.dto.ChangePasswordRequest;
 import com.kei.review.users.dto.UpdateProfileRequest;
 import com.kei.review.users.dto.UserProfileResponse;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,7 +29,7 @@ public class UserController {
 
     @PatchMapping("/me")
     public ResponseEntity<UserProfileResponse> updateProfile(
-        @RequestBody UpdateProfileRequest request,
+        @Valid @RequestBody UpdateProfileRequest request,
         @AuthenticationPrincipal UserPrincipal principal
     ) {
         return ResponseEntity.ok(userService.updateProfile(principal.getId(), request));
@@ -36,7 +37,7 @@ public class UserController {
 
     @PatchMapping("/me/password")
     public ResponseEntity<Void> changePassword(
-        @RequestBody ChangePasswordRequest request,
+        @Valid @RequestBody ChangePasswordRequest request,
         @AuthenticationPrincipal UserPrincipal principal
     ) {
         userService.changePassword(principal.getId(), request);

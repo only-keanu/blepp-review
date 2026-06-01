@@ -83,17 +83,17 @@ export function LandingPage() {
                   size="lg"
                   className="w-full sm:w-auto px-8">
 
-                  View Pricing
+                  Free Beta
                 </Button>
               </Link>
               <Link to="/auth/register">
                 <Button size="lg" className="w-full sm:w-auto px-8">
-                  Start Free Trial
+                  Create Free Account
                 </Button>
               </Link>
             </div>
             <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">
-              No credit card required • 7-day free trial
+              No credit card required. Free during beta.
             </p>
           </div>
         </div>

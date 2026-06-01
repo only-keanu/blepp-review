@@ -39,6 +39,7 @@ type FlashcardViewModel = {
   front: string;
   back: string;
   topic: string;
+  topicId: string;
 };
 
 interface SessionStats {
@@ -91,16 +92,17 @@ export function FlashcardsPage() {
       setIsLoading(true);
       setError('');
       try {
-        const data = await apiFetch<FlashcardApi[]>('/api/flashcards');
+        const data = await apiFetch<FlashcardApi[]>('/api/flashcards/due');
         const mapped = data.map((card) => ({
           id: card.id,
           front: card.front,
           back: card.back,
-          topic: card.topicName
+          topic: card.topicName,
+          topicId: card.topicId
         }));
         const filtered = selectedTopic === 'all'
           ? mapped
-          : mapped.filter((card) => card.topic === topics.find((t) => t.id === selectedTopic)?.name);
+          : mapped.filter((card) => card.topicId === selectedTopic);
         setCards(filtered);
         setCurrentIndex(0);
         setCompleted(0);
@@ -114,7 +116,7 @@ export function FlashcardsPage() {
           timeSpent: 0
         });
       } catch (err) {
-        setError('Failed to load flashcards.');
+        setError(err instanceof Error ? err.message : 'Failed to load flashcards.');
       } finally {
         setIsLoading(false);
       }
@@ -126,7 +128,19 @@ export function FlashcardsPage() {
   const totalCards = cards.length;
   const progress = totalCards === 0 ? 0 : (completed / totalCards) * 100;
 
-  const handleRate = (confidence: 'low' | 'medium' | 'high') => {
+  const handleRate = async (confidence: 'low' | 'medium' | 'high') => {
+    if (!currentCard) return;
+    setError('');
+    try {
+      await apiFetch<FlashcardApi>(`/api/flashcards/${currentCard.id}/review`, {
+        method: 'POST',
+        body: JSON.stringify({ confidence: confidence.toUpperCase() })
+      });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save flashcard review.');
+      return;
+    }
+
     setStats((prev) => ({
       ...prev,
       knewIt: confidence === 'high' ? prev.knewIt + 1 : prev.knewIt,

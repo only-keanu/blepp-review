@@ -1,11 +1,14 @@
 package com.kei.review.practice.dto;
 
 import com.kei.review.questions.QuestionDifficulty;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 import java.util.UUID;
 
 public record CreatePracticeSessionRequest(
-    UUID topicId,
+    @NotNull UUID topicId,
     QuestionDifficulty difficulty,
-    Integer questionCount
+    @Min(1) @Max(100) Integer questionCount
 ) {
 }

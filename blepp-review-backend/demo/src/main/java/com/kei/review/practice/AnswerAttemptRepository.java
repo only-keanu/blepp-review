@@ -7,6 +7,8 @@ import java.time.Instant;
 
 public interface AnswerAttemptRepository extends JpaRepository<AnswerAttempt, UUID> {
     List<AnswerAttempt> findByUserId(UUID userId);
+    List<AnswerAttempt> findByUserIdOrderByCreatedAtDesc(UUID userId);
+    List<AnswerAttempt> findByUserIdAndQuestionTopicIdOrderByCreatedAtDesc(UUID userId, UUID topicId);
     List<AnswerAttempt> findByUserIdAndCorrectFalse(UUID userId);
     List<AnswerAttempt> findByPracticeSessionIdOrderByCreatedAtDesc(UUID practiceSessionId);
     List<AnswerAttempt> findByUserIdAndCorrectFalseOrderByCreatedAtDesc(UUID userId);

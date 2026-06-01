@@ -4,6 +4,7 @@ import com.kei.review.auth.dto.AuthResponse;
 import com.kei.review.auth.dto.LoginRequest;
 import com.kei.review.auth.dto.OAuthCodeRequest;
 import com.kei.review.auth.dto.RegisterRequest;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,12 +23,12 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest request) {
+    public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
         return new ResponseEntity<>(authService.register(request), HttpStatus.CREATED);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
         return ResponseEntity.ok(authService.login(request));
     }
 
@@ -43,12 +44,12 @@ public class AuthController {
     }
 
     @PostMapping("/oauth/google")
-    public ResponseEntity<AuthResponse> oauthGoogle(@RequestBody OAuthCodeRequest request) {
+    public ResponseEntity<AuthResponse> oauthGoogle(@Valid @RequestBody OAuthCodeRequest request) {
         return ResponseEntity.ok(authService.oauthGoogle(request));
     }
 
     @PostMapping("/oauth/facebook")
-    public ResponseEntity<AuthResponse> oauthFacebook(@RequestBody OAuthCodeRequest request) {
+    public ResponseEntity<AuthResponse> oauthFacebook(@Valid @RequestBody OAuthCodeRequest request) {
         return ResponseEntity.ok(authService.oauthFacebook(request));
     }
 }

@@ -4,7 +4,7 @@ import { QuestionCard } from '../../components/study/QuestionCard';
 import { AnswerFeedback } from '../../components/study/AnswerFeedback';
 import { Button } from '../../components/ui/Button';
 import { Progress } from '../../components/ui/Progress';
-import { ArrowLeft, Flag } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Flag, RotateCcw } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { Question, Topic } from '../../types';
 import { apiFetch } from '../../lib/api';
@@ -17,6 +17,25 @@ type PracticeSessionResponse = {
   createdAt: string;
 };
 
+type PracticeResult = {
+  sessionId: string;
+  score: number;
+  totalQuestions: number;
+  answeredCount: number;
+  correctCount: number;
+  unansweredCount: number;
+  questions: Array<{
+    questionId: string;
+    topicName: string;
+    text: string;
+    choices: string[];
+    selectedAnswerIndex: number | null;
+    correctAnswerIndex: number;
+    correct: boolean;
+    explanation: string;
+  }>;
+};
+
 export function PracticePage() {
   const location = useLocation();
   const [topics, setTopics] = useState<Topic[]>([]);
@@ -27,6 +46,7 @@ export function PracticePage() {
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [sessionProgress, setSessionProgress] = useState(0);
+  const [result, setResult] = useState<PracticeResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -45,7 +65,7 @@ export function PracticePage() {
           setSelectedTopic(match ? match.id : data[0].id);
         }
       } catch (err) {
-        setError('Failed to load topics.');
+        setError(err instanceof Error ? err.message : 'Failed to load topics.');
       }
     };
     loadTopics();
@@ -59,58 +79,21 @@ export function PracticePage() {
       const params = new URLSearchParams(location.search);
       const mode = params.get('mode');
       const scope = params.get('scope');
+      let session: PracticeSessionResponse;
       if (mode === 'mistakes') {
         if (scope === 'all') {
-          const session = await apiFetch<PracticeSessionResponse>(
+          session = await apiFetch<PracticeSessionResponse>(
             `/api/practice/mistakes/session/all`,
             { method: 'POST' }
           );
-          setSessionId(session.id);
-          const data = await apiFetch<any[]>(
-            `/api/practice/mistakes/questions/all`
-          );
-          const mapped = data.map((q) => ({
-            id: q.id,
-            topicId: q.topicId,
-            topicName: q.topicName,
-            text: q.text,
-            choices: q.choices,
-            correctAnswerIndex: q.correctAnswerIndex,
-            explanation: q.explanation,
-            difficulty: q.difficulty.toLowerCase(),
-            source: q.source.toLowerCase(),
-            tags: q.tags || [],
-            category: q.category,
-            createdAt: q.createdAt
-          })) as Question[];
-          setQuestions(mapped);
         } else {
-          const session = await apiFetch<PracticeSessionResponse>(
+          session = await apiFetch<PracticeSessionResponse>(
             `/api/practice/mistakes/session?topicId=${encodeURIComponent(selectedTopic)}`,
             { method: 'POST' }
           );
-          setSessionId(session.id);
-          const data = await apiFetch<any[]>(
-            `/api/practice/mistakes/questions?topicId=${encodeURIComponent(selectedTopic)}`
-          );
-          const mapped = data.map((q) => ({
-            id: q.id,
-            topicId: q.topicId,
-            topicName: q.topicName,
-          text: q.text,
-          choices: q.choices,
-          correctAnswerIndex: q.correctAnswerIndex,
-          explanation: q.explanation,
-          difficulty: q.difficulty.toLowerCase(),
-          source: q.source.toLowerCase(),
-            tags: q.tags || [],
-            category: q.category,
-            createdAt: q.createdAt
-          })) as Question[];
-          setQuestions(mapped);
         }
       } else {
-        const session = await apiFetch<PracticeSessionResponse>('/api/practice/session', {
+        session = await apiFetch<PracticeSessionResponse>('/api/practice/session', {
           method: 'POST',
           body: JSON.stringify({
             topicId: selectedTopic,
@@ -118,32 +101,32 @@ export function PracticePage() {
             questionCount: 10
           })
         });
-        setSessionId(session.id);
-        const data = await apiFetch<any[]>(
-          `/api/questions?topicId=${encodeURIComponent(selectedTopic)}`
-        );
-        const mapped = data.map((q) => ({
-          id: q.id,
-          topicId: q.topicId,
-          topicName: q.topicName,
-          text: q.text,
-          choices: q.choices,
-          correctAnswerIndex: q.correctAnswerIndex,
-          explanation: q.explanation,
-          difficulty: q.difficulty.toLowerCase(),
-          source: q.source.toLowerCase(),
-          tags: q.tags || [],
-          category: q.category,
-          createdAt: q.createdAt
-        })) as Question[];
-        setQuestions(mapped.slice(0, 10));
       }
+      setSessionId(session.id);
+      const data = await apiFetch<any[]>(
+        `/api/practice/session/${session.id}/questions`
+      );
+      const mapped = data.map((q) => ({
+        id: q.questionId,
+        topicId: q.topicId,
+        topicName: q.topicName,
+        text: q.text,
+        choices: q.choices,
+        correctAnswerIndex: q.correctAnswerIndex,
+        explanation: q.explanation,
+        difficulty: q.difficulty.toLowerCase(),
+        source: 'manual',
+        tags: [],
+        category: q.topicName
+      })) as Question[];
+      setQuestions(mapped);
       setCurrentQuestionIndex(0);
       setSelectedAnswer(null);
       setIsSubmitted(false);
       setSessionProgress(0);
+      setResult(null);
     } catch (err) {
-      setError('Failed to start practice session.');
+      setError(err instanceof Error ? err.message : 'Failed to start practice session.');
     } finally {
       setIsLoading(false);
     }
@@ -181,7 +164,7 @@ export function PracticePage() {
     }
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (currentQuestionIndex < totalQuestions - 1) {
       const nextIndex = currentQuestionIndex + 1;
       setCurrentQuestionIndex(nextIndex);
@@ -189,7 +172,17 @@ export function PracticePage() {
       setIsSubmitted(false);
       setSessionProgress(((nextIndex + 1) / totalQuestions) * 100);
     } else {
-      alert('Session Complete!');
+      if (!sessionId) return;
+      try {
+        const completed = await apiFetch<PracticeResult>(
+          `/api/practice/session/${sessionId}/complete`,
+          { method: 'POST' }
+        );
+        setResult(completed);
+        setSessionProgress(100);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to complete practice session.');
+      }
     }
   };
 
@@ -206,6 +199,78 @@ export function PracticePage() {
   return (
     <AppLayout>
       <div className="max-w-4xl mx-auto space-y-6">
+        {result ? (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <Link
+                to="/dashboard/study/topics"
+                className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 flex items-center gap-2">
+                <ArrowLeft className="h-4 w-4" />
+                Back to Topics
+              </Link>
+              <Button
+                variant="outline"
+                leftIcon={<RotateCcw className="h-4 w-4" />}
+                onClick={startSession}>
+                Practice Again
+              </Button>
+            </div>
+            <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm">
+              <div className="flex items-start gap-4">
+                <div className="rounded-full bg-teal-100 dark:bg-teal-950 p-3">
+                  <CheckCircle2 className="h-7 w-7 text-teal-700 dark:text-teal-300" />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+                    Practice Complete
+                  </h1>
+                  <p className="mt-1 text-slate-600 dark:text-slate-300">
+                    {result.correctCount} of {result.totalQuestions} correct, {result.unansweredCount} unanswered
+                  </p>
+                </div>
+                <div className="ml-auto text-right">
+                  <div className="text-4xl font-bold text-teal-700 dark:text-teal-300">
+                    {result.score}%
+                  </div>
+                  <div className="text-sm text-slate-500">Score</div>
+                </div>
+              </div>
+            </div>
+            <div className="space-y-3">
+              {result.questions.map((question, index) => (
+                <div
+                  key={question.questionId}
+                  className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <div className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                        Question {index + 1} · {question.topicName}
+                      </div>
+                      <p className="mt-1 font-medium text-slate-900 dark:text-slate-100">
+                        {question.text}
+                      </p>
+                    </div>
+                    <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${question.correct ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                      {question.correct ? 'Correct' : 'Review'}
+                    </span>
+                  </div>
+                  <div className="mt-3 text-sm text-slate-600 dark:text-slate-300">
+                    Your answer: {question.selectedAnswerIndex === null ? 'Unanswered' : question.choices[question.selectedAnswerIndex]}
+                  </div>
+                  <div className="text-sm text-slate-600 dark:text-slate-300">
+                    Correct answer: {question.choices[question.correctAnswerIndex]}
+                  </div>
+                  {question.explanation && (
+                    <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                      {question.explanation}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <>
         <div className="flex items-center justify-between">
           <Link
             to="/dashboard/study/topics"
@@ -257,6 +322,8 @@ export function PracticePage() {
             selectedAnswerIndex={selectedAnswer!}
             onNext={handleNext}
           />
+        )}
+          </>
         )}
       </div>
     </AppLayout>

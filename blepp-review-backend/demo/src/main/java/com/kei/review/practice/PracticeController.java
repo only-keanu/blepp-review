@@ -8,6 +8,7 @@ import com.kei.review.practice.dto.PracticeSessionQuestionResponse;
 import com.kei.review.practice.dto.PracticeSessionResultResponse;
 import com.kei.review.practice.dto.PracticeSessionResponse;
 import com.kei.review.questions.dto.QuestionResponse;
+import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.http.ResponseEntity;
@@ -31,7 +32,7 @@ public class PracticeController {
 
     @PostMapping("/session")
     public ResponseEntity<PracticeSessionResponse> startSession(
-        @RequestBody CreatePracticeSessionRequest request,
+        @Valid @RequestBody CreatePracticeSessionRequest request,
         @AuthenticationPrincipal UserPrincipal principal
     ) {
         return ResponseEntity.ok(practiceService.startSession(principal.getId(), request));
@@ -47,7 +48,7 @@ public class PracticeController {
 
     @PostMapping("/attempt")
     public ResponseEntity<Void> recordAttempt(
-        @RequestBody AnswerAttemptRequest request,
+        @Valid @RequestBody AnswerAttemptRequest request,
         @AuthenticationPrincipal UserPrincipal principal
     ) {
         practiceService.recordAttempt(principal.getId(), request);

@@ -94,7 +94,7 @@ export function RegisterPage() {
         email: formData.email,
         password: formData.password,
         fullName: formData.fullName,
-        targetExamDate: formData.targetExamDate,
+        targetExamDate: formData.targetExamDate || undefined,
         dailyStudyHours: Number(formData.dailyStudyHours)
       });
       navigate('/dashboard');
@@ -167,6 +167,7 @@ export function RegisterPage() {
           name="password"
           type="password"
           required
+          minLength={8}
           value={formData.password}
           onChange={handleChange}
           icon={<Lock className="h-5 w-5" />}

@@ -275,7 +275,7 @@ export function FeaturesPage() {
             Ready to experience these features?
           </h2>
           <p className="text-lg text-slate-600 mb-8">
-            Start your free trial today and see the difference.
+            Create a free beta account today and see the difference.
           </p>
           <Link to="/auth/register">
             <Button size="lg" rightIcon={<ArrowRight className="h-5 w-5" />}>
