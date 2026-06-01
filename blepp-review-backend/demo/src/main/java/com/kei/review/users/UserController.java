@@ -1,6 +1,7 @@
 package com.kei.review.users;
 
 import com.kei.review.auth.UserPrincipal;
+import com.kei.review.users.dto.ChangePasswordRequest;
 import com.kei.review.users.dto.UpdateProfileRequest;
 import com.kei.review.users.dto.UserProfileResponse;
 import org.springframework.http.ResponseEntity;
@@ -31,5 +32,14 @@ public class UserController {
         @AuthenticationPrincipal UserPrincipal principal
     ) {
         return ResponseEntity.ok(userService.updateProfile(principal.getId(), request));
+    }
+
+    @PatchMapping("/me/password")
+    public ResponseEntity<Void> changePassword(
+        @RequestBody ChangePasswordRequest request,
+        @AuthenticationPrincipal UserPrincipal principal
+    ) {
+        userService.changePassword(principal.getId(), request);
+        return ResponseEntity.noContent().build();
     }
 }

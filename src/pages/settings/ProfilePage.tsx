@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { AppLayout } from '../../components/layout/AppLayout';
 import { Card } from '../../components/ui/Card';
 import { Input } from '../../components/ui/Input';
@@ -12,15 +12,36 @@ export function ProfilePage() {
     getStoredTheme() === 'dark'
   );
   const [isSaving, setIsSaving] = useState(false);
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
+  const [passwordStatusMessage, setPasswordStatusMessage] = useState('');
   const [formData, setFormData] = useState({
     fullName: user?.fullName || '',
     email: user?.email || '',
     targetExamDate: user?.targetExamDate || '',
     dailyStudyHours: user?.dailyStudyHours || 2
   });
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  useEffect(() => {
+    setFormData({
+      fullName: user?.fullName || '',
+      email: user?.email || '',
+      targetExamDate: user?.targetExamDate || '',
+      dailyStudyHours: user?.dailyStudyHours || 2
+    });
+  }, [user]);
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData((prev) => ({
+      ...prev,
+      [e.target.name]: e.target.value
+    }));
+  };
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPasswordData((prev) => ({
       ...prev,
       [e.target.name]: e.target.value
     }));
@@ -49,6 +70,41 @@ export function ProfilePage() {
     const next = !isDarkMode;
     setIsDarkMode(next);
     applyTheme(next ? 'dark' : 'light');
+  };
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordStatusMessage('');
+
+    if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
+      setPasswordStatusMessage('All password fields are required.');
+      return;
+    }
+    if (passwordData.newPassword.length < 8) {
+      setPasswordStatusMessage('New password must be at least 8 characters.');
+      return;
+    }
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      setPasswordStatusMessage('New password and confirmation do not match.');
+      return;
+    }
+
+    setIsChangingPassword(true);
+    try {
+      await apiFetch('/api/me/password', {
+        method: 'PATCH',
+        body: JSON.stringify(passwordData)
+      });
+      setPasswordData({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      });
+      setPasswordStatusMessage('Password updated successfully.');
+    } catch (error) {
+      setPasswordStatusMessage('Failed to update password.');
+    } finally {
+      setIsChangingPassword(false);
+    }
   };
   return (
     <AppLayout>
@@ -131,13 +187,50 @@ export function ProfilePage() {
 
         <Card title="Account Security">
           <div className="space-y-4">
-            <Button variant="outline">Change Password</Button>
+            <form onSubmit={handlePasswordSubmit} className="space-y-4">
+              <div className="grid grid-cols-1 gap-4">
+                <Input
+                  label="Current Password"
+                  name="currentPassword"
+                  type="password"
+                  autoComplete="current-password"
+                  value={passwordData.currentPassword}
+                  onChange={handlePasswordChange} />
+
+                <Input
+                  label="New Password"
+                  name="newPassword"
+                  type="password"
+                  autoComplete="new-password"
+                  value={passwordData.newPassword}
+                  onChange={handlePasswordChange}
+                  helperText="Use at least 8 characters." />
+
+                <Input
+                  label="Confirm New Password"
+                  name="confirmPassword"
+                  type="password"
+                  autoComplete="new-password"
+                  value={passwordData.confirmPassword}
+                  onChange={handlePasswordChange} />
+              </div>
+              {passwordStatusMessage && (
+                <div className="text-sm text-slate-600 dark:text-slate-300">
+                  {passwordStatusMessage}
+                </div>
+              )}
+              <div className="flex justify-end">
+                <Button type="submit" variant="outline" disabled={isChangingPassword}>
+                  {isChangingPassword ? 'Updating...' : 'Change Password'}
+                </Button>
+              </div>
+            </form>
             <div className="pt-4 border-t border-slate-100">
               <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
                 Permanently delete your account and all data. This action cannot
                 be undone.
               </p>
-              <Button variant="danger">Delete Account</Button>
+              <Button type="button" variant="danger">Delete Account</Button>
             </div>
           </div>
         </Card>
