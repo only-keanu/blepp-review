@@ -3,6 +3,7 @@ package com.kei.review.flashcards;
 import com.kei.review.flashcards.dto.FlashcardCreateRequest;
 import com.kei.review.flashcards.dto.FlashcardResponse;
 import com.kei.review.flashcards.dto.FlashcardReviewRequest;
+import com.kei.review.flashcards.dto.FlashcardQueueSummaryResponse;
 import com.kei.review.flashcards.dto.FlashcardUpdateRequest;
 import com.kei.review.topics.Topic;
 import com.kei.review.topics.TopicRepository;
@@ -36,6 +37,25 @@ public class FlashcardServiceImpl implements FlashcardService {
             .stream()
             .map(this::toResponse)
             .toList();
+    }
+
+    @Override
+    public List<FlashcardResponse> listDue(UUID userId) {
+        LocalDate today = LocalDate.now();
+        List<Flashcard> due = new java.util.ArrayList<>(flashcardRepository.findByUserIdAndNextReviewIsNull(userId));
+        due.addAll(flashcardRepository.findByUserIdAndNextReviewLessThanEqual(userId, today));
+        return due.stream()
+            .map(this::toResponse)
+            .toList();
+    }
+
+    @Override
+    public FlashcardQueueSummaryResponse summary(UUID userId) {
+        LocalDate today = LocalDate.now();
+        long newCards = flashcardRepository.countByUserIdAndNextReviewIsNull(userId);
+        long scheduledDue = flashcardRepository.countByUserIdAndNextReviewLessThanEqual(userId, today);
+        long mastered = flashcardRepository.countByUserIdAndConfidence(userId, FlashcardConfidence.HIGH);
+        return new FlashcardQueueSummaryResponse(newCards + scheduledDue, newCards, mastered);
     }
 
     @Override

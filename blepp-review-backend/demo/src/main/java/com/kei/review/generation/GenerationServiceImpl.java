@@ -37,6 +37,7 @@ import org.springframework.web.server.ResponseStatusException;
 @Service
 public class GenerationServiceImpl implements GenerationService {
     private static final int DEFAULT_QUESTION_COUNT = 10;
+    private static final int MAX_QUESTION_COUNT = 50;
     private static final int MAX_PDF_CHARS = 12000;
 
     private final GenerationJobRepository jobRepository;
@@ -47,25 +48,31 @@ public class GenerationServiceImpl implements GenerationService {
     private final String uploadDir;
     private final String openAiApiKey;
     private final String defaultModel;
+    private final long maxPdfBytes;
 
     public GenerationServiceImpl(
         GenerationJobRepository jobRepository,
         UserRepository userRepository,
         @Value("${app.generation.upload-dir:uploads/generation}") String uploadDir,
         @Value("${app.openai.api-key:}") String openAiApiKey,
-        @Value("${app.openai.model:gpt-4o-mini}") String defaultModel
+        @Value("${app.openai.model:gpt-4o-mini}") String defaultModel,
+        @Value("${app.generation.max-pdf-bytes:10485760}") long maxPdfBytes
     ) {
         this.jobRepository = jobRepository;
         this.userRepository = userRepository;
         this.uploadDir = uploadDir;
         this.openAiApiKey = openAiApiKey;
         this.defaultModel = defaultModel;
+        this.maxPdfBytes = maxPdfBytes;
     }
 
     @Override
     public GenerationUploadResponse upload(UUID userId, MultipartFile file) {
         if (file == null || file.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "PDF file is required.");
+        }
+        if (file.getSize() > maxPdfBytes) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "PDF file exceeds the configured size limit.");
         }
 
         String originalFilename = Optional.ofNullable(file.getOriginalFilename()).orElse("");
@@ -117,23 +124,31 @@ public class GenerationServiceImpl implements GenerationService {
             .filter(existing -> existing.getUser().getId().equals(userId))
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Upload not found."));
 
-        int questionCount = request.questionCount() == null ? DEFAULT_QUESTION_COUNT : request.questionCount();
+        int questionCount = normalizeQuestionCount(request.questionCount());
         String model = request.model() == null || request.model().isBlank() ? defaultModel : request.model();
 
         job.setStatus(GenerationStatus.RUNNING);
         job.setModel(model);
         job.setQuestionCount(questionCount);
+        job.setDifficulty(blankToNull(request.difficulty()));
+        job.setTopicId(request.topicId());
+        job.setSourceLabel(blankToNull(request.sourceLabel()));
+        job.setGeneratedQuestionsJson(null);
+        job.setErrorMessage(null);
         jobRepository.save(job);
 
         try {
             String pdfText = loadPdfText(job.getUploadPath());
-            List<GeneratedQuestionResponse> questions = callOpenAi(pdfText, questionCount, model);
+            List<GeneratedQuestionResponse> questions = callOpenAi(pdfText, questionCount, model, job);
             job.setStatus(GenerationStatus.COMPLETED);
             job.setCompletedAt(Instant.now());
+            job.setGeneratedQuestionsJson(objectMapper.writeValueAsString(questions));
             jobRepository.save(job);
-            return new GenerationRunResponse(job.getId(), job.getStatus(), questionCount, questions);
+            return new GenerationRunResponse(job.getId(), job.getStatus(), questionCount, questions, null);
         } catch (Exception e) {
             job.setStatus(GenerationStatus.FAILED);
+            job.setCompletedAt(Instant.now());
+            job.setErrorMessage(e.getMessage());
             jobRepository.save(job);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to generate questions.");
         }
@@ -144,7 +159,24 @@ public class GenerationServiceImpl implements GenerationService {
         GenerationJob job = jobRepository.findById(jobId)
             .filter(existing -> existing.getUser().getId().equals(userId))
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Generation job not found."));
-        return new GenerationStatusResponse(job.getId(), job.getStatus(), job.getQuestionCount());
+        return new GenerationStatusResponse(
+            job.getId(),
+            job.getStatus(),
+            job.getQuestionCount(),
+            readGeneratedQuestions(job),
+            job.getErrorMessage()
+        );
+    }
+
+    private int normalizeQuestionCount(Integer requested) {
+        if (requested == null) {
+            return DEFAULT_QUESTION_COUNT;
+        }
+        return Math.max(1, Math.min(requested, MAX_QUESTION_COUNT));
+    }
+
+    private String blankToNull(String value) {
+        return value == null || value.isBlank() ? null : value.trim();
     }
 
     private String loadPdfText(String uploadPath) throws IOException {
@@ -159,7 +191,12 @@ public class GenerationServiceImpl implements GenerationService {
         }
     }
 
-    private List<GeneratedQuestionResponse> callOpenAi(String pdfText, int questionCount, String model)
+    private List<GeneratedQuestionResponse> callOpenAi(
+        String pdfText,
+        int questionCount,
+        String model,
+        GenerationJob job
+    )
         throws IOException {
         Map<String, Object> schema = new HashMap<>();
         schema.put("type", "object");
@@ -199,7 +236,8 @@ public class GenerationServiceImpl implements GenerationService {
             Map.of(
                 "role", "user",
                 "content", "Generate " + questionCount + " board-style multiple-choice questions based only on the notes below. " +
-                    "Each question must have 4 answer choices, an explanation, a difficulty (easy, medium, hard), and 2-5 short tags. " +
+                    generationControls(job) +
+                    "Each question must have exactly 4 answer choices, one correct answer index from 0 to 3, an explanation, a difficulty (easy, medium, hard), and 2-5 short tags. " +
                     "Return JSON that matches the provided schema.\n\nNotes:\n" + pdfText
             )
         ));
@@ -245,25 +283,64 @@ public class GenerationServiceImpl implements GenerationService {
         );
 
         return results.stream()
-            .map(this::normalizeQuestion)
+            .map(this::validateQuestion)
             .toList();
     }
 
-    private GeneratedQuestionResponse normalizeQuestion(GeneratedQuestionResponse question) {
-        int choiceCount = question.choices() == null ? 0 : question.choices().size();
-        int index = question.correctAnswerIndex() == null ? 0 : question.correctAnswerIndex();
-        if (choiceCount == 0) {
-            return question;
+    private String generationControls(GenerationJob job) {
+        StringBuilder controls = new StringBuilder();
+        if (job.getDifficulty() != null) {
+            controls.append("Use this requested difficulty for every question: ")
+                .append(job.getDifficulty())
+                .append(". ");
         }
-        int boundedIndex = Math.max(0, Math.min(index, choiceCount - 1));
-        return new GeneratedQuestionResponse(
-            question.text(),
-            question.choices(),
-            boundedIndex,
-            question.explanation(),
-            question.difficulty(),
-            question.tags()
-        );
+        if (job.getSourceLabel() != null) {
+            controls.append("Use source label context: ")
+                .append(job.getSourceLabel())
+                .append(". ");
+        }
+        return controls.toString();
+    }
+
+    private GeneratedQuestionResponse validateQuestion(GeneratedQuestionResponse question) {
+        if (question.text() == null || question.text().isBlank()) {
+            throw new IllegalArgumentException("Generated question text is required.");
+        }
+        if (question.choices() == null || question.choices().size() != 4) {
+            throw new IllegalArgumentException("Generated questions must include exactly 4 choices.");
+        }
+        if (question.choices().stream().anyMatch(choice -> choice == null || choice.isBlank())) {
+            throw new IllegalArgumentException("Generated question choices cannot be blank.");
+        }
+        if (question.correctAnswerIndex() == null
+            || question.correctAnswerIndex() < 0
+            || question.correctAnswerIndex() >= 4) {
+            throw new IllegalArgumentException("Generated questions must include a valid correct answer index.");
+        }
+        if (question.explanation() == null || question.explanation().isBlank()) {
+            throw new IllegalArgumentException("Generated question explanation is required.");
+        }
+        if (question.difficulty() == null || question.difficulty().isBlank()) {
+            throw new IllegalArgumentException("Generated question difficulty is required.");
+        }
+        if (question.tags() == null || question.tags().isEmpty()) {
+            throw new IllegalArgumentException("Generated question tags are required.");
+        }
+        return question;
+    }
+
+    private List<GeneratedQuestionResponse> readGeneratedQuestions(GenerationJob job) {
+        if (job.getGeneratedQuestionsJson() == null || job.getGeneratedQuestionsJson().isBlank()) {
+            return List.of();
+        }
+        try {
+            return objectMapper.readValue(
+                job.getGeneratedQuestionsJson(),
+                new TypeReference<List<GeneratedQuestionResponse>>() {}
+            );
+        } catch (IOException e) {
+            return List.of();
+        }
     }
 
     private String extractOutputText(Map<String, Object> responseBody) {

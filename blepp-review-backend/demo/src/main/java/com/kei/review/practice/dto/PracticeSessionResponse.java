@@ -8,6 +8,8 @@ public record PracticeSessionResponse(
     UUID topicId,
     String topicName,
     Integer questionCount,
-    Instant createdAt
+    Instant createdAt,
+    Instant completedAt,
+    Integer score
 ) {
 }

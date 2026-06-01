@@ -6,6 +6,8 @@ import java.util.UUID;
 public record ExamSessionQuestionResponse(
     UUID questionId,
     String text,
-    List<String> choices
+    List<String> choices,
+    Integer selectedAnswerIndex,
+    Boolean flagged
 ) {
 }

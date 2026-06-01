@@ -8,6 +8,7 @@ public record GenerationRunResponse(
     UUID jobId,
     GenerationStatus status,
     Integer questionCount,
-    List<GeneratedQuestionResponse> questions
+    List<GeneratedQuestionResponse> questions,
+    String errorMessage
 ) {
 }

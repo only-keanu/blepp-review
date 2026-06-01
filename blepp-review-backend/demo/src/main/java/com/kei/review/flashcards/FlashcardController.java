@@ -4,6 +4,7 @@ import com.kei.review.auth.UserPrincipal;
 import com.kei.review.flashcards.dto.FlashcardCreateRequest;
 import com.kei.review.flashcards.dto.FlashcardResponse;
 import com.kei.review.flashcards.dto.FlashcardReviewRequest;
+import com.kei.review.flashcards.dto.FlashcardQueueSummaryResponse;
 import com.kei.review.flashcards.dto.FlashcardUpdateRequest;
 import java.util.List;
 import java.util.UUID;
@@ -30,6 +31,16 @@ public class FlashcardController {
     @GetMapping
     public ResponseEntity<List<FlashcardResponse>> list(@AuthenticationPrincipal UserPrincipal principal) {
         return ResponseEntity.ok(flashcardService.list(principal.getId()));
+    }
+
+    @GetMapping("/due")
+    public ResponseEntity<List<FlashcardResponse>> listDue(@AuthenticationPrincipal UserPrincipal principal) {
+        return ResponseEntity.ok(flashcardService.listDue(principal.getId()));
+    }
+
+    @GetMapping("/summary")
+    public ResponseEntity<FlashcardQueueSummaryResponse> summary(@AuthenticationPrincipal UserPrincipal principal) {
+        return ResponseEntity.ok(flashcardService.summary(principal.getId()));
     }
 
     @PostMapping

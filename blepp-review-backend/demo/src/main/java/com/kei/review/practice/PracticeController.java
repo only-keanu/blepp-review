@@ -4,6 +4,8 @@ import com.kei.review.auth.UserPrincipal;
 import com.kei.review.practice.dto.AnswerAttemptRequest;
 import com.kei.review.practice.dto.CreatePracticeSessionRequest;
 import com.kei.review.practice.dto.MistakeQuestionResponse;
+import com.kei.review.practice.dto.PracticeSessionQuestionResponse;
+import com.kei.review.practice.dto.PracticeSessionResultResponse;
 import com.kei.review.practice.dto.PracticeSessionResponse;
 import com.kei.review.questions.dto.QuestionResponse;
 import java.util.List;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.PathVariable;
 
 @RestController
 @RequestMapping("/api/practice")
@@ -34,6 +37,14 @@ public class PracticeController {
         return ResponseEntity.ok(practiceService.startSession(principal.getId(), request));
     }
 
+    @GetMapping("/session/{sessionId}/questions")
+    public ResponseEntity<List<PracticeSessionQuestionResponse>> listSessionQuestions(
+        @PathVariable UUID sessionId,
+        @AuthenticationPrincipal UserPrincipal principal
+    ) {
+        return ResponseEntity.ok(practiceService.listSessionQuestions(principal.getId(), sessionId));
+    }
+
     @PostMapping("/attempt")
     public ResponseEntity<Void> recordAttempt(
         @RequestBody AnswerAttemptRequest request,
@@ -41,6 +52,14 @@ public class PracticeController {
     ) {
         practiceService.recordAttempt(principal.getId(), request);
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/session/{sessionId}/complete")
+    public ResponseEntity<PracticeSessionResultResponse> completeSession(
+        @PathVariable UUID sessionId,
+        @AuthenticationPrincipal UserPrincipal principal
+    ) {
+        return ResponseEntity.ok(practiceService.completeSession(principal.getId(), sessionId));
     }
 
     @GetMapping("/mistakes")

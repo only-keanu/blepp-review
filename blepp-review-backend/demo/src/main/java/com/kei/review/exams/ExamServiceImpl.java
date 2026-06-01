@@ -11,6 +11,7 @@ import com.kei.review.questions.Question;
 import com.kei.review.questions.QuestionRepository;
 import com.kei.review.users.User;
 import com.kei.review.users.UserRepository;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -91,6 +92,9 @@ public class ExamServiceImpl implements ExamService {
         if (!session.getUser().getId().equals(userId)) {
             throw new IllegalStateException("Session not found");
         }
+        if (session.getSubmittedAt() != null) {
+            throw new IllegalStateException("Submitted exam sessions are locked");
+        }
 
         Question question = questionRepository.findById(request.questionId())
             .orElseThrow(() -> new IllegalStateException("Question not found"));
@@ -129,20 +133,38 @@ public class ExamServiceImpl implements ExamService {
         if (!session.getUser().getId().equals(userId)) {
             throw new IllegalStateException("Session not found");
         }
+        if (session.getSubmittedAt() != null) {
+            throw new IllegalStateException("Submitted exam sessions are locked");
+        }
 
         List<ExamAnswer> answers = examAnswerRepository.findByExamSessionId(sessionId);
         long correctCount = answers.stream().filter(ExamAnswer::isCorrect).count();
-        int totalQuestions = session.getMockExam().getTotalQuestions() != null
-            ? session.getMockExam().getTotalQuestions()
-            : answers.size();
+        int assignedQuestions = examSessionQuestionRepository.findByExamSessionIdOrderByOrderIndexAsc(sessionId).size();
+        int totalQuestions = assignedQuestions > 0
+            ? assignedQuestions
+            : session.getMockExam().getTotalQuestions() != null
+                ? session.getMockExam().getTotalQuestions()
+                : answers.size();
+        int unansweredCount = Math.max(0, totalQuestions - answers.size());
 
         int score = totalQuestions == 0 ? 0 : (int) Math.round((correctCount * 100.0) / totalQuestions);
 
+        Instant submittedAt = Instant.now();
         session.setScore(score);
-        session.setSubmittedAt(Instant.now());
+        session.setSubmittedAt(submittedAt);
+        if (session.getStartedAt() != null) {
+            session.setTimeTakenSeconds((int) Duration.between(session.getStartedAt(), submittedAt).toSeconds());
+        }
         examSessionRepository.save(session);
 
-        return new ExamSubmitResponse(session.getId(), score, totalQuestions);
+        return new ExamSubmitResponse(
+            session.getId(),
+            score,
+            totalQuestions,
+            (int) correctCount,
+            unansweredCount,
+            session.getTimeTakenSeconds()
+        );
     }
 
     @Override
@@ -166,13 +188,25 @@ public class ExamServiceImpl implements ExamService {
             throw new IllegalStateException("Session not found");
         }
 
+        Map<UUID, ExamAnswer> answerByQuestion = examAnswerRepository.findByExamSessionId(sessionId).stream()
+            .collect(Collectors.toMap(a -> a.getQuestion().getId(), a -> a, (a, b) -> a));
+        Map<UUID, ExamFlag> flagByQuestion = examFlagRepository.findByExamSessionId(sessionId).stream()
+            .collect(Collectors.toMap(f -> f.getQuestion().getId(), f -> f, (a, b) -> a));
+
         return examSessionQuestionRepository.findByExamSessionIdOrderByOrderIndexAsc(sessionId)
             .stream()
-            .map(item -> new ExamSessionQuestionResponse(
-                item.getQuestion().getId(),
-                item.getQuestion().getText(),
-                item.getQuestion().getChoices()
-            ))
+            .map(item -> {
+                UUID questionId = item.getQuestion().getId();
+                ExamAnswer answer = answerByQuestion.get(questionId);
+                ExamFlag flag = flagByQuestion.get(questionId);
+                return new ExamSessionQuestionResponse(
+                    questionId,
+                    item.getQuestion().getText(),
+                    item.getQuestion().getChoices(),
+                    answer == null ? null : answer.getSelectedAnswerIndex(),
+                    flag != null && flag.isFlagged()
+                );
+            })
             .toList();
     }
 
@@ -190,12 +224,17 @@ public class ExamServiceImpl implements ExamService {
 
         Map<UUID, ExamAnswer> answerByQuestion = answers.stream()
             .collect(Collectors.toMap(a -> a.getQuestion().getId(), a -> a, (a, b) -> a));
+        Map<UUID, ExamFlag> flagByQuestion = examFlagRepository.findByExamSessionId(sessionId).stream()
+            .collect(Collectors.toMap(f -> f.getQuestion().getId(), f -> f, (a, b) -> a));
 
-        int totalQuestions = sessionQuestions.isEmpty()
-            ? session.getMockExam().getTotalQuestions()
-            : sessionQuestions.size();
+        int totalQuestions = !sessionQuestions.isEmpty()
+            ? sessionQuestions.size()
+            : session.getMockExam().getTotalQuestions() != null
+                ? session.getMockExam().getTotalQuestions()
+                : answers.size();
 
         long correctCount = answers.stream().filter(ExamAnswer::isCorrect).count();
+        int unansweredCount = Math.max(0, totalQuestions - answers.size());
         int score = totalQuestions == 0 ? 0 : (int) Math.round((correctCount * 100.0) / totalQuestions);
 
         Map<String, List<ExamSessionQuestion>> byTopic = sessionQuestions.stream()
@@ -215,7 +254,34 @@ public class ExamServiceImpl implements ExamService {
             topicScores.add(new ExamResultResponse.TopicScore(topicName, correct, total));
         }
 
-        return new ExamResultResponse(score, totalQuestions, (int) correctCount, topicScores);
+        List<ExamResultResponse.QuestionReview> questionReviews = sessionQuestions.stream()
+            .map(item -> {
+                Question question = item.getQuestion();
+                ExamAnswer answer = answerByQuestion.get(question.getId());
+                ExamFlag flag = flagByQuestion.get(question.getId());
+                return new ExamResultResponse.QuestionReview(
+                    question.getId(),
+                    question.getTopic().getName(),
+                    question.getText(),
+                    question.getChoices(),
+                    answer == null ? null : answer.getSelectedAnswerIndex(),
+                    question.getCorrectAnswerIndex(),
+                    answer != null && answer.isCorrect(),
+                    flag != null && flag.isFlagged(),
+                    question.getExplanation()
+                );
+            })
+            .toList();
+
+        return new ExamResultResponse(
+            score,
+            totalQuestions,
+            (int) correctCount,
+            unansweredCount,
+            session.getTimeTakenSeconds(),
+            topicScores,
+            questionReviews
+        );
     }
 
     private void assignQuestions(ExamSession session, UUID userId) {

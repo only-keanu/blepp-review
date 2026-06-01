@@ -47,4 +47,8 @@ public class PracticeSession {
     private Integer questionCount;
 
     private Instant createdAt;
+
+    private Instant completedAt;
+
+    private Integer score;
 }
