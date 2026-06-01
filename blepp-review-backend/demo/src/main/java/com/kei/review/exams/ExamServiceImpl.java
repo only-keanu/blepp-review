@@ -94,9 +94,6 @@ public class ExamServiceImpl implements ExamService {
 
         Question question = questionRepository.findById(request.questionId())
             .orElseThrow(() -> new IllegalStateException("Question not found"));
-        if (!question.getOwner().getId().equals(userId)) {
-            throw new IllegalStateException("Question not found");
-        }
         examSessionQuestionRepository.findByExamSessionIdAndQuestionId(sessionId, question.getId())
             .orElseThrow(() -> new IllegalStateException("Question not in session"));
 

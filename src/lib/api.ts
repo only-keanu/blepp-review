@@ -7,6 +7,10 @@ export function getAccessToken() {
   return localStorage.getItem(ACCESS_TOKEN_KEY);
 }
 
+export function getRefreshToken() {
+  return localStorage.getItem(REFRESH_TOKEN_KEY);
+}
+
 export function setTokens(accessToken?: string, refreshToken?: string) {
   if (accessToken) {
     localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
@@ -21,7 +25,36 @@ export function clearTokens() {
   localStorage.removeItem(REFRESH_TOKEN_KEY);
 }
 
-export async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
+interface AuthResponse {
+  accessToken: string;
+  refreshToken: string;
+}
+
+async function refreshAuthTokens() {
+  const refreshToken = getRefreshToken();
+  if (!refreshToken) {
+    clearTokens();
+    return false;
+  }
+
+  const response = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${refreshToken}`
+    }
+  });
+
+  if (!response.ok) {
+    clearTokens();
+    return false;
+  }
+
+  const auth = await response.json() as AuthResponse;
+  setTokens(auth.accessToken, auth.refreshToken);
+  return true;
+}
+
+async function sendRequest(path: string, options: RequestInit = {}) {
   const token = getAccessToken();
   const headers = new Headers(options.headers || {});
   const isFormData = typeof FormData !== 'undefined' && options.body instanceof FormData;
@@ -32,10 +65,21 @@ export async function apiFetch<T>(path: string, options: RequestInit = {}): Prom
     headers.set('Authorization', `Bearer ${token}`);
   }
 
-  const response = await fetch(`${API_BASE_URL}${path}`, {
+  return fetch(`${API_BASE_URL}${path}`, {
     ...options,
     headers
   });
+}
+
+export async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
+  let response = await sendRequest(path, options);
+
+  if (response.status === 401 && !path.startsWith('/api/auth/')) {
+    const refreshed = await refreshAuthTokens();
+    if (refreshed) {
+      response = await sendRequest(path, options);
+    }
+  }
 
   if (!response.ok) {
     const message = await response.text();
