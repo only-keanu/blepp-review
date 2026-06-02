@@ -1,0 +1,13 @@
+ALTER TABLE users
+    ADD COLUMN IF NOT EXISTS role VARCHAR(32) NOT NULL DEFAULT 'USER',
+    ADD COLUMN IF NOT EXISTS access_status VARCHAR(32) NOT NULL DEFAULT 'EXPIRED',
+    ADD COLUMN IF NOT EXISTS trial_ends_at TIMESTAMP WITH TIME ZONE,
+    ADD COLUMN IF NOT EXISTS paid_until TIMESTAMP WITH TIME ZONE,
+    ADD COLUMN IF NOT EXISTS access_updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    ADD COLUMN IF NOT EXISTS access_notes TEXT,
+    ADD COLUMN IF NOT EXISTS payment_reference VARCHAR(255);
+
+UPDATE users
+SET role = COALESCE(role, 'USER'),
+    access_status = COALESCE(access_status, 'EXPIRED'),
+    access_updated_at = COALESCE(access_updated_at, NOW());

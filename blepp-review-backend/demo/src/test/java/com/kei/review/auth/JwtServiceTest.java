@@ -1,0 +1,31 @@
+package com.kei.review.auth;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.Map;
+import org.junit.jupiter.api.Test;
+
+class JwtServiceTest {
+    private static final String TEST_SECRET = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
+
+    @Test
+    void generatedAccessTokenPreservesSubjectWhenClaimsArePresent() {
+        JwtService jwtService = new JwtService(TEST_SECRET, 30, 43200);
+
+        String token = jwtService.generateAccessToken("learner@example.com", Map.of("uid", "user-id"));
+
+        assertTrue(jwtService.isTokenValid(token));
+        assertEquals("learner@example.com", jwtService.extractSubject(token));
+    }
+
+    @Test
+    void generatedRefreshTokenPreservesSubjectWhenTypeClaimIsPresent() {
+        JwtService jwtService = new JwtService(TEST_SECRET, 30, 43200);
+
+        String token = jwtService.generateRefreshToken("learner@example.com");
+
+        assertTrue(jwtService.isTokenValid(token));
+        assertEquals("learner@example.com", jwtService.extractSubject(token));
+    }
+}

@@ -17,6 +17,12 @@ dist
 dist-ssr
 blepp-review-backend/demo/build
 blepp-review-backend/demo/.gradle
+blepp-review-backend/demo/.gradle-local
+android/.gradle
+android/.kotlin
+android/**/build
+android/local.properties
+android/app/src/main/assets/public
 *.local
 
 # Editor directories and files

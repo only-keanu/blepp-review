@@ -1,0 +1,211 @@
+package com.kei.review.admin;
+
+import static org.hamcrest.Matchers.hasSize;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.kei.review.auth.AuthService;
+import com.kei.review.auth.dto.AuthResponse;
+import com.kei.review.auth.dto.LoginRequest;
+import com.kei.review.auth.dto.RegisterRequest;
+import com.kei.review.users.UserAccessStatus;
+import com.kei.review.users.UserRepository;
+import jakarta.servlet.Filter;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Map;
+import java.util.UUID;
+import org.hamcrest.Matchers;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
+
+@SpringBootTest(properties = "app.admin.emails=admin-controller@example.com")
+class AdminUserControllerIntegrationTest {
+    private MockMvc mockMvc;
+
+    @Autowired
+    private WebApplicationContext webApplicationContext;
+
+    @Autowired
+    @Qualifier("springSecurityFilterChain")
+    private Filter springSecurityFilterChain;
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    @Autowired
+    private AuthService authService;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @BeforeEach
+    void setUpMockMvc() {
+        mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext)
+            .addFilters(springSecurityFilterChain)
+            .build();
+    }
+
+    @Test
+    void configuredAdminEmailIsReportedByMeAndCanSearchUsers() throws Exception {
+        AuthResponse admin = admin();
+        register(uniqueEmail("learner"), "Learner User");
+
+        mockMvc.perform(get("/api/me").header("Authorization", bearer(admin)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.email").value("admin-controller@example.com"))
+            .andExpect(jsonPath("$.admin").value(true))
+            .andExpect(jsonPath("$.access.admin").value(true))
+            .andExpect(jsonPath("$.hasStudyAccess").value(true))
+            .andExpect(jsonPath("$.hasAiAccess").value(true));
+
+        mockMvc.perform(get("/api/admin/users").header("Authorization", bearer(admin)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$").isArray());
+    }
+
+    @Test
+    void nonAdminCannotSearchUsers() throws Exception {
+        AuthResponse learner = register(uniqueEmail("non-admin"), "Non Admin");
+
+        mockMvc.perform(get("/api/admin/users").header("Authorization", bearer(learner)))
+            .andExpect(status().isForbidden())
+            .andExpect(jsonPath("$.message").value("Admin access is required."));
+    }
+
+    @Test
+    void adminGrantAndRevokePaidAccessOverHttp() throws Exception {
+        AuthResponse admin = admin();
+        AuthResponse learner = register(uniqueEmail("paid-target"), "Paid Target");
+        Instant paidUntil = Instant.now().plus(14, ChronoUnit.DAYS).truncatedTo(ChronoUnit.MILLIS);
+
+        mockMvc.perform(patch("/api/admin/users/{userId}/access", learner.userId())
+                .header("Authorization", bearer(admin))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(Map.of(
+                    "accessStatus", "PAID",
+                    "paidUntil", paidUntil.toString(),
+                    "paymentReference", "GCASH-123",
+                    "accessNotes", "Verified manually"
+                ))))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.id").value(learner.userId().toString()))
+            .andExpect(jsonPath("$.access.accessStatus").value("PAID"))
+            .andExpect(jsonPath("$.access.paidUntil").value(paidUntil.toString()))
+            .andExpect(jsonPath("$.access.paymentReference").value("GCASH-123"))
+            .andExpect(jsonPath("$.access.accessNotes").value("Verified manually"))
+            .andExpect(jsonPath("$.access.accessUpdatedAt").exists())
+            .andExpect(jsonPath("$.access.hasStudyAccess").value(true))
+            .andExpect(jsonPath("$.access.hasAiAccess").value(true));
+
+        mockMvc.perform(patch("/api/admin/users/{userId}/access", learner.userId())
+                .header("Authorization", bearer(admin))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(Map.of(
+                    "accessStatus", "EXPIRED",
+                    "paymentReference", "",
+                    "accessNotes", ""
+                ))))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.access.accessStatus").value("EXPIRED"))
+            .andExpect(jsonPath("$.access.paidUntil").value(Matchers.nullValue()))
+            .andExpect(jsonPath("$.access.paymentReference").value(Matchers.nullValue()))
+            .andExpect(jsonPath("$.access.accessNotes").value(Matchers.nullValue()))
+            .andExpect(jsonPath("$.access.hasStudyAccess").value(false))
+            .andExpect(jsonPath("$.access.hasAiAccess").value(false));
+    }
+
+    @Test
+    void expiredUserCanReadMeButCannotStartStudyOrAiWorkflows() throws Exception {
+        AuthResponse learner = register(uniqueEmail("expired"), "Expired User");
+        var user = userRepository.findById(learner.userId()).orElseThrow();
+        user.setAccessStatus(UserAccessStatus.EXPIRED);
+        user.setTrialEndsAt(Instant.now().minus(1, ChronoUnit.DAYS));
+        user.setPaidUntil(null);
+        userRepository.save(user);
+
+        mockMvc.perform(get("/api/me").header("Authorization", bearer(learner)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.access.accessStatus").value("EXPIRED"))
+            .andExpect(jsonPath("$.hasStudyAccess").value(false))
+            .andExpect(jsonPath("$.hasAiAccess").value(false));
+
+        mockMvc.perform(post("/api/practice/session")
+                .header("Authorization", bearer(learner))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(Map.of(
+                    "topicId", UUID.randomUUID().toString(),
+                    "questionCount", 10
+                ))))
+            .andExpect(status().isForbidden())
+            .andExpect(jsonPath("$.message").value("Your trial has ended. Please complete payment to continue."));
+
+        mockMvc.perform(post("/api/generation/run")
+                .header("Authorization", bearer(learner))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(Map.of(
+                    "questionCount", 5,
+                    "topicId", UUID.randomUUID().toString()
+                ))))
+            .andExpect(status().isForbidden())
+            .andExpect(jsonPath("$.message").value("AI generation requires paid access. Please complete payment to continue."));
+    }
+
+    @Test
+    void adminSearchCanFilterByEffectiveStatus() throws Exception {
+        AuthResponse admin = admin();
+        AuthResponse learner = register(uniqueEmail("status-paid"), "Status Paid");
+        var user = userRepository.findById(learner.userId()).orElseThrow();
+        user.setAccessStatus(UserAccessStatus.PAID);
+        user.setPaidUntil(Instant.now().plus(30, ChronoUnit.DAYS));
+        userRepository.save(user);
+
+        mockMvc.perform(get("/api/admin/users")
+                .param("query", "Status Paid")
+                .param("status", "PAID")
+                .header("Authorization", bearer(admin)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$", hasSize(1)))
+            .andExpect(jsonPath("$[0].email").value(learnerEmail(learner)));
+    }
+
+    private AuthResponse admin() {
+        String email = "admin-controller@example.com";
+        if (userRepository.findByEmail(email).isPresent()) {
+            return authService.login(new LoginRequest(email, "strong-password"));
+        }
+        return register(email, "Admin User");
+    }
+
+    private AuthResponse register(String email, String fullName) {
+        return authService.register(new RegisterRequest(
+            email,
+            "strong-password",
+            fullName,
+            null,
+            2
+        ));
+    }
+
+    private String bearer(AuthResponse auth) {
+        return "Bearer " + auth.accessToken();
+    }
+
+    private String uniqueEmail(String prefix) {
+        return prefix + "-" + UUID.randomUUID() + "@example.com";
+    }
+
+    private String learnerEmail(AuthResponse learner) {
+        return userRepository.findById(learner.userId()).orElseThrow().getEmail();
+    }
+}
