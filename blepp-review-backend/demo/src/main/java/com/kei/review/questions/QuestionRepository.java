@@ -10,5 +10,6 @@ public interface QuestionRepository extends JpaRepository<Question, UUID>, JpaSp
     List<Question> findByOwnerIdAndTopicId(UUID ownerId, UUID topicId);
     List<Question> findByOwnerEmail(String ownerEmail);
     List<Question> findByOwnerEmailAndTopicId(String ownerEmail, UUID topicId);
+    long countByOwnerId(UUID ownerId);
     boolean existsByOwnerEmailAndText(String ownerEmail, String text);
 }

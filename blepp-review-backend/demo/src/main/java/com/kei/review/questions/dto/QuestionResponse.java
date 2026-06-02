@@ -18,6 +18,7 @@ public record QuestionResponse(
     QuestionSource source,
     List<String> tags,
     String category,
-    Instant createdAt
+    Instant createdAt,
+    boolean readOnly
 ) {
 }

@@ -43,6 +43,11 @@ export function QuestionList({ questions, onView, onEdit, onDelete }: QuestionLi
                     AI Generated
                   </span>
               }
+                {question.readOnly &&
+              <span className="text-xs text-slate-400 flex items-center gap-1">
+                    Read-only
+                  </span>
+              }
               </div>
               <h3 className="font-medium text-slate-900 dark:text-slate-100 mb-2 line-clamp-2">
                 {question.text}
@@ -61,22 +66,26 @@ export function QuestionList({ questions, onView, onEdit, onDelete }: QuestionLi
               >
                 <Eye className="h-4 w-4 text-slate-500 dark:text-slate-400" />
               </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 w-8 p-0"
-                onClick={() => onEdit(question)}
-              >
-                <Edit2 className="h-4 w-4 text-slate-500 dark:text-slate-400" />
-              </Button>
-              <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 w-8 p-0 hover:text-red-600"
-              onClick={() => onDelete(question)}>
+              {!question.readOnly && (
+                <>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0"
+                    onClick={() => onEdit(question)}
+                  >
+                    <Edit2 className="h-4 w-4 text-slate-500 dark:text-slate-400" />
+                  </Button>
+                  <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0 hover:text-red-600"
+                  onClick={() => onDelete(question)}>
 
-                <Trash2 className="h-4 w-4" />
-              </Button>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         </Card>

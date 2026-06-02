@@ -76,7 +76,8 @@ export function BankPage() {
           source: q.source.toLowerCase(),
           tags: q.tags || [],
           category: q.category,
-          createdAt: q.createdAt
+          createdAt: q.createdAt,
+          readOnly: q.readOnly ?? false
         })) as Question[];
         setQuestions(mapped);
       } catch (err) {
@@ -118,9 +119,10 @@ export function BankPage() {
         source: created.source.toLowerCase(),
         tags: created.tags || [],
         category: created.category,
-        createdAt: created.createdAt
+        createdAt: created.createdAt,
+        readOnly: created.readOnly ?? false
       };
-      setQuestions((prev) => [mapped, ...prev]);
+      setQuestions((prev) => prev.every((question) => question.readOnly) ? [mapped] : [mapped, ...prev]);
     } catch (err) {
       setError('Failed to save question.');
       throw err;
@@ -161,7 +163,8 @@ export function BankPage() {
         source: updated.source.toLowerCase(),
         tags: updated.tags || [],
         category: updated.category,
-        createdAt: updated.createdAt
+        createdAt: updated.createdAt,
+        readOnly: updated.readOnly ?? false
       };
       setQuestions((prev) => prev.map((item) => (item.id === mapped.id ? mapped : item)));
       setEditingQuestion(null);

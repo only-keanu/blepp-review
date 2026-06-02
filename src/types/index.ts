@@ -27,6 +27,7 @@ export interface Question {
   tags: string[];
   category?: string;
   createdAt?: string;
+  readOnly: boolean;
 }
 
 export interface Flashcard {

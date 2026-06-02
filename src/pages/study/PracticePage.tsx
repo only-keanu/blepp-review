@@ -117,7 +117,8 @@ export function PracticePage() {
         difficulty: q.difficulty.toLowerCase(),
         source: 'manual',
         tags: [],
-        category: q.topicName
+        category: q.topicName,
+        readOnly: false
       })) as Question[];
       setQuestions(mapped);
       setCurrentQuestionIndex(0);

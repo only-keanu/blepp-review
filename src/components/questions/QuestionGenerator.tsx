@@ -58,7 +58,8 @@ export function QuestionGenerator({ file, uploadId, topicId, topicName, onSave }
         explanation: question.explanation,
         difficulty: question.difficulty?.toLowerCase?.() ?? 'medium',
         source: 'ai',
-        tags: question.tags ?? []
+        tags: question.tags ?? [],
+        readOnly: false
       })) as Question[];
       setGeneratedQuestions(mapped);
     } catch (err) {

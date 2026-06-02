@@ -1,5 +1,6 @@
 package com.kei.review.questions;
 
+import com.kei.review.config.SeedData;
 import com.kei.review.questions.dto.QuestionCreateRequest;
 import com.kei.review.questions.dto.QuestionResponse;
 import com.kei.review.questions.dto.QuestionSearchParams;
@@ -32,9 +33,8 @@ public class QuestionServiceImpl implements QuestionService {
 
     @Override
     public List<QuestionResponse> search(UUID userId, QuestionSearchParams params) {
-        Specification<Question> spec = Specification.where((root, query, cb) ->
-            cb.equal(root.get("owner").get("id"), userId)
-        );
+        boolean hasPersonalQuestions = questionRepository.countByOwnerId(userId) > 0;
+        Specification<Question> spec = ownerSpec(userId, hasPersonalQuestions);
 
         if (params != null) {
             if (params.query() != null && !params.query().isBlank()) {
@@ -67,8 +67,15 @@ public class QuestionServiceImpl implements QuestionService {
         }
 
         return questionRepository.findAll(spec).stream()
-            .map(this::toResponse)
+            .map(question -> toResponse(question, !hasPersonalQuestions))
             .toList();
+    }
+
+    private Specification<Question> ownerSpec(UUID userId, boolean hasPersonalQuestions) {
+        if (hasPersonalQuestions) {
+            return (root, query, cb) -> cb.equal(root.get("owner").get("id"), userId);
+        }
+        return (root, query, cb) -> cb.equal(root.get("owner").get("email"), SeedData.SYSTEM_USER_EMAIL);
     }
 
     @Override
@@ -184,6 +191,10 @@ public class QuestionServiceImpl implements QuestionService {
     }
 
     private QuestionResponse toResponse(Question question) {
+        return toResponse(question, false);
+    }
+
+    private QuestionResponse toResponse(Question question, boolean readOnly) {
         return new QuestionResponse(
             question.getId(),
             question.getTopic().getId(),
@@ -196,7 +207,8 @@ public class QuestionServiceImpl implements QuestionService {
             question.getSource(),
             question.getTags(),
             question.getCategory(),
-            question.getCreatedAt()
+            question.getCreatedAt(),
+            readOnly
         );
     }
 
