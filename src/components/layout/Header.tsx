@@ -23,12 +23,30 @@ export function Header({ onMenuClick }: HeaderProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [topicsCache, setTopicsCache] = useState<any[] | null>(null);
   const [flashcardsCache, setFlashcardsCache] = useState<any[] | null>(null);
+  const [avatarLoadError, setAvatarLoadError] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const avatarUrl = user?.avatarUrl?.trim();
+  const avatarLabel = user?.fullName?.trim() || user?.email?.trim() || 'User';
+  const avatarInitials = useMemo(() => {
+    const nameParts = user?.fullName?.trim().split(/\s+/).filter(Boolean) ?? [];
+    if (nameParts.length >= 2) {
+      return `${nameParts[0][0]}${nameParts[nameParts.length - 1][0]}`.toUpperCase();
+    }
+    if (nameParts.length === 1) {
+      return nameParts[0].slice(0, 2).toUpperCase();
+    }
+    return (user?.email?.trim()[0] ?? 'U').toUpperCase();
+  }, [user?.fullName, user?.email]);
+  const showAvatarImage = Boolean(avatarUrl) && !avatarLoadError;
   const handleLogout = async () => {
     await logout();
     navigate('/auth/login');
   };
+
+  useEffect(() => {
+    setAvatarLoadError(false);
+  }, [avatarUrl]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -267,11 +285,21 @@ export function Header({ onMenuClick }: HeaderProps) {
                 className="flex items-center gap-2 focus:outline-none"
                 onClick={() => setMenuOpen((prev) => !prev)}
                 aria-haspopup="menu"
-                aria-expanded={menuOpen}>
-                <img
-                  src={user?.avatarUrl}
-                  alt={user?.fullName}
-                  className="h-9 w-9 rounded-full border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800" />
+                aria-expanded={menuOpen}
+                aria-label="Open user menu">
+                {showAvatarImage ? (
+                  <img
+                    src={avatarUrl}
+                    alt={avatarLabel}
+                    onError={() => setAvatarLoadError(true)}
+                    className="h-9 w-9 rounded-full border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 object-cover" />
+                ) : (
+                  <span
+                    aria-hidden="true"
+                    className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-teal-50 text-xs font-semibold text-teal-700 dark:border-slate-700 dark:bg-teal-950/40 dark:text-teal-200">
+                    {avatarInitials}
+                  </span>
+                )}
 
               </button>
 

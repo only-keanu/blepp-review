@@ -29,6 +29,7 @@ export function TakeExamPage() {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [flagged, setFlagged] = useState<number[]>([]);
+  const [isExitModalOpen, setIsExitModalOpen] = useState(false);
   const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -127,6 +128,12 @@ export function TakeExamPage() {
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <h1 className="font-bold text-slate-900 dark:text-slate-100">BLEPP Simulation</h1>
           <div className="flex items-center gap-4">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setIsExitModalOpen(true)}>
+              Exit Exam
+            </Button>
             <ExamTimer durationMinutes={durationMinutes} onTimeUp={handleSubmit} />
             <Button size="sm" onClick={() => setIsSubmitModalOpen(true)}>
               Submit Exam
@@ -253,6 +260,25 @@ export function TakeExamPage() {
           </Card>
         </div>
       </main>
+
+      <Modal
+        isOpen={isExitModalOpen}
+        onClose={() => setIsExitModalOpen(false)}
+        title="Exit Exam?"
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setIsExitModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="danger" onClick={() => navigate('/dashboard/exams/list')}>
+              Exit Exam
+            </Button>
+          </>
+        }>
+        <p className="text-slate-600 dark:text-slate-300">
+          This exam will not be submitted, and no score or results will be generated.
+        </p>
+      </Modal>
 
       <Modal
         isOpen={isSubmitModalOpen}
