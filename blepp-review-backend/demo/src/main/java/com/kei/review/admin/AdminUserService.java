@@ -1,6 +1,7 @@
 package com.kei.review.admin;
 
 import com.kei.review.admin.dto.AdminAccessUpdateRequest;
+import com.kei.review.admin.dto.AdminUserPageResponse;
 import com.kei.review.admin.dto.AdminUserResponse;
 import com.kei.review.users.AccessService;
 import com.kei.review.users.User;
@@ -9,8 +10,8 @@ import com.kei.review.users.UserRepository;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.List;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -19,7 +20,8 @@ import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class AdminUserService {
-    private static final int SEARCH_LIMIT = 500;
+    private static final int DEFAULT_PAGE_SIZE = 50;
+    private static final int MAX_PAGE_SIZE = 100;
 
     private final UserRepository userRepository;
     private final AccessService accessService;
@@ -31,11 +33,39 @@ public class AdminUserService {
         this.clock = clock;
     }
 
-    public List<AdminUserResponse> searchUsers(String query, UserAccessStatus status) {
-        return userRepository.searchUsers(normalizeQuery(query), PageRequest.of(0, SEARCH_LIMIT)).stream()
-            .filter(user -> status == null || accessService.effectiveStatus(user) == status)
-            .map(this::toResponse)
-            .toList();
+    public AdminUserPageResponse searchUsers(String query, UserAccessStatus status, int page, int size) {
+        int boundedPage = Math.max(page, 0);
+        int boundedSize = boundPageSize(size);
+        PageRequest pageRequest = PageRequest.of(boundedPage, boundedSize);
+        Page<AdminUserResponse> users = searchUserPage(normalizeQuery(query), status, pageRequest)
+            .map(this::toResponse);
+
+        return new AdminUserPageResponse(
+            users.getContent(),
+            users.getNumber(),
+            users.getSize(),
+            users.getTotalElements(),
+            users.getTotalPages()
+        );
+    }
+
+    private Page<User> searchUserPage(String query, UserAccessStatus status, PageRequest pageRequest) {
+        Instant now = clock.instant();
+        if (status == null) {
+            return userRepository.searchUsers(query, pageRequest);
+        }
+        return switch (status) {
+            case PAID -> userRepository.searchPaidUsers(query, now, UserAccessStatus.PAID, pageRequest);
+            case TRIAL -> userRepository.searchTrialUsers(query, now, UserAccessStatus.TRIAL, pageRequest);
+            case EXPIRED -> userRepository.searchExpiredUsers(
+                query,
+                now,
+                UserAccessStatus.PAID,
+                UserAccessStatus.TRIAL,
+                UserAccessStatus.EXPIRED,
+                pageRequest
+            );
+        };
     }
 
     @Transactional
@@ -76,6 +106,13 @@ public class AdminUserService {
 
     private String normalizeQuery(String query) {
         return query == null ? "" : query.trim();
+    }
+
+    private int boundPageSize(int size) {
+        if (size <= 0) {
+            return DEFAULT_PAGE_SIZE;
+        }
+        return Math.min(size, MAX_PAGE_SIZE);
     }
 
     private String blankToNull(String value) {

@@ -71,7 +71,9 @@ class AdminUserControllerIntegrationTest {
 
         mockMvc.perform(get("/api/admin/users").header("Authorization", bearer(admin)))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$").isArray());
+            .andExpect(jsonPath("$.users").isArray())
+            .andExpect(jsonPath("$.page").value(0))
+            .andExpect(jsonPath("$.size").value(50));
     }
 
     @Test
@@ -175,8 +177,36 @@ class AdminUserControllerIntegrationTest {
                 .param("status", "PAID")
                 .header("Authorization", bearer(admin)))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$", hasSize(1)))
-            .andExpect(jsonPath("$[0].email").value(learnerEmail(learner)));
+            .andExpect(jsonPath("$.users", hasSize(1)))
+            .andExpect(jsonPath("$.users[0].email").value(learnerEmail(learner)))
+            .andExpect(jsonPath("$.totalElements").value(1))
+            .andExpect(jsonPath("$.totalPages").value(1));
+    }
+
+    @Test
+    void adminSearchReturnsPaginationMetadata() throws Exception {
+        AuthResponse admin = admin();
+        register(uniqueEmail("page-one"), "Page One");
+        register(uniqueEmail("page-two"), "Page Two");
+
+        mockMvc.perform(get("/api/admin/users")
+                .param("query", "Page")
+                .param("page", "0")
+                .param("size", "1")
+                .header("Authorization", bearer(admin)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.users", hasSize(1)))
+            .andExpect(jsonPath("$.page").value(0))
+            .andExpect(jsonPath("$.size").value(1))
+            .andExpect(jsonPath("$.totalElements").value(2))
+            .andExpect(jsonPath("$.totalPages").value(2));
+    }
+
+    @Test
+    void actuatorHealthIsPublic() throws Exception {
+        mockMvc.perform(get("/actuator/health"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.status").value("UP"));
     }
 
     private AuthResponse admin() {

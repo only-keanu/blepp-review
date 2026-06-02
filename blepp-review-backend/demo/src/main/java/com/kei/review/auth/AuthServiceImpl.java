@@ -9,8 +9,10 @@ import com.kei.review.users.User;
 import com.kei.review.users.UserRepository;
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
@@ -28,7 +30,7 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AccessService accessService;
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
 
     @Value("${app.oauth.google.client-id:}")
     private String googleClientId;
@@ -46,22 +48,25 @@ public class AuthServiceImpl implements AuthService {
         UserRepository userRepository,
         PasswordEncoder passwordEncoder,
         JwtService jwtService,
-        AccessService accessService
+        AccessService accessService,
+        @Qualifier("oauthRestTemplate") RestTemplate restTemplate
     ) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.accessService = accessService;
+        this.restTemplate = restTemplate;
     }
 
     @Override
     public AuthResponse register(RegisterRequest request) {
-        userRepository.findByEmail(request.email()).ifPresent(existing -> {
+        String email = normalizeEmail(request.email());
+        userRepository.findByEmailIgnoreCase(email).ifPresent(existing -> {
             throw new IllegalStateException("Email already registered");
         });
 
         User user = User.builder()
-            .email(request.email())
+            .email(email)
             .passwordHash(passwordEncoder.encode(request.password()))
             .fullName(request.fullName())
             .targetExamDate(request.targetExamDate())
@@ -83,7 +88,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AuthResponse login(LoginRequest request) {
-        User user = userRepository.findByEmail(request.email())
+        User user = userRepository.findByEmailIgnoreCase(normalizeEmail(request.email()))
             .orElseThrow(() -> new IllegalStateException("Invalid credentials"));
 
         if (!passwordEncoder.matches(request.password(), user.getPasswordHash())) {
@@ -107,7 +112,7 @@ public class AuthServiceImpl implements AuthService {
         }
 
         String subject = jwtService.extractSubject(token);
-        User user = userRepository.findByEmail(subject)
+        User user = userRepository.findByEmailIgnoreCase(normalizeEmail(subject))
             .orElseThrow(() -> new IllegalStateException("Invalid refresh token"));
 
         String accessToken = jwtService.generateAccessToken(
@@ -172,7 +177,7 @@ public class AuthServiceImpl implements AuthService {
 
         return loginOrCreateOAuthUser(email, name, picture);
     }
-//test2
+
     @Override
     public AuthResponse oauthFacebook(OAuthCodeRequest request) {
         if (facebookAppId == null || facebookAppId.isBlank() ||
@@ -219,9 +224,10 @@ public class AuthServiceImpl implements AuthService {
     }
 
     private AuthResponse loginOrCreateOAuthUser(String email, String name, String avatarUrl) {
-        User user = userRepository.findByEmail(email).orElseGet(() -> {
+        String normalizedEmail = normalizeEmail(email);
+        User user = userRepository.findByEmailIgnoreCase(normalizedEmail).orElseGet(() -> {
             User created = User.builder()
-                .email(email)
+                .email(normalizedEmail)
                 .passwordHash(passwordEncoder.encode(UUID.randomUUID().toString()))
                 .fullName(name)
                 .avatarUrl(avatarUrl)
@@ -242,6 +248,10 @@ public class AuthServiceImpl implements AuthService {
         userRepository.save(user);
 
         return authTokensFor(user);
+    }
+
+    private String normalizeEmail(String email) {
+        return email == null ? "" : email.trim().toLowerCase(Locale.ROOT);
     }
 
     private AuthResponse authTokensFor(User user) {

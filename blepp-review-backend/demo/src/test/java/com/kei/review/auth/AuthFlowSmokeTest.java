@@ -25,11 +25,12 @@ class AuthFlowSmokeTest {
 
     @Test
     void registerLoginAndProfileWorkTogether() {
-        String email = "auth-smoke@example.com";
+        String email = "Auth-Smoke@Example.com";
+        String normalizedEmail = "auth-smoke@example.com";
         String password = "strong-password";
 
         var registered = authService.register(new RegisterRequest(
-            email,
+            " " + email + " ",
             password,
             "Auth Smoke",
             null,
@@ -37,20 +38,20 @@ class AuthFlowSmokeTest {
         ));
 
         assertTrue(jwtService.isTokenValid(registered.accessToken()));
-        assertEquals(email, jwtService.extractSubject(registered.accessToken()));
+        assertEquals(normalizedEmail, jwtService.extractSubject(registered.accessToken()));
 
         var profileAfterRegister = userService.getProfile(registered.userId());
-        assertEquals(email, profileAfterRegister.email());
+        assertEquals(normalizedEmail, profileAfterRegister.email());
         assertEquals("Auth Smoke", profileAfterRegister.fullName());
         assertEquals("TRIAL", profileAfterRegister.access().accessStatus().name());
         assertNotNull(profileAfterRegister.access().trialEndsAt());
         assertTrue(profileAfterRegister.hasStudyAccess());
         assertFalse(profileAfterRegister.hasAiAccess());
 
-        var loggedIn = authService.login(new LoginRequest(email, password));
+        var loggedIn = authService.login(new LoginRequest(" " + email + " ", password));
 
         assertTrue(jwtService.isTokenValid(loggedIn.accessToken()));
-        assertEquals(email, jwtService.extractSubject(loggedIn.accessToken()));
+        assertEquals(normalizedEmail, jwtService.extractSubject(loggedIn.accessToken()));
         assertEquals(registered.userId(), loggedIn.userId());
     }
 }

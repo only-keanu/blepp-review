@@ -1,12 +1,12 @@
 package com.kei.review.admin;
 
 import com.kei.review.admin.dto.AdminAccessUpdateRequest;
+import com.kei.review.admin.dto.AdminUserPageResponse;
 import com.kei.review.admin.dto.AdminUserResponse;
 import com.kei.review.auth.UserPrincipal;
 import com.kei.review.users.AccessService;
 import com.kei.review.users.UserAccessStatus;
 import jakarta.validation.Valid;
-import java.util.List;
 import java.util.UUID;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -30,13 +30,15 @@ public class AdminUserController {
     }
 
     @GetMapping
-    public ResponseEntity<List<AdminUserResponse>> searchUsers(
+    public ResponseEntity<AdminUserPageResponse> searchUsers(
         @RequestParam(required = false) String query,
         @RequestParam(required = false) UserAccessStatus status,
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "50") int size,
         @AuthenticationPrincipal UserPrincipal principal
     ) {
         accessService.requireAdmin(principal.getId());
-        return ResponseEntity.ok(adminUserService.searchUsers(query, status));
+        return ResponseEntity.ok(adminUserService.searchUsers(query, status, page, size));
     }
 
     @PatchMapping("/{userId}/access")
