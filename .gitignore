@@ -10,10 +10,13 @@ lerna-debug.log*
 .env
 .env.*
 !.env.example
+!.env.production.example
 
 node_modules
 dist
 dist-ssr
+blepp-review-backend/demo/build
+blepp-review-backend/demo/.gradle
 *.local
 
 # Editor directories and files
