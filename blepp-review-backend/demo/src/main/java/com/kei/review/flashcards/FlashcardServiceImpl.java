@@ -1,5 +1,6 @@
 package com.kei.review.flashcards;
 
+import com.kei.review.config.SeedData;
 import com.kei.review.flashcards.dto.FlashcardCreateRequest;
 import com.kei.review.flashcards.dto.FlashcardResponse;
 import com.kei.review.flashcards.dto.FlashcardReviewRequest;
@@ -33,7 +34,11 @@ public class FlashcardServiceImpl implements FlashcardService {
 
     @Override
     public List<FlashcardResponse> list(UUID userId) {
-        return flashcardRepository.findByUserId(userId)
+        List<Flashcard> flashcards = hasPersonalFlashcards(userId)
+            ? flashcardRepository.findByUserId(userId)
+            : flashcardRepository.findByUserEmail(SeedData.SYSTEM_USER_EMAIL);
+
+        return flashcards
             .stream()
             .map(this::toResponse)
             .toList();
@@ -41,9 +46,9 @@ public class FlashcardServiceImpl implements FlashcardService {
 
     @Override
     public List<FlashcardResponse> listDue(UUID userId) {
-        LocalDate today = LocalDate.now();
-        List<Flashcard> due = new java.util.ArrayList<>(flashcardRepository.findByUserIdAndNextReviewIsNull(userId));
-        due.addAll(flashcardRepository.findByUserIdAndNextReviewLessThanEqual(userId, today));
+        List<Flashcard> due = hasPersonalFlashcards(userId)
+            ? findPersonalDue(userId)
+            : findSystemDue();
         return due.stream()
             .map(this::toResponse)
             .toList();
@@ -52,9 +57,16 @@ public class FlashcardServiceImpl implements FlashcardService {
     @Override
     public FlashcardQueueSummaryResponse summary(UUID userId) {
         LocalDate today = LocalDate.now();
-        long newCards = flashcardRepository.countByUserIdAndNextReviewIsNull(userId);
-        long scheduledDue = flashcardRepository.countByUserIdAndNextReviewLessThanEqual(userId, today);
-        long mastered = flashcardRepository.countByUserIdAndConfidence(userId, FlashcardConfidence.HIGH);
+        boolean hasPersonalFlashcards = hasPersonalFlashcards(userId);
+        long newCards = hasPersonalFlashcards
+            ? flashcardRepository.countByUserIdAndNextReviewIsNull(userId)
+            : flashcardRepository.countByUserEmailAndNextReviewIsNull(SeedData.SYSTEM_USER_EMAIL);
+        long scheduledDue = hasPersonalFlashcards
+            ? flashcardRepository.countByUserIdAndNextReviewLessThanEqual(userId, today)
+            : flashcardRepository.countByUserEmailAndNextReviewLessThanEqual(SeedData.SYSTEM_USER_EMAIL, today);
+        long mastered = hasPersonalFlashcards
+            ? flashcardRepository.countByUserIdAndConfidence(userId, FlashcardConfidence.HIGH)
+            : flashcardRepository.countByUserEmailAndConfidence(SeedData.SYSTEM_USER_EMAIL, FlashcardConfidence.HIGH);
         return new FlashcardQueueSummaryResponse(newCards + scheduledDue, newCards, mastered);
     }
 
@@ -115,12 +127,54 @@ public class FlashcardServiceImpl implements FlashcardService {
         Flashcard flashcard = flashcardRepository.findById(flashcardId)
             .orElseThrow(() -> new IllegalStateException("Flashcard not found"));
         if (!flashcard.getUser().getId().equals(userId)) {
-            throw new IllegalStateException("Flashcard not found");
+            if (!isSeedFlashcard(flashcard)) {
+                throw new IllegalStateException("Flashcard not found");
+            }
+            flashcard = copySeedFlashcard(userId, flashcard);
         }
 
         flashcard.setConfidence(request.confidence());
         flashcard.setNextReview(calculateNextReview(request.confidence()));
         return toResponse(flashcardRepository.save(flashcard));
+    }
+
+    private boolean hasPersonalFlashcards(UUID userId) {
+        return flashcardRepository.countByUserId(userId) > 0;
+    }
+
+    private List<Flashcard> findPersonalDue(UUID userId) {
+        LocalDate today = LocalDate.now();
+        List<Flashcard> due = new java.util.ArrayList<>(flashcardRepository.findByUserIdAndNextReviewIsNull(userId));
+        due.addAll(flashcardRepository.findByUserIdAndNextReviewLessThanEqual(userId, today));
+        return due;
+    }
+
+    private List<Flashcard> findSystemDue() {
+        LocalDate today = LocalDate.now();
+        List<Flashcard> due = new java.util.ArrayList<>(
+            flashcardRepository.findByUserEmailAndNextReviewIsNull(SeedData.SYSTEM_USER_EMAIL)
+        );
+        due.addAll(flashcardRepository.findByUserEmailAndNextReviewLessThanEqual(SeedData.SYSTEM_USER_EMAIL, today));
+        return due;
+    }
+
+    private boolean isSeedFlashcard(Flashcard flashcard) {
+        return SeedData.SYSTEM_USER_EMAIL.equals(flashcard.getUser().getEmail());
+    }
+
+    private Flashcard copySeedFlashcard(UUID userId, Flashcard seedFlashcard) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new IllegalStateException("User not found"));
+        return Flashcard.builder()
+            .user(user)
+            .topic(seedFlashcard.getTopic())
+            .front(seedFlashcard.getFront())
+            .back(seedFlashcard.getBack())
+            .category(seedFlashcard.getCategory())
+            .confidence(null)
+            .nextReview(null)
+            .createdAt(Instant.now())
+            .build();
     }
 
     private LocalDate calculateNextReview(FlashcardConfidence confidence) {
