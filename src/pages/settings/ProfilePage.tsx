@@ -6,6 +6,9 @@ import { Button } from '../../components/ui/Button';
 import { useAuth } from '../../hooks/useAuth';
 import { applyTheme, getStoredTheme } from '../../lib/theme';
 import { apiFetch } from '../../lib/api';
+const SETTINGS_FIELD_CLASS =
+  'border border-slate-400 dark:border-slate-600 focus:border-teal-600 focus:ring-2 focus:ring-teal-500/30 disabled:border-slate-300 dark:disabled:border-slate-700';
+
 export function ProfilePage() {
   const { user } = useAuth();
   const [isDarkMode, setIsDarkMode] = useState(
@@ -116,6 +119,7 @@ export function ProfilePage() {
             <Input
               label="Full Name"
               name="fullName"
+              className={SETTINGS_FIELD_CLASS}
               value={formData.fullName}
               onChange={handleChange} />
 
@@ -123,6 +127,7 @@ export function ProfilePage() {
               label="Email Address"
               name="email"
               type="email"
+              className={SETTINGS_FIELD_CLASS}
               value={formData.email}
               onChange={handleChange}
               disabled
@@ -133,6 +138,7 @@ export function ProfilePage() {
                 label="Target Exam Date"
                 name="targetExamDate"
                 type="date"
+                className={SETTINGS_FIELD_CLASS}
                 value={formData.targetExamDate}
                 onChange={handleChange} />
 
@@ -142,6 +148,7 @@ export function ProfilePage() {
                 type="number"
                 min="1"
                 max="12"
+                className={SETTINGS_FIELD_CLASS}
                 value={formData.dailyStudyHours}
                 onChange={handleChange} />
 
@@ -194,6 +201,7 @@ export function ProfilePage() {
                   name="currentPassword"
                   type="password"
                   autoComplete="current-password"
+                  className={SETTINGS_FIELD_CLASS}
                   value={passwordData.currentPassword}
                   onChange={handlePasswordChange} />
 
@@ -202,6 +210,7 @@ export function ProfilePage() {
                   name="newPassword"
                   type="password"
                   autoComplete="new-password"
+                  className={SETTINGS_FIELD_CLASS}
                   value={passwordData.newPassword}
                   onChange={handlePasswordChange}
                   helperText="Use at least 8 characters." />
@@ -211,6 +220,7 @@ export function ProfilePage() {
                   name="confirmPassword"
                   type="password"
                   autoComplete="new-password"
+                  className={SETTINGS_FIELD_CLASS}
                   value={passwordData.confirmPassword}
                   onChange={handlePasswordChange} />
               </div>

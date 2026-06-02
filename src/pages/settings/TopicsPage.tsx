@@ -12,6 +12,8 @@ const COLORS = [
   { value: 'red', label: 'Red' },
   { value: 'gray', label: 'Gray' }
 ];
+const SETTINGS_CONTROL_CLASS =
+  'rounded-lg border border-slate-400 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 px-3 py-2 text-sm focus:outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-500/30';
 
 export function TopicsSettingsPage() {
   const [topics, setTopics] = useState<{ id: string; name: string; isWeak: boolean; color: string }[]>([]);
@@ -98,12 +100,12 @@ export function TopicsSettingsPage() {
             <input
               type="text"
               placeholder="Topic name"
-              className="flex-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 px-3 py-2 text-sm"
+              className={`flex-1 ${SETTINGS_CONTROL_CLASS}`}
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
             <select
-              className="rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 px-3 py-2 text-sm"
+              className={SETTINGS_CONTROL_CLASS}
               value={color}
               onChange={(e) => setColor(e.target.value)}
             >
