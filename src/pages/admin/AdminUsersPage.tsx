@@ -3,7 +3,7 @@ import { Search, ShieldCheck, UserX } from 'lucide-react';
 import { AppLayout } from '../../components/layout/AppLayout';
 import { formatDateTime } from '../../components/access/AccessStatusCard';
 import { ApiRequestError, apiFetch } from '../../lib/api';
-import { AdminUser, UserAccessStatus } from '../../types';
+import { AdminUser, AdminUserPageResponse, UserAccessStatus } from '../../types';
 import { Card } from '../../components/ui/Card';
 import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
@@ -17,10 +17,18 @@ const statusOptions = [
   { value: 'EXPIRED', label: 'Expired' }
 ];
 
+const PAGE_SIZE = 50;
+
 export function AdminUsersPage() {
   const [query, setQuery] = useState('');
   const [status, setStatus] = useState('');
   const [users, setUsers] = useState<AdminUser[]>([]);
+  const [pagination, setPagination] = useState({
+    page: 0,
+    size: PAGE_SIZE,
+    totalElements: 0,
+    totalPages: 0
+  });
   const [selectedUserId, setSelectedUserId] = useState('');
   const [paidUntil, setPaidUntil] = useState(defaultPaidUntil());
   const [paymentReference, setPaymentReference] = useState('');
@@ -34,6 +42,15 @@ export function AdminUsersPage() {
     () => users.find((user) => user.id === selectedUserId) ?? null,
     [selectedUserId, users]
   );
+
+  const canGoPrevious = pagination.page > 0;
+  const canGoNext = pagination.page + 1 < pagination.totalPages;
+  const pageLabel = pagination.totalPages === 0
+    ? 'Page 0 of 0'
+    : `Page ${pagination.page + 1} of ${pagination.totalPages}`;
+  const resultsDescription = pagination.totalElements === 1
+    ? '1 user found'
+    : `${pagination.totalElements} users found`;
 
   useEffect(() => {
     void loadUsers();
@@ -54,7 +71,7 @@ export function AdminUsersPage() {
     setPaidUntil(toDateTimeInput(selectedUser.access.paidUntil) || defaultPaidUntil());
   }, [selectedUser?.id]);
 
-  const loadUsers = async () => {
+  const loadUsers = async (requestedPage = pagination.page) => {
     setIsLoading(true);
     setError('');
     try {
@@ -65,8 +82,21 @@ export function AdminUsersPage() {
       if (status) {
         params.set('status', status);
       }
-      const data = await apiFetch<AdminUser[]>(`/api/admin/users${params.toString() ? `?${params.toString()}` : ''}`);
-      setUsers(data);
+      params.set('page', String(Math.max(requestedPage, 0)));
+      params.set('size', String(PAGE_SIZE));
+      const data = await apiFetch<AdminUserPageResponse>(`/api/admin/users?${params.toString()}`);
+      setUsers(data.users);
+      setPagination({
+        page: data.page,
+        size: data.size,
+        totalElements: data.totalElements,
+        totalPages: data.totalPages
+      });
+      if (data.users.length === 0) {
+        setSelectedUserId('');
+      } else if (!data.users.some((user) => user.id === selectedUserId)) {
+        setSelectedUserId(data.users[0].id);
+      }
     } catch (err) {
       setError(adminErrorMessage(err, 'Failed to load users.'));
     } finally {
@@ -76,7 +106,7 @@ export function AdminUsersPage() {
 
   const handleSearch = (event: FormEvent) => {
     event.preventDefault();
-    void loadUsers();
+    void loadUsers(0);
   };
 
   const updateAccess = async (accessStatus: UserAccessStatus) => {
@@ -151,7 +181,37 @@ export function AdminUsersPage() {
         )}
 
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
-          <Card title="Search results" description={`${users.length} users shown`}>
+          <Card
+            title="Search results"
+            description={resultsDescription}
+            footer={(
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-sm text-slate-500 dark:text-slate-400">
+                  {pageLabel}
+                </p>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={!canGoPrevious || isLoading}
+                    onClick={() => void loadUsers(pagination.page - 1)}
+                  >
+                    Previous
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={!canGoNext || isLoading}
+                    onClick={() => void loadUsers(pagination.page + 1)}
+                  >
+                    Next
+                  </Button>
+                </div>
+              </div>
+            )}
+          >
             <div className="divide-y divide-slate-100 dark:divide-slate-800">
               {isLoading && users.length === 0 && (
                 <p className="py-8 text-center text-sm text-slate-500 dark:text-slate-400">Loading users...</p>

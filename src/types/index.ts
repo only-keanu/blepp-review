@@ -38,6 +38,14 @@ export interface AdminUser {
   access: UserAccess;
 }
 
+export interface AdminUserPageResponse {
+  users: AdminUser[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+}
+
 export interface Topic {
   id: string;
   name: string;
