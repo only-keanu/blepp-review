@@ -10,7 +10,7 @@ import { apiFetch } from '../../lib/api';
 
 type ExamSessionResponse = {
   id: string;
-  examId: string;
+  examId: string | null;
   totalQuestions: number;
   durationMinutes: number;
 };
@@ -34,6 +34,7 @@ export function TakeExamPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [durationMinutes, setDurationMinutes] = useState(45);
+  const [sessionExamId, setSessionExamId] = useState<string | null | undefined>(undefined);
 
   useEffect(() => {
     const startSession = async () => {
@@ -43,10 +44,13 @@ export function TakeExamPage() {
       try {
         let session: ExamSessionResponse | null = null;
         if (id.includes('-')) {
+          session = await apiFetch<ExamSessionResponse>(`/api/exams/session/${id}`);
           const questions = await apiFetch<SessionQuestion[]>(
             `/api/exams/session/${id}/questions`
           );
           setSessionId(id);
+          setSessionExamId(session.examId);
+          setDurationMinutes(session.durationMinutes ?? 45);
           setQuestions(questions);
           return;
         }
@@ -54,6 +58,7 @@ export function TakeExamPage() {
           method: 'POST'
         });
         setSessionId(session.id);
+        setSessionExamId(session.examId);
         setDurationMinutes(session.durationMinutes);
         const qs = await apiFetch<SessionQuestion[]>(
           `/api/exams/session/${session.id}/questions`
@@ -70,6 +75,7 @@ export function TakeExamPage() {
 
   const currentQuestion = questions[currentQuestionIndex];
   const totalQuestions = questions.length;
+  const exitPath = sessionExamId === null ? '/dashboard/questions/bank' : '/dashboard/exams/list';
 
   const handleAnswer = async (choiceIndex: number) => {
     setAnswers((prev) => ({
@@ -270,7 +276,7 @@ export function TakeExamPage() {
             <Button variant="ghost" onClick={() => setIsExitModalOpen(false)}>
               Cancel
             </Button>
-            <Button variant="danger" onClick={() => navigate('/dashboard/exams/list')}>
+            <Button variant="danger" onClick={() => navigate(exitPath)}>
               Exit Exam
             </Button>
           </>

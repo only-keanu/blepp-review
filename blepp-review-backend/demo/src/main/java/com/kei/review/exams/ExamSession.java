@@ -33,9 +33,13 @@ public class ExamSession {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "mock_exam_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "mock_exam_id")
     private MockExam mockExam;
+
+    private Integer totalQuestions;
+
+    private Integer durationMinutes;
 
     private Instant startedAt;
 

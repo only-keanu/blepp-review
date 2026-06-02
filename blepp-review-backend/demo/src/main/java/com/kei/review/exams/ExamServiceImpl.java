@@ -8,6 +8,7 @@ import com.kei.review.exams.dto.ExamResultResponse;
 import com.kei.review.exams.dto.ExamSessionQuestionResponse;
 import com.kei.review.exams.dto.ExamSessionResponse;
 import com.kei.review.exams.dto.ExamSubmitResponse;
+import com.kei.review.exams.dto.QuestionBankExamSessionRequest;
 import com.kei.review.questions.Question;
 import com.kei.review.questions.QuestionRepository;
 import com.kei.review.users.User;
@@ -17,6 +18,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -65,6 +67,16 @@ public class ExamServiceImpl implements ExamService {
     }
 
     @Override
+    public ExamSessionResponse getSession(UUID userId, UUID sessionId) {
+        ExamSession session = examSessionRepository.findById(sessionId)
+            .orElseThrow(() -> new IllegalStateException("Session not found"));
+        if (!session.getUser().getId().equals(userId)) {
+            throw new IllegalStateException("Session not found");
+        }
+        return toSessionResponse(session, assignedQuestionCount(session));
+    }
+
+    @Override
     public ExamSessionResponse startSession(UUID userId, UUID examId) {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new IllegalStateException("User not found"));
@@ -74,17 +86,43 @@ public class ExamServiceImpl implements ExamService {
         ExamSession session = ExamSession.builder()
             .user(user)
             .mockExam(exam)
+            .totalQuestions(exam.getTotalQuestions())
+            .durationMinutes(exam.getDurationMinutes())
             .startedAt(Instant.now())
             .build();
 
         ExamSession saved = examSessionRepository.save(session);
-        assignQuestions(saved, userId);
-        return new ExamSessionResponse(
-            saved.getId(),
-            exam.getId(),
-            exam.getTotalQuestions(),
-            exam.getDurationMinutes()
-        );
+        int assignedCount = assignQuestions(saved, userId);
+        saved.setTotalQuestions(assignedCount);
+        examSessionRepository.save(saved);
+        return toSessionResponse(saved, assignedCount);
+    }
+
+    @Override
+    public ExamSessionResponse startQuestionBankSession(UUID userId, QuestionBankExamSessionRequest request) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new IllegalStateException("User not found"));
+        int requestedCount = normalizeQuestionCount(request == null ? null : request.questionCount());
+        int durationMinutes = normalizeDurationMinutes(request == null ? null : request.durationMinutes());
+        List<UUID> topicIds = normalizeTopicIds(request == null ? null : request.topicIds());
+        List<Question> pool = buildQuestionBankPool(userId, topicIds);
+        if (pool.isEmpty()) {
+            throw new IllegalStateException("No questions found");
+        }
+
+        Collections.shuffle(pool);
+        int assignedCount = Math.min(requestedCount, pool.size());
+        ExamSession session = ExamSession.builder()
+            .user(user)
+            .mockExam(null)
+            .totalQuestions(assignedCount)
+            .durationMinutes(durationMinutes)
+            .startedAt(Instant.now())
+            .build();
+
+        ExamSession saved = examSessionRepository.save(session);
+        saveAssignedQuestions(saved, pool.subList(0, assignedCount));
+        return toSessionResponse(saved, assignedCount);
     }
 
     @Override
@@ -144,9 +182,7 @@ public class ExamServiceImpl implements ExamService {
         int assignedQuestions = examSessionQuestionRepository.findByExamSessionIdOrderByOrderIndexAsc(sessionId).size();
         int totalQuestions = assignedQuestions > 0
             ? assignedQuestions
-            : session.getMockExam().getTotalQuestions() != null
-                ? session.getMockExam().getTotalQuestions()
-                : answers.size();
+            : totalQuestionsFor(session, answers.size());
         int unansweredCount = Math.max(0, totalQuestions - answers.size());
 
         int score = totalQuestions == 0 ? 0 : (int) Math.round((correctCount * 100.0) / totalQuestions);
@@ -231,9 +267,7 @@ public class ExamServiceImpl implements ExamService {
 
         int totalQuestions = !sessionQuestions.isEmpty()
             ? sessionQuestions.size()
-            : session.getMockExam().getTotalQuestions() != null
-                ? session.getMockExam().getTotalQuestions()
-                : answers.size();
+            : totalQuestionsFor(session, answers.size());
 
         long correctCount = answers.stream().filter(ExamAnswer::isCorrect).count();
         int unansweredCount = Math.max(0, totalQuestions - answers.size());
@@ -286,27 +320,19 @@ public class ExamServiceImpl implements ExamService {
         );
     }
 
-    private void assignQuestions(ExamSession session, UUID userId) {
+    private int assignQuestions(ExamSession session, UUID userId) {
         List<Question> pool = buildQuestionPool(session, userId);
         if (pool.isEmpty()) {
-            return;
+            return 0;
         }
         Collections.shuffle(pool);
-        int target = session.getMockExam().getTotalQuestions() != null
-            ? session.getMockExam().getTotalQuestions()
+        int target = session.getTotalQuestions() != null
+            ? session.getTotalQuestions()
             : pool.size();
         int count = Math.min(target, pool.size());
 
-        List<ExamSessionQuestion> items = new ArrayList<>();
-        for (int i = 0; i < count; i++) {
-            items.add(ExamSessionQuestion.builder()
-                .examSession(session)
-                .question(pool.get(i))
-                .orderIndex(i)
-                .build()
-            );
-        }
-        examSessionQuestionRepository.saveAll(items);
+        saveAssignedQuestions(session, pool.subList(0, count));
+        return count;
     }
 
     private List<Question> buildQuestionPool(ExamSession session, UUID userId) {
@@ -330,5 +356,86 @@ public class ExamServiceImpl implements ExamService {
         userQuestions.forEach(question -> byId.put(question.getId(), question));
         seedQuestions.forEach(question -> byId.putIfAbsent(question.getId(), question));
         return new ArrayList<>(byId.values());
+    }
+
+    private List<Question> buildQuestionBankPool(UUID userId, List<UUID> topicIds) {
+        List<Question> userQuestions = topicIds.isEmpty()
+            ? questionRepository.findByOwnerId(userId)
+            : questionRepository.findByOwnerIdAndTopicIdIn(userId, topicIds);
+        List<Question> seedQuestions = topicIds.isEmpty()
+            ? questionRepository.findByOwnerEmail(SeedData.SYSTEM_USER_EMAIL)
+            : questionRepository.findByOwnerEmailAndTopicIdIn(SeedData.SYSTEM_USER_EMAIL, topicIds);
+
+        Map<UUID, Question> byId = new LinkedHashMap<>();
+        userQuestions.forEach(question -> byId.put(question.getId(), question));
+        seedQuestions.forEach(question -> byId.putIfAbsent(question.getId(), question));
+        return new ArrayList<>(byId.values());
+    }
+
+    private void saveAssignedQuestions(ExamSession session, List<Question> questions) {
+        List<ExamSessionQuestion> items = new ArrayList<>();
+        for (int i = 0; i < questions.size(); i++) {
+            items.add(ExamSessionQuestion.builder()
+                .examSession(session)
+                .question(questions.get(i))
+                .orderIndex(i)
+                .build()
+            );
+        }
+        examSessionQuestionRepository.saveAll(items);
+    }
+
+    private int assignedQuestionCount(ExamSession session) {
+        return examSessionQuestionRepository.findByExamSessionIdOrderByOrderIndexAsc(session.getId()).size();
+    }
+
+    private ExamSessionResponse toSessionResponse(ExamSession session, int assignedCount) {
+        return new ExamSessionResponse(
+            session.getId(),
+            session.getMockExam() == null ? null : session.getMockExam().getId(),
+            assignedCount > 0 ? assignedCount : totalQuestionsFor(session, 0),
+            durationMinutesFor(session)
+        );
+    }
+
+    private int totalQuestionsFor(ExamSession session, int fallback) {
+        if (session.getTotalQuestions() != null) {
+            return session.getTotalQuestions();
+        }
+        if (session.getMockExam() != null && session.getMockExam().getTotalQuestions() != null) {
+            return session.getMockExam().getTotalQuestions();
+        }
+        return fallback;
+    }
+
+    private int durationMinutesFor(ExamSession session) {
+        if (session.getDurationMinutes() != null) {
+            return session.getDurationMinutes();
+        }
+        if (session.getMockExam() != null && session.getMockExam().getDurationMinutes() != null) {
+            return session.getMockExam().getDurationMinutes();
+        }
+        return 45;
+    }
+
+    private int normalizeQuestionCount(Integer requested) {
+        if (requested == null) {
+            return 10;
+        }
+        return Math.max(1, Math.min(requested, 100));
+    }
+
+    private int normalizeDurationMinutes(Integer requested) {
+        if (requested == null) {
+            return 30;
+        }
+        return Math.max(1, Math.min(requested, 180));
+    }
+
+    private List<UUID> normalizeTopicIds(List<UUID> topicIds) {
+        if (topicIds == null || topicIds.isEmpty()) {
+            return List.of();
+        }
+        return new ArrayList<>(new LinkedHashSet<>(topicIds));
     }
 }

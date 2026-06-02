@@ -5,8 +5,8 @@ import { TopicFilter } from '../../components/questions/TopicFilter';
 import { AddQuestionModal } from '../../components/questions/AddQuestionModal';
 import { Modal } from '../../components/ui/Modal';
 import { Button } from '../../components/ui/Button';
-import { Plus, Search, Filter, Sparkles, PenLine } from 'lucide-react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Plus, Search, Filter, Sparkles, PenLine, PlayCircle } from 'lucide-react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Question, Topic } from '../../types';
 import { apiFetch } from '../../lib/api';
 
@@ -21,6 +21,9 @@ type QuestionPayload = {
   tags: string[];
 };
 
+const QUESTION_COUNT_OPTIONS = [10, 25, 50, 100];
+const DURATION_OPTIONS = [15, 30, 45, 60, 90];
+
 export function BankPage() {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [topics, setTopics] = useState<Topic[]>([]);
@@ -32,7 +35,13 @@ export function BankPage() {
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
   const [viewQuestion, setViewQuestion] = useState<Question | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Question | null>(null);
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [reviewQuestionCount, setReviewQuestionCount] = useState(25);
+  const [reviewDurationMinutes, setReviewDurationMinutes] = useState(30);
+  const [reviewTopicIds, setReviewTopicIds] = useState<string[]>([]);
+  const [isStartingReview, setIsStartingReview] = useState(false);
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const queryParam = searchParams.get('query') || '';
@@ -190,6 +199,35 @@ export function BankPage() {
     }
   };
 
+  const toggleReviewTopic = (topicId: string) => {
+    setReviewTopicIds((prev) =>
+      prev.includes(topicId)
+        ? prev.filter((id) => id !== topicId)
+        : [...prev, topicId]
+    );
+  };
+
+  const handleStartReview = async () => {
+    setIsStartingReview(true);
+    setError('');
+    try {
+      const session = await apiFetch<{ id: string }>('/api/exams/question-bank/session', {
+        method: 'POST',
+        body: JSON.stringify({
+          questionCount: reviewQuestionCount,
+          durationMinutes: reviewDurationMinutes,
+          topicIds: reviewTopicIds
+        })
+      });
+      setIsReviewModalOpen(false);
+      navigate(`/dashboard/exams/take/${session.id}`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to start question review.');
+    } finally {
+      setIsStartingReview(false);
+    }
+  };
+
   return (
     <AppLayout>
       <div className="space-y-6">
@@ -202,6 +240,12 @@ export function BankPage() {
             </p>
           </div>
           <div className="flex gap-3">
+            <Button
+              variant="secondary"
+              leftIcon={<PlayCircle className="h-4 w-4" />}
+              onClick={() => setIsReviewModalOpen(true)}>
+              Review Questions
+            </Button>
             <Button
               variant="outline"
               leftIcon={<PenLine className="h-4 w-4" />}
@@ -290,6 +334,101 @@ export function BankPage() {
         submitLabel={editingQuestion ? 'Save Changes' : 'Save Question'}
         title={editingQuestion ? 'Edit Question' : 'Add New Question'}
       />
+
+      <Modal
+        isOpen={isReviewModalOpen}
+        onClose={() => setIsReviewModalOpen(false)}
+        title="Review Questions"
+        size="lg"
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setIsReviewModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleStartReview}
+              disabled={isStartingReview}>
+              {isStartingReview ? 'Starting...' : 'Start Review'}
+            </Button>
+          </>
+        }>
+        <div className="space-y-6">
+          <div>
+            <p className="mb-3 text-sm font-semibold text-slate-900 dark:text-slate-100">
+              Number of questions
+            </p>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {QUESTION_COUNT_OPTIONS.map((count) => (
+                <button
+                  key={count}
+                  type="button"
+                  onClick={() => setReviewQuestionCount(count)}
+                  className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+                    reviewQuestionCount === count
+                      ? 'border-teal-600 bg-teal-50 text-teal-700 dark:bg-teal-950/40 dark:text-teal-200'
+                      : 'border-slate-200 text-slate-600 hover:border-teal-200 dark:border-slate-700 dark:text-slate-300'
+                  }`}>
+                  {count}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <p className="mb-3 text-sm font-semibold text-slate-900 dark:text-slate-100">
+              Time limit
+            </p>
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+              {DURATION_OPTIONS.map((minutes) => (
+                <button
+                  key={minutes}
+                  type="button"
+                  onClick={() => setReviewDurationMinutes(minutes)}
+                  className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+                    reviewDurationMinutes === minutes
+                      ? 'border-teal-600 bg-teal-50 text-teal-700 dark:bg-teal-950/40 dark:text-teal-200'
+                      : 'border-slate-200 text-slate-600 hover:border-teal-200 dark:border-slate-700 dark:text-slate-300'
+                  }`}>
+                  {minutes} min
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                Topics
+              </p>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setReviewTopicIds([])}>
+                All Topics
+              </Button>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {topics.map((topic) => (
+                <label
+                  key={topic.id}
+                  className="flex items-center gap-3 rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm text-slate-700 dark:text-slate-200">
+                  <input
+                    type="checkbox"
+                    checked={reviewTopicIds.includes(topic.id)}
+                    onChange={() => toggleReviewTopic(topic.id)}
+                    className="h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500"
+                  />
+                  <span>{topic.name}</span>
+                </label>
+              ))}
+            </div>
+            <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+              Leave all topics unchecked to mix questions from the full question bank.
+            </p>
+          </div>
+        </div>
+      </Modal>
 
       <Modal
         isOpen={!!viewQuestion}

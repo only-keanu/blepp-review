@@ -8,6 +8,7 @@ import com.kei.review.exams.dto.ExamResultResponse;
 import com.kei.review.exams.dto.ExamSessionQuestionResponse;
 import com.kei.review.exams.dto.ExamSessionResponse;
 import com.kei.review.exams.dto.ExamSubmitResponse;
+import com.kei.review.exams.dto.QuestionBankExamSessionRequest;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
@@ -34,12 +35,28 @@ public class ExamController {
         return ResponseEntity.ok(examService.listExams());
     }
 
+    @PostMapping("/question-bank/session")
+    public ResponseEntity<ExamSessionResponse> startQuestionBankSession(
+        @RequestBody QuestionBankExamSessionRequest request,
+        @AuthenticationPrincipal UserPrincipal principal
+    ) {
+        return ResponseEntity.ok(examService.startQuestionBankSession(principal.getId(), request));
+    }
+
     @PostMapping("/{examId}/session")
     public ResponseEntity<ExamSessionResponse> startSession(
         @PathVariable UUID examId,
         @AuthenticationPrincipal UserPrincipal principal
     ) {
         return ResponseEntity.ok(examService.startSession(principal.getId(), examId));
+    }
+
+    @GetMapping("/session/{sessionId}")
+    public ResponseEntity<ExamSessionResponse> getSession(
+        @PathVariable UUID sessionId,
+        @AuthenticationPrincipal UserPrincipal principal
+    ) {
+        return ResponseEntity.ok(examService.getSession(principal.getId(), sessionId));
     }
 
     @PostMapping("/session/{sessionId}/answer")
