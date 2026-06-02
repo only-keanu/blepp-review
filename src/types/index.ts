@@ -2,9 +2,40 @@ export interface User {
   id: string;
   email: string;
   fullName: string;
-  targetExamDate: string;
-  dailyStudyHours: number;
+  targetExamDate?: string;
+  dailyStudyHours?: number;
   avatarUrl?: string;
+  access: UserAccess;
+  hasStudyAccess: boolean;
+  hasAiAccess: boolean;
+  admin: boolean;
+}
+
+export type UserRole = 'USER' | 'ADMIN';
+export type UserAccessStatus = 'TRIAL' | 'PAID' | 'EXPIRED';
+
+export interface UserAccess {
+  role: UserRole;
+  accessStatus: UserAccessStatus;
+  trialEndsAt?: string;
+  paidUntil?: string;
+  accessUpdatedAt?: string;
+  accessNotes?: string;
+  paymentReference?: string;
+  hasStudyAccess: boolean;
+  hasAiAccess: boolean;
+  admin: boolean;
+}
+
+export interface AdminUser {
+  id: string;
+  email: string;
+  fullName: string;
+  targetExamDate?: string;
+  dailyStudyHours?: number;
+  createdAt?: string;
+  updatedAt?: string;
+  access: UserAccess;
 }
 
 export interface Topic {

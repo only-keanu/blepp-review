@@ -15,10 +15,12 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AccessService accessService;
 
-    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, AccessService accessService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.accessService = accessService;
     }
 
     @Override
@@ -97,7 +99,11 @@ public class UserServiceImpl implements UserService {
             user.getFullName(),
             user.getTargetExamDate(),
             user.getDailyStudyHours(),
-            user.getAvatarUrl()
+            user.getAvatarUrl(),
+            accessService.toAccessResponse(user),
+            accessService.hasStudyAccess(user),
+            accessService.hasAiAccess(user),
+            accessService.isAdmin(user)
         );
     }
 }

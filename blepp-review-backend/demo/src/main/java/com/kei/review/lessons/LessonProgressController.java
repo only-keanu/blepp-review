@@ -3,6 +3,7 @@ package com.kei.review.lessons;
 import com.kei.review.auth.UserPrincipal;
 import com.kei.review.lessons.dto.LessonProgressRequest;
 import com.kei.review.lessons.dto.LessonProgressResponse;
+import com.kei.review.users.AccessService;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -19,9 +20,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/lessons/progress")
 public class LessonProgressController {
     private final LessonProgressService lessonProgressService;
+    private final AccessService accessService;
 
-    public LessonProgressController(LessonProgressService lessonProgressService) {
+    public LessonProgressController(LessonProgressService lessonProgressService, AccessService accessService) {
         this.lessonProgressService = lessonProgressService;
+        this.accessService = accessService;
     }
 
     @GetMapping
@@ -37,6 +40,7 @@ public class LessonProgressController {
         @RequestBody LessonProgressRequest request,
         @AuthenticationPrincipal UserPrincipal principal
     ) {
+        accessService.requireStudyAccess(principal.getId());
         return ResponseEntity.ok(lessonProgressService.markComplete(principal.getId(), request));
     }
 
@@ -45,6 +49,7 @@ public class LessonProgressController {
         @PathVariable String lessonId,
         @AuthenticationPrincipal UserPrincipal principal
     ) {
+        accessService.requireStudyAccess(principal.getId());
         lessonProgressService.deleteProgress(principal.getId(), lessonId);
         return ResponseEntity.noContent().build();
     }

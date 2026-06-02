@@ -4,6 +4,7 @@ import com.kei.review.auth.UserPrincipal;
 import com.kei.review.topics.dto.TopicCreateRequest;
 import com.kei.review.topics.dto.TopicResponse;
 import com.kei.review.topics.dto.WeakToggleRequest;
+import com.kei.review.users.AccessService;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.http.ResponseEntity;
@@ -20,9 +21,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/topics")
 public class TopicController {
     private final TopicService topicService;
+    private final AccessService accessService;
 
-    public TopicController(TopicService topicService) {
+    public TopicController(TopicService topicService, AccessService accessService) {
         this.topicService = topicService;
+        this.accessService = accessService;
     }
 
     @GetMapping
@@ -35,6 +38,7 @@ public class TopicController {
         @jakarta.validation.Valid @RequestBody TopicCreateRequest request,
         @AuthenticationPrincipal UserPrincipal principal
     ) {
+        accessService.requireStudyAccess(principal.getId());
         return ResponseEntity.ok(topicService.createTopic(principal.getId(), request));
     }
 
@@ -44,6 +48,7 @@ public class TopicController {
         @RequestBody WeakToggleRequest request,
         @AuthenticationPrincipal UserPrincipal principal
     ) {
+        accessService.requireStudyAccess(principal.getId());
         return ResponseEntity.ok(topicService.updateWeak(principal.getId(), topicId, request));
     }
 }

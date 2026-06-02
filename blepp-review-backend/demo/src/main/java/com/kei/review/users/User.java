@@ -2,6 +2,8 @@ package com.kei.review.users;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -41,6 +43,25 @@ public class User {
     private Integer dailyStudyHours;
 
     private String avatarUrl;
+
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private UserRole role = UserRole.USER;
+
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private UserAccessStatus accessStatus = UserAccessStatus.EXPIRED;
+
+    private Instant trialEndsAt;
+
+    private Instant paidUntil;
+
+    private Instant accessUpdatedAt;
+
+    @Column(columnDefinition = "TEXT")
+    private String accessNotes;
+
+    private String paymentReference;
 
     private Instant createdAt;
 

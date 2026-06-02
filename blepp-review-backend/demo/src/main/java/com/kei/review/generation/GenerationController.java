@@ -5,6 +5,7 @@ import com.kei.review.generation.dto.GenerationRunRequest;
 import com.kei.review.generation.dto.GenerationRunResponse;
 import com.kei.review.generation.dto.GenerationStatusResponse;
 import com.kei.review.generation.dto.GenerationUploadResponse;
+import com.kei.review.users.AccessService;
 import java.util.UUID;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -22,9 +23,11 @@ import org.springframework.web.multipart.MultipartFile;
 @RequestMapping("/api/generation")
 public class GenerationController {
     private final GenerationService generationService;
+    private final AccessService accessService;
 
-    public GenerationController(GenerationService generationService) {
+    public GenerationController(GenerationService generationService, AccessService accessService) {
         this.generationService = generationService;
+        this.accessService = accessService;
     }
 
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -32,6 +35,7 @@ public class GenerationController {
         @AuthenticationPrincipal UserPrincipal principal,
         @RequestPart("file") MultipartFile file
     ) {
+        accessService.requireAiAccess(principal.getId());
         return ResponseEntity.ok(generationService.upload(principal.getId(), file));
     }
 
@@ -40,6 +44,7 @@ public class GenerationController {
         @AuthenticationPrincipal UserPrincipal principal,
         @RequestBody GenerationRunRequest request
     ) {
+        accessService.requireAiAccess(principal.getId());
         return ResponseEntity.ok(generationService.run(principal.getId(), request));
     }
 

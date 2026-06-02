@@ -10,6 +10,7 @@ import { BookOpen, Award, Target } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { apiFetch } from '../lib/api';
 import { Topic } from '../types';
+import { AccessStatusCard } from '../components/access/AccessStatusCard';
 export function DashboardPage() {
   const { user } = useAuth();
   const [topics, setTopics] = useState<Topic[]>([]);
@@ -20,6 +21,12 @@ export function DashboardPage() {
   useEffect(() => {
     const loadData = async () => {
       setError('');
+      if (!user?.hasStudyAccess) {
+        setTopics([]);
+        setReadiness(0);
+        setDueCount(0);
+        return;
+      }
       try {
         const [topicsData, readinessData, flashcards, masteryData] = await Promise.all([
           apiFetch<any[]>('/api/topics'),
@@ -51,7 +58,7 @@ export function DashboardPage() {
       }
     };
     loadData();
-  }, []);
+  }, [user?.hasStudyAccess]);
 
   const planItems = useMemo(() => {
     const withMastery = topics.map((t) => ({
@@ -100,7 +107,7 @@ export function DashboardPage() {
           <div className="flex items-center gap-4 text-sm text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900 px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm">
             <div className="flex items-center gap-2">
               <Target className="h-4 w-4 text-teal-600" />
-              <span>Goal: {user?.dailyStudyHours}h/day</span>
+              <span>Goal: {user?.dailyStudyHours ?? 0}h/day</span>
             </div>
             <div className="h-4 w-px bg-slate-200 dark:bg-slate-700" />
             <div className="flex items-center gap-2">
@@ -110,7 +117,10 @@ export function DashboardPage() {
           </div>
         </div>
 
+        <AccessStatusCard user={user} />
+
         {/* Main Grid */}
+        {user?.hasStudyAccess ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* Column 1: Readiness & Due Items */}
           <div className="space-y-6">
@@ -172,6 +182,13 @@ export function DashboardPage() {
             </Card>
           </div>
         </div>
+        ) : (
+        <Card title="Study tools locked" description="Complete manual payment to continue your review tools.">
+          <p className="text-sm text-slate-600 dark:text-slate-300">
+            Dashboard and settings remain available while access is expired.
+          </p>
+        </Card>
+        )}
       </div>
     </AppLayout>);
 

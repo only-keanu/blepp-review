@@ -6,6 +6,7 @@ import com.kei.review.flashcards.dto.FlashcardResponse;
 import com.kei.review.flashcards.dto.FlashcardReviewRequest;
 import com.kei.review.flashcards.dto.FlashcardQueueSummaryResponse;
 import com.kei.review.flashcards.dto.FlashcardUpdateRequest;
+import com.kei.review.users.AccessService;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
@@ -24,23 +25,28 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/flashcards")
 public class FlashcardController {
     private final FlashcardService flashcardService;
+    private final AccessService accessService;
 
-    public FlashcardController(FlashcardService flashcardService) {
+    public FlashcardController(FlashcardService flashcardService, AccessService accessService) {
         this.flashcardService = flashcardService;
+        this.accessService = accessService;
     }
 
     @GetMapping
     public ResponseEntity<List<FlashcardResponse>> list(@AuthenticationPrincipal UserPrincipal principal) {
+        accessService.requireStudyAccess(principal.getId());
         return ResponseEntity.ok(flashcardService.list(principal.getId()));
     }
 
     @GetMapping("/due")
     public ResponseEntity<List<FlashcardResponse>> listDue(@AuthenticationPrincipal UserPrincipal principal) {
+        accessService.requireStudyAccess(principal.getId());
         return ResponseEntity.ok(flashcardService.listDue(principal.getId()));
     }
 
     @GetMapping("/summary")
     public ResponseEntity<FlashcardQueueSummaryResponse> summary(@AuthenticationPrincipal UserPrincipal principal) {
+        accessService.requireStudyAccess(principal.getId());
         return ResponseEntity.ok(flashcardService.summary(principal.getId()));
     }
 
@@ -49,6 +55,7 @@ public class FlashcardController {
         @Valid @RequestBody FlashcardCreateRequest request,
         @AuthenticationPrincipal UserPrincipal principal
     ) {
+        accessService.requireStudyAccess(principal.getId());
         return ResponseEntity.ok(flashcardService.create(principal.getId(), request));
     }
 
@@ -58,6 +65,7 @@ public class FlashcardController {
         @Valid @RequestBody FlashcardUpdateRequest request,
         @AuthenticationPrincipal UserPrincipal principal
     ) {
+        accessService.requireStudyAccess(principal.getId());
         return ResponseEntity.ok(flashcardService.update(principal.getId(), flashcardId, request));
     }
 
@@ -66,6 +74,7 @@ public class FlashcardController {
         @PathVariable UUID flashcardId,
         @AuthenticationPrincipal UserPrincipal principal
     ) {
+        accessService.requireStudyAccess(principal.getId());
         flashcardService.delete(principal.getId(), flashcardId);
         return ResponseEntity.noContent().build();
     }
@@ -76,6 +85,7 @@ public class FlashcardController {
         @Valid @RequestBody FlashcardReviewRequest request,
         @AuthenticationPrincipal UserPrincipal principal
     ) {
+        accessService.requireStudyAccess(principal.getId());
         return ResponseEntity.ok(flashcardService.review(principal.getId(), flashcardId, request));
     }
 }

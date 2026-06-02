@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -8,38 +8,18 @@ import {
   TrendingUp,
   Settings,
   X,
-  Layers } from
+  Layers,
+  CreditCard,
+  Users } from
 'lucide-react';
-import { Button } from '../ui/Button';
-import { apiFetch } from '../../lib/api';
-import { User } from '../../types';
+import { useAuth } from '../../hooks/useAuth';
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
 }
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const location = useLocation();
-  const [profile, setProfile] = useState<User | null>(null);
-
-  useEffect(() => {
-    let isActive = true;
-    apiFetch<User>('/api/me')
-      .then((data) => {
-        if (!isActive) {
-          return;
-        }
-        setProfile(data);
-      })
-      .catch(() => {
-        if (!isActive) {
-          return;
-        }
-        setProfile(null);
-      });
-    return () => {
-      isActive = false;
-    };
-  }, []);
+  const { user: profile } = useAuth();
 
   const examDateLabel = useMemo(() => {
     if (!profile?.targetExamDate) {
@@ -106,7 +86,20 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     name: 'Settings',
     href: '/dashboard/settings',
     icon: Settings
+  },
+  {
+    name: 'Access',
+    href: '/dashboard/access',
+    icon: CreditCard
   }];
+
+  if (profile?.admin) {
+    navigation.push({
+      name: 'Users',
+      href: '/dashboard/admin/users',
+      icon: Users
+    });
+  }
 
   const isActive = (path: string) => {
     return (

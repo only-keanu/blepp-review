@@ -9,6 +9,10 @@ public record UserProfileResponse(
     String fullName,
     LocalDate targetExamDate,
     Integer dailyStudyHours,
-    String avatarUrl
+    String avatarUrl,
+    UserAccessResponse access,
+    boolean hasStudyAccess,
+    boolean hasAiAccess,
+    boolean admin
 ) {
 }

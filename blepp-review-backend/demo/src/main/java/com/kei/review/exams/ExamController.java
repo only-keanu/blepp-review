@@ -9,6 +9,7 @@ import com.kei.review.exams.dto.ExamSessionQuestionResponse;
 import com.kei.review.exams.dto.ExamSessionResponse;
 import com.kei.review.exams.dto.ExamSubmitResponse;
 import com.kei.review.exams.dto.QuestionBankExamSessionRequest;
+import com.kei.review.users.AccessService;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
@@ -25,9 +26,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/exams")
 public class ExamController {
     private final ExamService examService;
+    private final AccessService accessService;
 
-    public ExamController(ExamService examService) {
+    public ExamController(ExamService examService, AccessService accessService) {
         this.examService = examService;
+        this.accessService = accessService;
     }
 
     @GetMapping
@@ -40,6 +43,7 @@ public class ExamController {
         @RequestBody QuestionBankExamSessionRequest request,
         @AuthenticationPrincipal UserPrincipal principal
     ) {
+        accessService.requireStudyAccess(principal.getId());
         return ResponseEntity.ok(examService.startQuestionBankSession(principal.getId(), request));
     }
 
@@ -48,6 +52,7 @@ public class ExamController {
         @PathVariable UUID examId,
         @AuthenticationPrincipal UserPrincipal principal
     ) {
+        accessService.requireStudyAccess(principal.getId());
         return ResponseEntity.ok(examService.startSession(principal.getId(), examId));
     }
 
@@ -65,6 +70,7 @@ public class ExamController {
         @Valid @RequestBody ExamAnswerRequest request,
         @AuthenticationPrincipal UserPrincipal principal
     ) {
+        accessService.requireStudyAccess(principal.getId());
         examService.recordAnswer(principal.getId(), sessionId, request);
         return ResponseEntity.ok().build();
     }
@@ -74,6 +80,7 @@ public class ExamController {
         @PathVariable UUID sessionId,
         @AuthenticationPrincipal UserPrincipal principal
     ) {
+        accessService.requireStudyAccess(principal.getId());
         return ResponseEntity.ok(examService.submit(principal.getId(), sessionId));
     }
 

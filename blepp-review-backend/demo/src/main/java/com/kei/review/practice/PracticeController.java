@@ -8,6 +8,7 @@ import com.kei.review.practice.dto.PracticeSessionQuestionResponse;
 import com.kei.review.practice.dto.PracticeSessionResultResponse;
 import com.kei.review.practice.dto.PracticeSessionResponse;
 import com.kei.review.questions.dto.QuestionResponse;
+import com.kei.review.users.AccessService;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
@@ -25,9 +26,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 @RequestMapping("/api/practice")
 public class PracticeController {
     private final PracticeService practiceService;
+    private final AccessService accessService;
 
-    public PracticeController(PracticeService practiceService) {
+    public PracticeController(PracticeService practiceService, AccessService accessService) {
         this.practiceService = practiceService;
+        this.accessService = accessService;
     }
 
     @PostMapping("/session")
@@ -35,6 +38,7 @@ public class PracticeController {
         @Valid @RequestBody CreatePracticeSessionRequest request,
         @AuthenticationPrincipal UserPrincipal principal
     ) {
+        accessService.requireStudyAccess(principal.getId());
         return ResponseEntity.ok(practiceService.startSession(principal.getId(), request));
     }
 
@@ -43,6 +47,7 @@ public class PracticeController {
         @PathVariable UUID sessionId,
         @AuthenticationPrincipal UserPrincipal principal
     ) {
+        accessService.requireStudyAccess(principal.getId());
         return ResponseEntity.ok(practiceService.listSessionQuestions(principal.getId(), sessionId));
     }
 
@@ -51,6 +56,7 @@ public class PracticeController {
         @Valid @RequestBody AnswerAttemptRequest request,
         @AuthenticationPrincipal UserPrincipal principal
     ) {
+        accessService.requireStudyAccess(principal.getId());
         practiceService.recordAttempt(principal.getId(), request);
         return ResponseEntity.ok().build();
     }
@@ -60,6 +66,7 @@ public class PracticeController {
         @PathVariable UUID sessionId,
         @AuthenticationPrincipal UserPrincipal principal
     ) {
+        accessService.requireStudyAccess(principal.getId());
         return ResponseEntity.ok(practiceService.completeSession(principal.getId(), sessionId));
     }
 
@@ -80,6 +87,7 @@ public class PracticeController {
         @RequestParam UUID topicId,
         @AuthenticationPrincipal UserPrincipal principal
     ) {
+        accessService.requireStudyAccess(principal.getId());
         return ResponseEntity.ok(practiceService.listMistakeQuestionsByTopic(principal.getId(), topicId));
     }
 
@@ -87,6 +95,7 @@ public class PracticeController {
     public ResponseEntity<List<QuestionResponse>> listAllMistakeQuestions(
         @AuthenticationPrincipal UserPrincipal principal
     ) {
+        accessService.requireStudyAccess(principal.getId());
         return ResponseEntity.ok(practiceService.listMistakeQuestionsAll(principal.getId()));
     }
 
@@ -95,6 +104,7 @@ public class PracticeController {
         @RequestParam UUID topicId,
         @AuthenticationPrincipal UserPrincipal principal
     ) {
+        accessService.requireStudyAccess(principal.getId());
         return ResponseEntity.ok(practiceService.startMistakeSession(principal.getId(), topicId));
     }
 
@@ -102,6 +112,7 @@ public class PracticeController {
     public ResponseEntity<PracticeSessionResponse> startMistakeSessionAll(
         @AuthenticationPrincipal UserPrincipal principal
     ) {
+        accessService.requireStudyAccess(principal.getId());
         return ResponseEntity.ok(practiceService.startMistakeSessionAll(principal.getId()));
     }
 }

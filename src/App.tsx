@@ -17,6 +17,9 @@ import { RegisterPage } from './pages/auth/RegisterPage';
 import { OAuthCallbackPage } from './pages/auth/OAuthCallbackPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { AuthProvider, useAuth } from './hooks/useAuth';
+import { AccessGate } from './components/access/AccessGate';
+import { PaymentAccessPage } from './pages/access/PaymentAccessPage';
+import { AdminUsersPage } from './pages/admin/AdminUsersPage';
 // Study Pages
 import { TopicsPage } from './pages/study/TopicsPage';
 import { PracticePage } from './pages/study/PracticePage';
@@ -116,6 +119,24 @@ export function App() {
             </ProtectedRoute>
           } />
 
+        <Route
+          path="/dashboard/access"
+          element={
+          <ProtectedRoute>
+              <PaymentAccessPage />
+            </ProtectedRoute>
+          } />
+
+        <Route
+          path="/dashboard/admin/users"
+          element={
+          <ProtectedRoute>
+              <AccessGate requires="admin">
+                <AdminUsersPage />
+              </AccessGate>
+            </ProtectedRoute>
+          } />
+
 
         {/* Study Routes */}
         <Route
@@ -158,7 +179,9 @@ export function App() {
           path="/dashboard/study/practice"
           element={
           <ProtectedRoute>
-              <PracticePage />
+              <AccessGate>
+                <PracticePage />
+              </AccessGate>
             </ProtectedRoute>
           } />
 
@@ -166,7 +189,9 @@ export function App() {
           path="/dashboard/study/flashcards"
           element={
           <ProtectedRoute>
-              <FlashcardsPage />
+              <AccessGate>
+                <FlashcardsPage />
+              </AccessGate>
             </ProtectedRoute>
           } />
 
@@ -174,7 +199,9 @@ export function App() {
           path="/dashboard/study/mistakes"
           element={
           <ProtectedRoute>
-              <MistakesPage />
+              <AccessGate>
+                <MistakesPage />
+              </AccessGate>
             </ProtectedRoute>
           } />
 
@@ -184,7 +211,9 @@ export function App() {
           path="/dashboard/flashcards"
           element={
           <ProtectedRoute>
-              <ManageFlashcardsPage />
+              <AccessGate>
+                <ManageFlashcardsPage />
+              </AccessGate>
             </ProtectedRoute>
           } />
 
@@ -198,7 +227,9 @@ export function App() {
           path="/dashboard/questions/generate"
           element={
           <ProtectedRoute>
-              <GeneratePage />
+              <AccessGate requires="ai">
+                <GeneratePage />
+              </AccessGate>
             </ProtectedRoute>
           } />
 
@@ -206,7 +237,9 @@ export function App() {
           path="/dashboard/questions/bank"
           element={
           <ProtectedRoute>
-              <BankPage />
+              <AccessGate>
+                <BankPage />
+              </AccessGate>
             </ProtectedRoute>
           } />
 
@@ -220,7 +253,9 @@ export function App() {
           path="/dashboard/exams/list"
           element={
           <ProtectedRoute>
-              <MockExamsPage />
+              <AccessGate>
+                <MockExamsPage />
+              </AccessGate>
             </ProtectedRoute>
           } />
 
@@ -228,7 +263,9 @@ export function App() {
           path="/dashboard/exams/take/:id"
           element={
           <ProtectedRoute>
-              <TakeExamPage />
+              <AccessGate>
+                <TakeExamPage />
+              </AccessGate>
             </ProtectedRoute>
           } />
 

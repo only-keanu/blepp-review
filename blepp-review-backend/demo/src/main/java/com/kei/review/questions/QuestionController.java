@@ -5,6 +5,7 @@ import com.kei.review.questions.dto.QuestionCreateRequest;
 import com.kei.review.questions.dto.QuestionResponse;
 import com.kei.review.questions.dto.QuestionSearchParams;
 import com.kei.review.questions.dto.QuestionUpdateRequest;
+import com.kei.review.users.AccessService;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.http.ResponseEntity;
@@ -22,9 +23,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/questions")
 public class QuestionController {
     private final QuestionService questionService;
+    private final AccessService accessService;
 
-    public QuestionController(QuestionService questionService) {
+    public QuestionController(QuestionService questionService, AccessService accessService) {
         this.questionService = questionService;
+        this.accessService = accessService;
     }
 
     @GetMapping
@@ -32,6 +35,7 @@ public class QuestionController {
         QuestionSearchParams params,
         @AuthenticationPrincipal UserPrincipal principal
     ) {
+        accessService.requireStudyAccess(principal.getId());
         return ResponseEntity.ok(questionService.search(principal.getId(), params));
     }
 
@@ -40,6 +44,7 @@ public class QuestionController {
         @jakarta.validation.Valid @RequestBody QuestionCreateRequest request,
         @AuthenticationPrincipal UserPrincipal principal
     ) {
+        accessService.requireStudyAccess(principal.getId());
         return ResponseEntity.ok(questionService.create(principal.getId(), request));
     }
 
@@ -48,6 +53,7 @@ public class QuestionController {
         @RequestBody List<QuestionCreateRequest> request,
         @AuthenticationPrincipal UserPrincipal principal
     ) {
+        accessService.requireStudyAccess(principal.getId());
         return ResponseEntity.ok(questionService.bulkCreate(principal.getId(), request));
     }
 
@@ -57,6 +63,7 @@ public class QuestionController {
         @jakarta.validation.Valid @RequestBody QuestionUpdateRequest request,
         @AuthenticationPrincipal UserPrincipal principal
     ) {
+        accessService.requireStudyAccess(principal.getId());
         return ResponseEntity.ok(questionService.update(principal.getId(), questionId, request));
     }
 
@@ -65,6 +72,7 @@ public class QuestionController {
         @PathVariable UUID questionId,
         @AuthenticationPrincipal UserPrincipal principal
     ) {
+        accessService.requireStudyAccess(principal.getId());
         questionService.delete(principal.getId(), questionId);
         return ResponseEntity.noContent().build();
     }

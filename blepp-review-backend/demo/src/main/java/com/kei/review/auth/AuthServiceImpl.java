@@ -4,6 +4,7 @@ import com.kei.review.auth.dto.AuthResponse;
 import com.kei.review.auth.dto.LoginRequest;
 import com.kei.review.auth.dto.RegisterRequest;
 import com.kei.review.auth.dto.OAuthCodeRequest;
+import com.kei.review.users.AccessService;
 import com.kei.review.users.User;
 import com.kei.review.users.UserRepository;
 import java.time.Instant;
@@ -26,6 +27,7 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final AccessService accessService;
     private final RestTemplate restTemplate = new RestTemplate();
 
     @Value("${app.oauth.google.client-id:}")
@@ -40,10 +42,16 @@ public class AuthServiceImpl implements AuthService {
     @Value("${app.oauth.facebook.app-secret:}")
     private String facebookAppSecret;
 
-    public AuthServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtService jwtService) {
+    public AuthServiceImpl(
+        UserRepository userRepository,
+        PasswordEncoder passwordEncoder,
+        JwtService jwtService,
+        AccessService accessService
+    ) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
+        this.accessService = accessService;
     }
 
     @Override
@@ -61,6 +69,7 @@ public class AuthServiceImpl implements AuthService {
             .createdAt(Instant.now())
             .updatedAt(Instant.now())
             .build();
+        accessService.initializeTrial(user);
 
         User saved = userRepository.save(user);
         String accessToken = jwtService.generateAccessToken(
@@ -219,6 +228,7 @@ public class AuthServiceImpl implements AuthService {
                 .createdAt(Instant.now())
                 .updatedAt(Instant.now())
                 .build();
+            accessService.initializeTrial(created);
             return userRepository.save(created);
         });
 
