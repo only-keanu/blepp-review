@@ -3,6 +3,16 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080
 export const ACCESS_TOKEN_KEY = 'blepp_access_token';
 export const REFRESH_TOKEN_KEY = 'blepp_refresh_token';
 
+export class ApiRequestError extends Error {
+  status: number;
+
+  constructor(status: number, message: string) {
+    super(message);
+    this.name = 'ApiRequestError';
+    this.status = status;
+  }
+}
+
 export function getAccessToken() {
   return localStorage.getItem(ACCESS_TOKEN_KEY);
 }
@@ -110,7 +120,7 @@ export async function apiFetch<T>(path: string, options: RequestInit = {}): Prom
         message = text;
       }
     }
-    throw new Error(message || `Request failed with status ${response.status}`);
+    throw new ApiRequestError(response.status, message || `Request failed with status ${response.status}`);
   }
 
   if (response.status === 204) {

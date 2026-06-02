@@ -6,6 +6,7 @@ import { Button } from '../../components/ui/Button';
 import { useAuth } from '../../hooks/useAuth';
 import { applyTheme, getStoredTheme } from '../../lib/theme';
 import { apiFetch } from '../../lib/api';
+import { formatDateTime } from '../../components/access/AccessStatusCard';
 const SETTINGS_FIELD_CLASS =
   'border border-slate-400 dark:border-slate-600 focus:border-teal-600 focus:ring-2 focus:ring-teal-500/30 disabled:border-slate-300 dark:disabled:border-slate-700';
 
@@ -113,6 +114,21 @@ export function ProfilePage() {
     <AppLayout>
       <div className="max-w-2xl mx-auto space-y-6">
         <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Profile Settings</h1>
+
+        {user?.admin && user.access && (
+          <Card title="Admin diagnostics">
+            <div className="grid gap-3 text-sm sm:grid-cols-2">
+              <Diagnostic label="Email" value={user.email} />
+              <Diagnostic label="Role" value={user.access.role} />
+              <Diagnostic label="Admin" value={user.admin ? 'Yes' : 'No'} />
+              <Diagnostic label="Status" value={user.access.accessStatus} />
+              <Diagnostic label="Study access" value={user.hasStudyAccess ? 'Yes' : 'No'} />
+              <Diagnostic label="AI access" value={user.hasAiAccess ? 'Yes' : 'No'} />
+              <Diagnostic label="Trial ends" value={formatDateTime(user.access.trialEndsAt)} />
+              <Diagnostic label="Paid until" value={formatDateTime(user.access.paidUntil)} />
+            </div>
+          </Card>
+        )}
 
         <Card title="Personal Information">
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -247,4 +263,13 @@ export function ProfilePage() {
       </div>
     </AppLayout>);
 
+}
+
+function Diagnostic({ label, value }: { label: string; value?: string }) {
+  return (
+    <div className="rounded-lg bg-slate-50 px-3 py-2 dark:bg-slate-800">
+      <p className="text-xs font-medium uppercase text-slate-500 dark:text-slate-400">{label}</p>
+      <p className="mt-1 break-words font-medium text-slate-900 dark:text-slate-100">{value || 'not set'}</p>
+    </div>
+  );
 }
