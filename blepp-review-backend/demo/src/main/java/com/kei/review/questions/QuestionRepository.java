@@ -8,4 +8,7 @@ import java.util.List;
 public interface QuestionRepository extends JpaRepository<Question, UUID>, JpaSpecificationExecutor<Question> {
     List<Question> findByOwnerId(UUID ownerId);
     List<Question> findByOwnerIdAndTopicId(UUID ownerId, UUID topicId);
+    List<Question> findByOwnerEmail(String ownerEmail);
+    List<Question> findByOwnerEmailAndTopicId(String ownerEmail, UUID topicId);
+    boolean existsByOwnerEmailAndText(String ownerEmail, String text);
 }

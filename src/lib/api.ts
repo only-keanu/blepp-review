@@ -25,6 +25,24 @@ export function clearTokens() {
   localStorage.removeItem(REFRESH_TOKEN_KEY);
 }
 
+export async function logoutAuth() {
+  const refreshToken = getRefreshToken();
+  if (!refreshToken) {
+    return;
+  }
+
+  try {
+    await fetch(`${API_BASE_URL}/api/auth/logout`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${refreshToken}`
+      }
+    });
+  } catch {
+    // Local logout should still complete if the network or API is unavailable.
+  }
+}
+
 interface AuthResponse {
   accessToken: string;
   refreshToken: string;

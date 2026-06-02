@@ -1,5 +1,6 @@
 package com.kei.review.exams;
 
+import com.kei.review.config.SeedData;
 import com.kei.review.exams.dto.ExamAnswerRequest;
 import com.kei.review.exams.dto.ExamFlagResponse;
 import com.kei.review.exams.dto.ExamResponse;
@@ -15,6 +16,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -285,9 +287,7 @@ public class ExamServiceImpl implements ExamService {
     }
 
     private void assignQuestions(ExamSession session, UUID userId) {
-        List<Question> pool = session.getMockExam().getTopic() != null
-            ? questionRepository.findByOwnerIdAndTopicId(userId, session.getMockExam().getTopic().getId())
-            : questionRepository.findByOwnerId(userId);
+        List<Question> pool = buildQuestionPool(session, userId);
         if (pool.isEmpty()) {
             return;
         }
@@ -307,5 +307,28 @@ public class ExamServiceImpl implements ExamService {
             );
         }
         examSessionQuestionRepository.saveAll(items);
+    }
+
+    private List<Question> buildQuestionPool(ExamSession session, UUID userId) {
+        UUID topicId = session.getMockExam().getTopic() == null
+            ? null
+            : session.getMockExam().getTopic().getId();
+        int target = session.getMockExam().getTotalQuestions() == null
+            ? Integer.MAX_VALUE
+            : session.getMockExam().getTotalQuestions();
+        List<Question> userQuestions = topicId == null
+            ? questionRepository.findByOwnerId(userId)
+            : questionRepository.findByOwnerIdAndTopicId(userId, topicId);
+        if (userQuestions.size() >= target) {
+            return new ArrayList<>(userQuestions);
+        }
+
+        List<Question> seedQuestions = topicId == null
+            ? questionRepository.findByOwnerEmail(SeedData.SYSTEM_USER_EMAIL)
+            : questionRepository.findByOwnerEmailAndTopicId(SeedData.SYSTEM_USER_EMAIL, topicId);
+        Map<UUID, Question> byId = new LinkedHashMap<>();
+        userQuestions.forEach(question -> byId.put(question.getId(), question));
+        seedQuestions.forEach(question -> byId.putIfAbsent(question.getId(), question));
+        return new ArrayList<>(byId.values());
     }
 }

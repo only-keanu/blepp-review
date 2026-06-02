@@ -1,11 +1,21 @@
-import { useState, useEffect } from 'react';
+import {
+  createContext,
+  createElement,
+  ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState
+} from 'react';
 import { User } from '../types';
 import {
   apiFetch,
   clearTokens,
   getAccessToken,
-  setTokens } from
-'../lib/api';
+  logoutAuth,
+  setTokens
+} from '../lib/api';
 
 interface AuthContextType {
   user: User | null;
@@ -13,7 +23,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   register: (data: Partial<User> & {password?: string;}) => Promise<void>;
   oauthLogin: (provider: 'google' | 'facebook', code: string, redirectUri: string) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
   isAuthenticated: boolean;
 }
 
@@ -23,31 +33,40 @@ interface AuthResponse {
   refreshToken: string;
 }
 
-export function useAuth() {
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+interface AuthProviderProps {
+  children: ReactNode;
+}
+
+export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const loadProfile = async () => {
-      const token = getAccessToken();
-      if (!token) {
-        setIsLoading(false);
-        return;
-      }
-      try {
-        const profile = await apiFetch<User>('/api/me');
-        setUser(profile);
-      } catch (e) {
-        clearTokens();
-        setUser(null);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    loadProfile();
+  const loadProfile = useCallback(async () => {
+    const token = getAccessToken();
+    if (!token) {
+      setUser(null);
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const profile = await apiFetch<User>('/api/me');
+      setUser(profile);
+    } catch {
+      clearTokens();
+      setUser(null);
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
-  const login = async (email: string, password: string) => {
+  useEffect(() => {
+    loadProfile();
+  }, [loadProfile]);
+
+  const login = useCallback(async (email: string, password: string) => {
     setIsLoading(true);
     try {
       const auth = await apiFetch<AuthResponse>('/api/auth/login', {
@@ -60,9 +79,9 @@ export function useAuth() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
-  const register = async (data: Partial<User> & {password?: string;}) => {
+  const register = useCallback(async (data: Partial<User> & {password?: string;}) => {
     setIsLoading(true);
     try {
       const auth = await apiFetch<AuthResponse>('/api/auth/register', {
@@ -81,19 +100,10 @@ export function useAuth() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
-  const logout = () => {
-    setUser(null);
-    clearTokens();
-  };
-
-  return {
-    user,
-    isLoading,
-    login,
-    register,
-    oauthLogin: async (provider: 'google' | 'facebook', code: string, redirectUri: string) => {
+  const oauthLogin = useCallback(
+    async (provider: 'google' | 'facebook', code: string, redirectUri: string) => {
       setIsLoading(true);
       try {
         const auth = await apiFetch<AuthResponse>(`/api/auth/oauth/${provider}`, {
@@ -107,7 +117,35 @@ export function useAuth() {
         setIsLoading(false);
       }
     },
-    logout,
-    isAuthenticated: !!user
-  };
+    []
+  );
+
+  const logout = useCallback(async () => {
+    void logoutAuth();
+    setUser(null);
+    clearTokens();
+  }, []);
+
+  const value = useMemo(
+    () => ({
+      user,
+      isLoading,
+      login,
+      register,
+      oauthLogin,
+      logout,
+      isAuthenticated: !!user
+    }),
+    [isLoading, login, logout, oauthLogin, register, user]
+  );
+
+  return createElement(AuthContext.Provider, { value }, children);
+}
+
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
 }

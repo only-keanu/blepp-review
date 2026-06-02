@@ -4,9 +4,11 @@ import com.kei.review.topics.Topic;
 import com.kei.review.topics.TopicRepository;
 import java.util.List;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 @Component
+@Order(0)
 public class TopicSeeder implements CommandLineRunner {
     private final TopicRepository topicRepository;
 

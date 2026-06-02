@@ -25,8 +25,8 @@ export function Header({ onMenuClick }: HeaderProps) {
   const [flashcardsCache, setFlashcardsCache] = useState<any[] | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     navigate('/auth/login');
   };
 
