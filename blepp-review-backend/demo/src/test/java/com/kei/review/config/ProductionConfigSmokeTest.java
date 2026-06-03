@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.env.Environment;
+import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -37,7 +38,7 @@ class ProductionConfigSmokeTest {
     void prodProfileStartsWithRequiredExternalizedConfig() {
         assertThat(Arrays.asList(environment.getActiveProfiles())).contains("prod");
 
-        CorsConfiguration cors = corsConfigurationSource.getCorsConfiguration(null);
+        CorsConfiguration cors = corsConfigurationSource.getCorsConfiguration(new MockHttpServletRequest());
         assertThat(cors).isNotNull();
         assertThat(cors.getAllowedOriginPatterns()).containsExactly("https://blepp-review.example.com");
         assertThat(environment.getProperty("app.jwt.secret")).isNotBlank();

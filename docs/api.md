@@ -39,18 +39,20 @@ Authorization: Bearer <accessToken>
 - `POST /api/flashcards/{id}/review`
 - `DELETE /api/flashcards/{id}`
 
-## Exams (scaffolded)
+## Exams
 - `GET /api/exams`
 - `POST /api/exams/{examId}/session`
 - `POST /api/exams/session/{sessionId}/answer`
 - `POST /api/exams/session/{sessionId}/submit`
 
-## Analytics (scaffolded)
+## Analytics
 - `GET /api/analytics/overview`
 - `GET /api/analytics/topic-mastery`
 - `GET /api/analytics/readiness`
 
-## Generation (scaffolded)
+## Generation
 - `POST /api/generation/upload`
 - `POST /api/generation/run`
 - `GET /api/generation/{jobId}`
+
+Generation requires paid/admin AI access. If `APP_OPENAI_API_KEY` is not configured, `/api/generation/run` returns `503`.

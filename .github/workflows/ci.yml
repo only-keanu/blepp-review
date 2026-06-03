@@ -8,7 +8,7 @@ on:
 
 jobs:
   backend:
-    name: Backend Tests
+    name: Backend
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -21,9 +21,11 @@ jobs:
           java-version: '21'
       - name: Run tests
         run: ./gradlew test
+      - name: Production profile smoke check
+        run: ./gradlew test --tests com.kei.review.config.ProductionConfigSmokeTest
 
   frontend:
-    name: Frontend Build
+    name: Frontend
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -33,5 +35,7 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci
+      - name: Lint
+        run: npm run lint
       - name: Build
         run: npm run build
