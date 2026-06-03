@@ -10,9 +10,12 @@ import {
 } from 'react';
 import { User } from '../types';
 import {
+  ApiRequestError,
+  AUTH_EXPIRED_EVENT,
   apiFetch,
   clearTokens,
   getAccessToken,
+  isAuthFailureStatus,
   logoutAuth,
   setTokens
 } from '../lib/api';
@@ -54,9 +57,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       const profile = await apiFetch<User>('/api/me');
       setUser(profile);
-    } catch {
-      clearTokens();
-      setUser(null);
+    } catch (error) {
+      if (
+        error instanceof ApiRequestError &&
+        isAuthFailureStatus(error.status) &&
+        !error.transientAuthRefreshFailure
+      ) {
+        clearTokens();
+        setUser(null);
+      } else if (!getAccessToken()) {
+        setUser(null);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -65,6 +76,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     loadProfile();
   }, [loadProfile]);
+
+  useEffect(() => {
+    const handleAuthExpired = () => {
+      setUser(null);
+      setIsLoading(false);
+    };
+
+    window.addEventListener(AUTH_EXPIRED_EVENT, handleAuthExpired);
+    return () => window.removeEventListener(AUTH_EXPIRED_EVENT, handleAuthExpired);
+  }, []);
 
   const login = useCallback(async (email: string, password: string) => {
     setIsLoading(true);

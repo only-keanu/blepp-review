@@ -12,16 +12,18 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.util.UriComponentsBuilder;
 
 @Service
@@ -108,12 +110,12 @@ public class AuthServiceImpl implements AuthService {
     public AuthResponse refresh(String refreshToken) {
         String token = normalizeToken(refreshToken);
         if (!jwtService.isTokenValid(token)) {
-            throw new IllegalStateException("Invalid refresh token");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid refresh token");
         }
 
         String subject = jwtService.extractSubject(token);
         User user = userRepository.findByEmailIgnoreCase(normalizeEmail(subject))
-            .orElseThrow(() -> new IllegalStateException("Invalid refresh token"));
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid refresh token"));
 
         String accessToken = jwtService.generateAccessToken(
             user.getEmail(),

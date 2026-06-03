@@ -2,15 +2,28 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080
 
 export const ACCESS_TOKEN_KEY = 'blepp_access_token';
 export const REFRESH_TOKEN_KEY = 'blepp_refresh_token';
+export const AUTH_EXPIRED_EVENT = 'blepp_auth_expired';
+
+type RefreshResult = 'refreshed' | 'expired' | 'failed';
+
+interface ApiRequestErrorOptions {
+  transientAuthRefreshFailure?: boolean;
+}
 
 export class ApiRequestError extends Error {
   status: number;
+  transientAuthRefreshFailure: boolean;
 
-  constructor(status: number, message: string) {
+  constructor(status: number, message: string, options: ApiRequestErrorOptions = {}) {
     super(message);
     this.name = 'ApiRequestError';
     this.status = status;
+    this.transientAuthRefreshFailure = options.transientAuthRefreshFailure || false;
   }
+}
+
+export function isAuthFailureStatus(status: number) {
+  return status === 400 || status === 401 || status === 403;
 }
 
 export function getAccessToken() {
@@ -33,6 +46,17 @@ export function setTokens(accessToken?: string, refreshToken?: string) {
 export function clearTokens() {
   localStorage.removeItem(ACCESS_TOKEN_KEY);
   localStorage.removeItem(REFRESH_TOKEN_KEY);
+}
+
+function emitAuthExpired() {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event(AUTH_EXPIRED_EVENT));
+  }
+}
+
+function expireAuth() {
+  clearTokens();
+  emitAuthExpired();
 }
 
 export async function logoutAuth() {
@@ -58,28 +82,36 @@ interface AuthResponse {
   refreshToken: string;
 }
 
-async function refreshAuthTokens() {
+async function refreshAuthTokens(): Promise<RefreshResult> {
   const refreshToken = getRefreshToken();
   if (!refreshToken) {
-    clearTokens();
-    return false;
+    expireAuth();
+    return 'expired';
   }
 
-  const response = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${refreshToken}`
-    }
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${refreshToken}`
+      }
+    });
+  } catch {
+    return 'failed';
+  }
 
   if (!response.ok) {
-    clearTokens();
-    return false;
+    if (isAuthFailureStatus(response.status)) {
+      expireAuth();
+      return 'expired';
+    }
+    return 'failed';
   }
 
   const auth = await response.json() as AuthResponse;
   setTokens(auth.accessToken, auth.refreshToken);
-  return true;
+  return 'refreshed';
 }
 
 async function sendRequest(path: string, options: RequestInit = {}) {
@@ -101,11 +133,14 @@ async function sendRequest(path: string, options: RequestInit = {}) {
 
 export async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
   let response = await sendRequest(path, options);
+  let transientAuthRefreshFailure = false;
 
   if (response.status === 401 && !path.startsWith('/api/auth/')) {
-    const refreshed = await refreshAuthTokens();
-    if (refreshed) {
+    const refreshResult = await refreshAuthTokens();
+    if (refreshResult === 'refreshed') {
       response = await sendRequest(path, options);
+    } else if (refreshResult === 'failed') {
+      transientAuthRefreshFailure = true;
     }
   }
 
@@ -120,7 +155,11 @@ export async function apiFetch<T>(path: string, options: RequestInit = {}): Prom
         message = text;
       }
     }
-    throw new ApiRequestError(response.status, message || `Request failed with status ${response.status}`);
+    throw new ApiRequestError(
+      response.status,
+      message || `Request failed with status ${response.status}`,
+      { transientAuthRefreshFailure }
+    );
   }
 
   if (response.status === 204) {

@@ -10,6 +10,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kei.review.auth.AuthService;
 import com.kei.review.auth.dto.AuthResponse;
+import com.kei.review.auth.JwtService;
 import com.kei.review.auth.dto.LoginRequest;
 import com.kei.review.auth.dto.RegisterRequest;
 import com.kei.review.users.UserAccessStatus;
@@ -32,6 +33,8 @@ import org.springframework.web.context.WebApplicationContext;
 
 @SpringBootTest(properties = "app.admin.emails=admin-controller@example.com")
 class AdminUserControllerIntegrationTest {
+    private static final String TEST_SECRET = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
+
     private MockMvc mockMvc;
 
     @Autowired
@@ -83,6 +86,31 @@ class AdminUserControllerIntegrationTest {
         mockMvc.perform(get("/api/admin/users").header("Authorization", bearer(learner)))
             .andExpect(status().isForbidden())
             .andExpect(jsonPath("$.message").value("Admin access is required."));
+    }
+
+    @Test
+    void invalidBearerTokenCannotAccessProtectedRoutes() throws Exception {
+        mockMvc.perform(get("/api/me").header("Authorization", "Bearer invalid-access-token"))
+            .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void expiredBearerTokenCannotAccessProtectedRoutes() throws Exception {
+        JwtService expiredTokenService = new JwtService(TEST_SECRET, -1, 43200);
+        String expiredAccessToken = expiredTokenService.generateAccessToken(
+            "expired-access@example.com",
+            Map.of("uid", UUID.randomUUID().toString())
+        );
+
+        mockMvc.perform(get("/api/me").header("Authorization", "Bearer " + expiredAccessToken))
+            .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void invalidRefreshTokenIsHandledByRefreshEndpoint() throws Exception {
+        mockMvc.perform(post("/api/auth/refresh").header("Authorization", "Bearer invalid-refresh-token"))
+            .andExpect(status().isUnauthorized())
+            .andExpect(jsonPath("$.message").value("Invalid refresh token"));
     }
 
     @Test

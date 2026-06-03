@@ -1,6 +1,7 @@
 package com.kei.review.auth;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Map;
@@ -27,5 +28,14 @@ class JwtServiceTest {
 
         assertTrue(jwtService.isTokenValid(token));
         assertEquals("learner@example.com", jwtService.extractSubject(token));
+    }
+
+    @Test
+    void expiredRefreshTokenIsInvalid() {
+        JwtService jwtService = new JwtService(TEST_SECRET, 30, -1);
+
+        String token = jwtService.generateRefreshToken("learner@example.com");
+
+        assertFalse(jwtService.isTokenValid(token));
     }
 }
