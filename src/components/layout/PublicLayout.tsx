@@ -94,7 +94,7 @@ export function PublicLayout({ children }: PublicLayoutProps) {
               </li>
               <li>
                 <Link to="/terms" className="hover:text-white">
-                  Terms of Service
+                  Terms and Conditions
                 </Link>
               </li>
               <li>

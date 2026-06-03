@@ -46,15 +46,15 @@ export function FeaturesPage() {
                   AI Question Generator
                 </h3>
                 <p className="text-slate-600 mb-4">
-                  Upload your PDF reviewers and textbooks. Our AI analyzes the
-                  content and generates board-style multiple choice questions
-                  instantly. Save hours of manual question creation.
+                  Coming soon. The current launch pass focuses on practice,
+                  flashcards, mock exams, mistake review, lessons, and
+                  analytics while AI generation is prepared for release.
                 </p>
                 <ul className="space-y-2">
                   {[
-                    'Supports PDF uploads up to 50MB',
-                    'Generates questions in seconds',
-                    'Board exam format matching'
+                    'Not included in the current launch pass',
+                    'Planned for a later release',
+                    'Core study tools are available today'
                   ].map((item, i) => (
                     <li
                       key={i}
@@ -275,11 +275,11 @@ export function FeaturesPage() {
             Ready to experience these features?
           </h2>
           <p className="text-lg text-slate-600 mb-8">
-            Create a free beta account today and see the difference.
+            Try the study tools, then unlock 30 days for PHP 299.
           </p>
           <Link to="/auth/register">
             <Button size="lg" rightIcon={<ArrowRight className="h-5 w-5" />}>
-              Get Started Free
+              Start Trial
             </Button>
           </Link>
         </div>

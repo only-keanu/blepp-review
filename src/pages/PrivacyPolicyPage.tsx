@@ -9,173 +9,175 @@ export function PrivacyPolicyPage() {
           <h1 className="text-3xl font-bold text-slate-900 mb-2">
             Privacy Policy
           </h1>
-          <p className="text-slate-500 mb-12">Last updated: January 15, 2024</p>
+          <p className="text-slate-500 mb-12">Last updated: June 3, 2026</p>
 
           <div className="prose prose-slate max-w-none">
             <p className="text-lg text-slate-600 mb-8">
-              At BLEPP Review, we take your privacy seriously. This Privacy
-              Policy explains how we collect, use, disclose, and safeguard your
-              information when you use our platform.
+              This Privacy Policy explains how BLEPP Review collects, uses, and
+              protects information when you create an account, use our study
+              tools, request support, or send manual payment proof.
             </p>
 
             <Section title="1. Information We Collect">
-              <p>
-                We collect information that you provide directly to us,
-                including:
-              </p>
+              <p>We collect information needed to operate and support the service:</p>
               <ul>
                 <li>
-                  <strong>Account Information:</strong> Name, email address, and
-                  password when you create an account.
+                  <strong>Account information:</strong> Full name, email
+                  address, password credentials, login provider, and account
+                  status.
                 </li>
                 <li>
-                  <strong>Profile Information:</strong> Target exam date, study
-                  preferences, and other optional details.
+                  <strong>Profile and study settings:</strong> Target exam date,
+                  daily study hours, selected topics, preferences, and optional
+                  profile details.
                 </li>
                 <li>
-                  <strong>Study Data:</strong> Your answers to questions,
-                  flashcard responses, and study progress.
+                  <strong>Study activity:</strong> Practice answers, flashcard
+                  reviews, mistake history, mock exam results, lesson progress,
+                  question-bank activity, readiness scores, and related
+                  analytics.
                 </li>
                 <li>
-                  <strong>Uploaded Content:</strong> PDF files you upload for AI
-                  question generation (processed but not permanently stored).
+                  <strong>Manual payment proof:</strong> Account email, GCash
+                  reference number, sender name or screenshot, payment date and
+                  time, access notes, and related Facebook page or support
+                  messages used to verify access.
                 </li>
                 <li>
-                  <strong>Payment Information:</strong> Billing details
-                  processed securely through our payment providers.
+                  <strong>Technical and security data:</strong> Device, browser,
+                  session, log, cookie, and authentication data used to keep the
+                  platform working and secure.
+                </li>
+                <li>
+                  <strong>Uploaded content:</strong> Files or text you submit
+                  for AI-assisted features if those features are available.
                 </li>
               </ul>
             </Section>
 
-            <Section title="2. How We Use Your Information">
-              <p>We use the information we collect to:</p>
+            <Section title="2. How We Use Information">
+              <p>We use your information to:</p>
               <ul>
-                <li>Provide, maintain, and improve our services</li>
-                <li>
-                  Personalize your study experience with spaced repetition
-                  algorithms
-                </li>
-                <li>
-                  Generate AI-powered questions from your uploaded materials
-                </li>
-                <li>Track your progress and provide readiness analytics</li>
-                <li>
-                  Send you important updates about your account and our services
-                </li>
-                <li>
-                  Respond to your comments, questions, and support requests
-                </li>
+                <li>Create, authenticate, and manage your account</li>
+                <li>Provide practice, flashcards, mock exams, lessons, and analytics</li>
+                <li>Personalize review queues, progress views, and readiness metrics</li>
+                <li>Verify manual GCash payments and activate paid access</li>
+                <li>Respond to support, refund, account, and access requests</li>
+                <li>Detect abuse, fraud, security issues, and service errors</li>
+                <li>Send important account, payment, policy, and service notices</li>
+                <li>Process uploaded materials only for requested AI-assisted study workflows if available</li>
               </ul>
             </Section>
 
-            <Section title="3. Data Storage and Security">
+            <Section title="3. Manual Payments and Support">
               <p>
-                We implement appropriate technical and organizational security
-                measures to protect your personal information. Your data is
-                stored on secure servers and encrypted both in transit and at
-                rest.
+                BLEPP Review currently verifies paid access manually. Payment
+                proof sent through GCash, Facebook, or support channels is used
+                to match your payment to your account, activate access, handle
+                refunds or disputes, prevent fraud, and maintain transaction
+                records.
               </p>
               <p>
-                <strong>PDF Processing:</strong> When you upload PDFs for
-                question generation, we process the content to extract text for
-                AI analysis. The original PDF files are automatically deleted
-                within 24 hours of processing. We do not store or share your
-                uploaded materials.
-              </p>
-            </Section>
-
-            <Section title="4. Information Sharing">
-              <p>
-                We do not sell, trade, or rent your personal information to
-                third parties. We may share your information only in the
-                following circumstances:
-              </p>
-              <ul>
-                <li>
-                  <strong>Service Providers:</strong> With trusted third parties
-                  who assist us in operating our platform (e.g., payment
-                  processors, hosting providers).
-                </li>
-                <li>
-                  <strong>Legal Requirements:</strong> When required by law or
-                  to protect our rights and safety.
-                </li>
-                <li>
-                  <strong>Business Transfers:</strong> In connection with a
-                  merger, acquisition, or sale of assets.
-                </li>
-              </ul>
-            </Section>
-
-            <Section title="5. Your Rights">
-              <p>
-                Under the Data Privacy Act of 2012 (RA 10173), you have the
-                right to:
-              </p>
-              <ul>
-                <li>Access your personal data</li>
-                <li>Correct inaccurate or incomplete data</li>
-                <li>Request deletion of your data</li>
-                <li>Object to processing of your data</li>
-                <li>Data portability</li>
-              </ul>
-              <p>
-                To exercise these rights, please contact us at
-                privacy@bleppreview.com.
+                Do not send unnecessary sensitive information. If you send a
+                screenshot, you should avoid exposing unrelated balances,
+                transactions, government IDs, passwords, or one-time passwords.
               </p>
             </Section>
 
-            <Section title="6. Cookies and Tracking">
+            <Section title="4. AI and Uploaded Materials">
               <p>
-                We use cookies and similar tracking technologies to enhance your
-                experience on our platform. These include:
+                AI question generation is coming soon and is not included in the
+                current launch pass. If AI upload features become available, we
+                will process uploaded materials only to provide the requested
+                study workflow, such as extracting text and generating review
+                questions.
               </p>
-              <ul>
-                <li>
-                  <strong>Essential Cookies:</strong> Required for the platform
-                  to function properly.
-                </li>
-                <li>
-                  <strong>Analytics Cookies:</strong> Help us understand how
-                  users interact with our platform.
-                </li>
-                <li>
-                  <strong>Preference Cookies:</strong> Remember your settings
-                  and preferences.
-                </li>
-              </ul>
               <p>
-                You can control cookie settings through your browser
-                preferences.
+                You should only upload materials that you own or are allowed to
+                use. Do not upload confidential, illegal, or third-party
+                copyrighted materials unless you have the right to process them
+                through the service.
               </p>
             </Section>
 
-            <Section title="7. Children's Privacy">
+            <Section title="5. Sharing and Service Providers">
               <p>
-                Our services are not intended for users under 16 years of age.
-                We do not knowingly collect personal information from children
-                under 16. If we learn we have collected such information, we
-                will delete it promptly.
+                We do not sell your personal information. We may share limited
+                information with service providers that help us operate the
+                platform, such as hosting, authentication, analytics, error
+                monitoring, Facebook/Messenger support, and GCash-related
+                payment verification workflows.
+              </p>
+              <p>
+                We may also disclose information when required by law, to
+                enforce our terms, to protect users or the service, or in
+                connection with a business transfer such as a merger or asset
+                sale.
               </p>
             </Section>
 
-            <Section title="8. Changes to This Policy">
+            <Section title="6. Data Security and Retention">
               <p>
-                We may update this Privacy Policy from time to time. We will
-                notify you of any changes by posting the new policy on this page
-                and updating the "Last updated" date.
+                We use reasonable technical and organizational safeguards to
+                protect account and study data. No online service can guarantee
+                perfect security, so you are responsible for keeping your login
+                credentials private and reporting suspected unauthorized access.
+              </p>
+              <p>
+                We retain account, study, access, payment proof, and support
+                records for as long as needed to provide the service, comply
+                with legal obligations, resolve disputes, prevent abuse, and
+                maintain accurate access records.
               </p>
             </Section>
 
-            <Section title="9. Contact Us">
+            <Section title="7. Cookies and Analytics">
               <p>
-                If you have any questions about this Privacy Policy, please
-                contact us:
+                We use essential cookies or local storage for authentication and
+                platform functionality. We may also use analytics or diagnostic
+                tools to understand usage, improve product quality, and detect
+                errors.
               </p>
-              <ul>
-                <li>Email: privacy@bleppreview.com</li>
-                <li>Address: 123 Psychology Lane, Quezon City, Philippines</li>
-              </ul>
+              <p>
+                You can control some cookies through your browser settings, but
+                disabling essential storage may prevent parts of the app from
+                working correctly.
+              </p>
+            </Section>
+
+            <Section title="8. Your Rights">
+              <p>
+                Under the Data Privacy Act of 2012 (RA 10173), you may request
+                access, correction, deletion, restriction, objection, or
+                portability of your personal data, subject to legal and
+                operational limits.
+              </p>
+              <p>
+                To make a privacy request, contact BLEPP Review through the
+                official support or Facebook page channel shown in the app.
+              </p>
+            </Section>
+
+            <Section title="9. Children's Privacy">
+              <p>
+                BLEPP Review is not intended for users under 16 years old. We do
+                not knowingly collect personal information from children under
+                16. If we learn that we collected such information, we will take
+                reasonable steps to delete it.
+              </p>
+            </Section>
+
+            <Section title="10. Changes and Contact">
+              <p>
+                We may update this Privacy Policy from time to time. Material
+                updates will be posted on this page with a new last updated
+                date.
+              </p>
+              <p>
+                For privacy questions, account requests, or payment-proof
+                concerns, contact BLEPP Review through the official support or
+                Facebook page channel shown in the app.
+              </p>
             </Section>
           </div>
         </div>

@@ -10,16 +10,16 @@ export function PricingPage() {
       <div className="bg-slate-50 py-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 mb-6">
-            Free Beta
+            30-Day BLEPP Review Pass
           </h1>
           <p className="text-xl text-slate-600 max-w-2xl mx-auto">
-            BLEPP Review is free during beta while we finish the core study
-            experience. No subscription, payment method, or trial countdown is
-            required.
+            Unlock the core BLEPP study system for 30 days for PHP 299. Pay
+            manually through GCash, send proof through our Facebook page, and
+            access is activated within 24 hours after verification.
           </p>
           <Link to="/auth/register">
             <Button size="lg" className="mt-8 px-8">
-              Create Free Account
+              Start Trial, Then Unlock
             </Button>
           </Link>
         </div>
@@ -29,7 +29,7 @@ export function PricingPage() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
             <h2 className="text-2xl font-bold text-slate-900 mb-6">
-              Included In Beta
+              Included In The Launch Pass
             </h2>
             <ul className="grid gap-4 sm:grid-cols-2">
               <PricingFeature>Practice questions and mistake review</PricingFeature>
@@ -37,8 +37,12 @@ export function PricingPage() {
               <PricingFeature>Mock exams and results review</PricingFeature>
               <PricingFeature>Progress and readiness analytics</PricingFeature>
               <PricingFeature>Lesson progress tracking</PricingFeature>
-              <PricingFeature>AI question generation while available</PricingFeature>
+              <PricingFeature>Question bank review and custom questions</PricingFeature>
             </ul>
+            <div className="mt-8 rounded-lg border border-amber-200 bg-amber-50 p-4 text-left text-sm text-amber-900">
+              AI question generation is coming soon and is not included in the
+              current launch pass.
+            </div>
           </div>
         </div>
       </div>
@@ -46,11 +50,13 @@ export function PricingPage() {
       <div className="bg-teal-600 py-16">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-2xl font-bold text-white mb-4">
-            Billing Is Not Live Yet
+            PHP 299 for 30 Days
           </h2>
           <p className="text-teal-100">
-            Paid plans, quotas, and entitlement enforcement will be introduced
-            only after those systems are implemented and tested.
+            Send payment through GCash, then message the Facebook page with
+            your account email, GCash reference number, sender name or
+            screenshot, and payment date/time. Activation is completed within 24
+            hours after verification. A 7-day refund window applies.
           </p>
         </div>
       </div>

@@ -28,13 +28,13 @@ export function AccessGate({ children, requires = 'study' }: AccessGateProps) {
   const title = requires === 'admin'
     ? 'Admin access required'
     : requires === 'ai'
-      ? 'AI generation requires paid access'
+      ? 'AI generation is coming soon'
       : 'Study access is locked';
   const message = requires === 'admin'
     ? 'This page is only available to administrators.'
     : requires === 'ai'
-      ? 'Trial accounts can use study tools, but AI content generation unlocks after payment.'
-      : 'Your trial has ended. Complete payment to continue practice, flashcards, question bank review, and mock exams.';
+      ? 'AI content generation is not included in the current launch pass. Trial and paid users can continue using the study tools that are available today.'
+      : 'Your trial has ended. Unlock the 30-day BLEPP Review Pass for PHP 299 to continue practice, flashcards, question bank review, mock exams, lessons, and analytics.';
 
   return (
     <AppLayout>

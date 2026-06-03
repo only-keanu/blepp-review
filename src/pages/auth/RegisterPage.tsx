@@ -212,6 +212,8 @@ export function RegisterPage() {
           Create Account
         </Button>
 
+        <LegalNotice compact />
+
         <div className="mt-6 text-center text-sm">
           <span className="text-slate-500 dark:text-slate-400">Already have an account? </span>
           <Link
@@ -224,4 +226,20 @@ export function RegisterPage() {
       </form>
     </AuthLayout>);
 
+}
+
+function LegalNotice({ compact = false }: { compact?: boolean }) {
+  return (
+    <p className={`${compact ? 'mt-3' : ''} text-center text-xs leading-5 text-slate-500 dark:text-slate-400`}>
+      By creating an account, you agree to the{' '}
+      <Link to="/terms" className="font-medium text-teal-700 hover:text-teal-800 dark:text-teal-300">
+        Terms and Conditions
+      </Link>{' '}
+      and acknowledge the{' '}
+      <Link to="/privacy" className="font-medium text-teal-700 hover:text-teal-800 dark:text-teal-300">
+        Privacy Policy
+      </Link>
+      .
+    </p>
+  );
 }

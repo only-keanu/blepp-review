@@ -201,9 +201,9 @@ export function DashboardPage() {
           </div>
         </div>
         ) : (
-        <Card title="Study tools locked" description="Complete manual payment to continue your review tools.">
+        <Card title="Study tools locked" description="Unlock the 30-day BLEPP Review Pass for PHP 299 to continue your review tools.">
           <p className="text-sm text-slate-600 dark:text-slate-300">
-            Dashboard and settings remain available while access is expired.
+            Dashboard and settings remain available while access is expired. Payment is verified manually through GCash and the Facebook page.
           </p>
         </Card>
         )}

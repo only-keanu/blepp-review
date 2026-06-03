@@ -30,12 +30,12 @@ export function AccessStatusCard({ user, compact = false }: AccessStatusCardProp
         ? 'Trial access active'
         : 'Payment needed';
   const description = access.admin
-    ? 'Study tools and AI generation are unlocked.'
+    ? 'Admin account. Study tools are available; AI generation is coming soon.'
     : isPaid
-      ? `Paid access is active until ${expiryLabel}.`
+      ? `Your 30-day paid pass is active until ${expiryLabel}.`
       : isTrial
-        ? `Study tools are available until ${expiryLabel}. AI generation unlocks after payment.`
-        : 'Your trial has ended. Complete manual payment to continue study tools and AI generation.';
+        ? `Study tools are available until ${expiryLabel}. Unlock 30 more days for PHP 299 after trial.`
+        : 'Your trial has ended. Unlock the 30-day BLEPP Review Pass for PHP 299 to continue study tools.';
   const Icon = isExpired ? AlertTriangle : isPaid || access.admin ? CheckCircle2 : Clock;
   const badgeVariant = isExpired ? 'danger' : isPaid || access.admin ? 'success' : 'warning';
 

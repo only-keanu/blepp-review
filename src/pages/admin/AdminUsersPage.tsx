@@ -271,7 +271,7 @@ export function AdminUsersPage() {
                   label="Payment reference"
                   value={paymentReference}
                   onChange={(event) => setPaymentReference(event.target.value)}
-                  placeholder="GCash or bank reference"
+                  placeholder="GCash reference"
                 />
                 <div>
                   <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">

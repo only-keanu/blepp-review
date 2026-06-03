@@ -65,7 +65,7 @@ export function LandingPage() {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-teal-500"></span>
               </span>
-              New: AI-Powered Question Generation
+              Launch pass: PHP 299 for 30 days
             </div>
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight mb-6">
               Master the Psychology Board Exam with{' '}
@@ -73,8 +73,8 @@ export function LandingPage() {
             </h1>
             <p className="text-xl text-slate-600 dark:text-slate-300 mb-10 leading-relaxed">
               The all-in-one review platform for aspiring Psychologists.
-              Personalized study plans, active recall quizzes, and AI-generated
-              questions from your own materials.
+              Personalized study plans, active recall quizzes, mock exams,
+              flashcards, and readiness analytics.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link to="/pricing">
@@ -83,17 +83,17 @@ export function LandingPage() {
                   size="lg"
                   className="w-full sm:w-auto px-8">
 
-                  Free Beta
+                  PHP 299 Launch Pass
                 </Button>
               </Link>
               <Link to="/auth/register">
                 <Button size="lg" className="w-full sm:w-auto px-8">
-                  Create Free Account
+                  Create Account
                 </Button>
               </Link>
             </div>
             <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">
-              No credit card required. Free during beta.
+              Try the study tools, then unlock 30 days for PHP 299 through GCash.
             </p>
           </div>
         </div>
@@ -115,7 +115,7 @@ export function LandingPage() {
             <FeatureCard
               icon={<Brain className="h-6 w-6 text-teal-600" />}
               title="AI Question Generator"
-              description="Upload your PDF reviewers and let our AI create board-style multiple choice questions instantly." />
+              description="Coming soon. The current launch pass focuses on the study tools available today." />
 
             <FeatureCard
               icon={<Clock className="h-6 w-6 text-teal-600" />}
@@ -193,7 +193,7 @@ export function LandingPage() {
           </p>
           <Link to="/auth/register">
             <Button size="lg" className="px-8">
-              Get Started for Free
+              Start Trial
             </Button>
           </Link>
         </div>
@@ -244,7 +244,7 @@ export function LandingPage() {
               </li>
               <li>
                 <Link to="/terms" className="hover:text-white">
-                  Terms of Service
+                  Terms and Conditions
                 </Link>
               </li>
               <li>

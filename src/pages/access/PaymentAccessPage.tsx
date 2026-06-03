@@ -1,5 +1,5 @@
 import React from 'react';
-import { Banknote, CheckCircle2, Copy, MessageCircle, Smartphone } from 'lucide-react';
+import { CheckCircle2, Clock, Copy, MessageCircle, RotateCcw, Smartphone } from 'lucide-react';
 import { AppLayout } from '../../components/layout/AppLayout';
 import { AccessStatusCard, formatDateTime } from '../../components/access/AccessStatusCard';
 import { Card } from '../../components/ui/Card';
@@ -8,19 +8,19 @@ import { useAuth } from '../../hooks/useAuth';
 
 const paymentMethods = [
   {
-    name: 'Facebook page',
-    detail: 'Send a message with your BLEPP Review account email and payment proof.',
-    icon: MessageCircle
-  },
-  {
-    name: 'GCash',
-    detail: 'Send payment to the posted GCash account, then message the reference number.',
+    name: 'GCash payment',
+    detail: 'Pay PHP 299 to the posted GCash account for 30 days of BLEPP Review access.',
     icon: Smartphone
   },
   {
-    name: 'Bank transfer',
-    detail: 'Send proof of bank transfer through the Facebook page for manual verification.',
-    icon: Banknote
+    name: 'Facebook proof',
+    detail: 'Message the Facebook page with your account email and payment proof for verification.',
+    icon: MessageCircle
+  },
+  {
+    name: '24-hour activation',
+    detail: 'Access is activated within 24 hours after your payment proof is verified.',
+    icon: Clock
   }
 ];
 
@@ -33,7 +33,7 @@ export function PaymentAccessPage() {
         <div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Access and payment</h1>
           <p className="mt-1 text-slate-500 dark:text-slate-400">
-            Manual payment verification is handled through Facebook and recorded by an admin.
+            The 30-Day BLEPP Review Pass is PHP 299 and is verified manually through GCash and Facebook.
           </p>
         </div>
 
@@ -52,12 +52,23 @@ export function PaymentAccessPage() {
           </Card>
         )}
 
+        <Card title="30-Day BLEPP Review Pass">
+          <div className="grid gap-4 sm:grid-cols-3">
+            <Diagnostic label="Price" value="PHP 299" />
+            <Diagnostic label="Duration" value="30 days" />
+            <Diagnostic label="Refund window" value="7 days" />
+          </div>
+          <p className="mt-4 text-sm text-slate-600 dark:text-slate-300">
+            Includes practice, flashcards, mock exams, mistake review, question bank, lessons, and readiness/progress analytics. AI question generation is coming soon and is not included in the current launch pass.
+          </p>
+        </Card>
+
         <Card title="Manual payment steps">
           <div className="space-y-4">
             {[
-              'Send payment through one of the available external channels.',
-              'Message the Facebook page with your account email and payment reference.',
-              'After admin verification, 30 days of paid access is added to your account.'
+              'Send PHP 299 through GCash to the posted BLEPP Review payment account.',
+              'Message the Facebook page with your account email, GCash reference number, sender name or screenshot, and payment date/time.',
+              'After verification, 30 days of paid access is added to your account within 24 hours.'
             ].map((step, index) => (
               <div key={step} className="flex gap-3">
                 <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-teal-50 text-sm font-semibold text-teal-700 dark:bg-teal-950/40 dark:text-teal-200">
@@ -91,13 +102,20 @@ export function PaymentAccessPage() {
               'Flashcard review and flashcard management',
               'Question bank review and custom questions',
               'Mock exams and question-bank exams',
-              'AI PDF upload and question generation'
+              'Lessons and progress analytics',
+              'Readiness tracking'
             ].map((item) => (
               <div key={item} className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-200">
                 <CheckCircle2 className="h-4 w-4 text-green-600" />
                 {item}
               </div>
             ))}
+          </div>
+          <div className="mt-4 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-100">
+            <RotateCcw className="mt-0.5 h-4 w-4 shrink-0" />
+            <p>
+              AI question generation is coming soon and is not unlocked by the current launch pass.
+            </p>
           </div>
         </Card>
 
