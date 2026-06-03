@@ -84,4 +84,22 @@ class AuthFlowSmokeTest {
 
         assertEquals(401, exception.getStatusCode().value());
     }
+
+    @Test
+    void refreshWithAccessTokenIsUnauthorized() {
+        var registered = authService.register(new RegisterRequest(
+            "refresh-access-" + UUID.randomUUID() + "@example.com",
+            "strong-password",
+            "Refresh Access User",
+            null,
+            2
+        ));
+
+        ResponseStatusException exception = assertThrows(
+            ResponseStatusException.class,
+            () -> authService.refresh("Bearer " + registered.accessToken())
+        );
+
+        assertEquals(401, exception.getStatusCode().value());
+    }
 }

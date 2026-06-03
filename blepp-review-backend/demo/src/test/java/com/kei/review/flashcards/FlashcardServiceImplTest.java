@@ -57,7 +57,7 @@ class FlashcardServiceImplTest {
             LocalDate.now()
         )).thenReturn(List.of(dueSeed));
 
-        List<FlashcardResponse> due = service.listDue(userId);
+        List<FlashcardResponse> due = service.listDue(userId, null);
 
         assertEquals(List.of(newSeed.getId(), dueSeed.getId()), due.stream().map(FlashcardResponse::id).toList());
     }
@@ -73,11 +73,73 @@ class FlashcardServiceImplTest {
         when(flashcardRepository.countByUserEmailAndConfidence(SeedData.SYSTEM_USER_EMAIL, FlashcardConfidence.HIGH))
             .thenReturn(0L);
 
-        FlashcardQueueSummaryResponse summary = service.summary(userId);
+        FlashcardQueueSummaryResponse summary = service.summary(userId, null);
 
         assertEquals(25L, summary.due());
         assertEquals(25L, summary.newCards());
         assertEquals(0L, summary.mastered());
+    }
+
+    @Test
+    void listAppliesTopicFilterToSeedFallbackCards() {
+        UUID userId = UUID.randomUUID();
+        UUID topicId = UUID.randomUUID();
+        Flashcard seedFlashcard = flashcard(UUID.randomUUID(), UUID.randomUUID(), SeedData.SYSTEM_USER_EMAIL, topicId);
+
+        when(flashcardRepository.countByUserId(userId)).thenReturn(0L);
+        when(flashcardRepository.findByUserEmailAndTopicId(SeedData.SYSTEM_USER_EMAIL, topicId))
+            .thenReturn(List.of(seedFlashcard));
+
+        List<FlashcardResponse> flashcards = service.list(userId, topicId);
+
+        assertEquals(1, flashcards.size());
+        assertEquals(seedFlashcard.getId(), flashcards.get(0).id());
+        assertEquals(topicId, flashcards.get(0).topicId());
+    }
+
+    @Test
+    void listDueAppliesTopicFilterToPersonalCards() {
+        UUID userId = UUID.randomUUID();
+        UUID topicId = UUID.randomUUID();
+        Flashcard newPersonal = flashcard(userId, UUID.randomUUID(), "user@example.com", topicId);
+        Flashcard duePersonal = flashcard(userId, UUID.randomUUID(), "user@example.com", topicId);
+        duePersonal.setNextReview(LocalDate.now().minusDays(1));
+
+        when(flashcardRepository.countByUserId(userId)).thenReturn(2L);
+        when(flashcardRepository.findByUserIdAndTopicIdAndNextReviewIsNull(userId, topicId))
+            .thenReturn(List.of(newPersonal));
+        when(flashcardRepository.findByUserIdAndTopicIdAndNextReviewLessThanEqual(userId, topicId, LocalDate.now()))
+            .thenReturn(List.of(duePersonal));
+
+        List<FlashcardResponse> due = service.listDue(userId, topicId);
+
+        assertEquals(List.of(newPersonal.getId(), duePersonal.getId()), due.stream().map(FlashcardResponse::id).toList());
+    }
+
+    @Test
+    void summaryAppliesTopicFilterToSeedFallbackCards() {
+        UUID userId = UUID.randomUUID();
+        UUID topicId = UUID.randomUUID();
+        LocalDate today = LocalDate.now();
+        when(flashcardRepository.countByUserId(userId)).thenReturn(0L);
+        when(flashcardRepository.countByUserEmailAndTopicIdAndNextReviewIsNull(SeedData.SYSTEM_USER_EMAIL, topicId))
+            .thenReturn(5L);
+        when(flashcardRepository.countByUserEmailAndTopicIdAndNextReviewLessThanEqual(
+            SeedData.SYSTEM_USER_EMAIL,
+            topicId,
+            today
+        )).thenReturn(2L);
+        when(flashcardRepository.countByUserEmailAndTopicIdAndConfidence(
+            SeedData.SYSTEM_USER_EMAIL,
+            topicId,
+            FlashcardConfidence.HIGH
+        )).thenReturn(3L);
+
+        FlashcardQueueSummaryResponse summary = service.summary(userId, topicId);
+
+        assertEquals(7L, summary.due());
+        assertEquals(5L, summary.newCards());
+        assertEquals(3L, summary.mastered());
     }
 
     @Test
@@ -137,10 +199,14 @@ class FlashcardServiceImplTest {
     }
 
     private Flashcard flashcard(UUID userId, UUID flashcardId, String email) {
+        return flashcard(userId, flashcardId, email, UUID.randomUUID());
+    }
+
+    private Flashcard flashcard(UUID userId, UUID flashcardId, String email, UUID topicId) {
         return Flashcard.builder()
             .id(flashcardId)
             .user(User.builder().id(userId).email(email).passwordHash("hash").fullName("User").build())
-            .topic(Topic.builder().id(UUID.randomUUID()).name("Topic").slug("topic").color("blue").build())
+            .topic(Topic.builder().id(topicId).name("Topic").slug("topic").color("blue").build())
             .front("Front")
             .back("Back")
             .build();

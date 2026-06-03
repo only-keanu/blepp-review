@@ -33,10 +33,10 @@ public class FlashcardServiceImpl implements FlashcardService {
     }
 
     @Override
-    public List<FlashcardResponse> list(UUID userId) {
+    public List<FlashcardResponse> list(UUID userId, UUID topicId) {
         List<Flashcard> flashcards = hasPersonalFlashcards(userId)
-            ? flashcardRepository.findByUserId(userId)
-            : flashcardRepository.findByUserEmail(SeedData.SYSTEM_USER_EMAIL);
+            ? findPersonal(userId, topicId)
+            : findSystem(topicId);
 
         return flashcards
             .stream()
@@ -45,28 +45,22 @@ public class FlashcardServiceImpl implements FlashcardService {
     }
 
     @Override
-    public List<FlashcardResponse> listDue(UUID userId) {
+    public List<FlashcardResponse> listDue(UUID userId, UUID topicId) {
         List<Flashcard> due = hasPersonalFlashcards(userId)
-            ? findPersonalDue(userId)
-            : findSystemDue();
+            ? findPersonalDue(userId, topicId)
+            : findSystemDue(topicId);
         return due.stream()
             .map(this::toResponse)
             .toList();
     }
 
     @Override
-    public FlashcardQueueSummaryResponse summary(UUID userId) {
+    public FlashcardQueueSummaryResponse summary(UUID userId, UUID topicId) {
         LocalDate today = LocalDate.now();
         boolean hasPersonalFlashcards = hasPersonalFlashcards(userId);
-        long newCards = hasPersonalFlashcards
-            ? flashcardRepository.countByUserIdAndNextReviewIsNull(userId)
-            : flashcardRepository.countByUserEmailAndNextReviewIsNull(SeedData.SYSTEM_USER_EMAIL);
-        long scheduledDue = hasPersonalFlashcards
-            ? flashcardRepository.countByUserIdAndNextReviewLessThanEqual(userId, today)
-            : flashcardRepository.countByUserEmailAndNextReviewLessThanEqual(SeedData.SYSTEM_USER_EMAIL, today);
-        long mastered = hasPersonalFlashcards
-            ? flashcardRepository.countByUserIdAndConfidence(userId, FlashcardConfidence.HIGH)
-            : flashcardRepository.countByUserEmailAndConfidence(SeedData.SYSTEM_USER_EMAIL, FlashcardConfidence.HIGH);
+        long newCards = countNewCards(userId, topicId, hasPersonalFlashcards);
+        long scheduledDue = countScheduledDue(userId, topicId, today, hasPersonalFlashcards);
+        long mastered = countMastered(userId, topicId, hasPersonalFlashcards);
         return new FlashcardQueueSummaryResponse(newCards + scheduledDue, newCards, mastered);
     }
 
@@ -142,20 +136,87 @@ public class FlashcardServiceImpl implements FlashcardService {
         return flashcardRepository.countByUserId(userId) > 0;
     }
 
-    private List<Flashcard> findPersonalDue(UUID userId) {
+    private List<Flashcard> findPersonal(UUID userId, UUID topicId) {
+        if (topicId == null) {
+            return flashcardRepository.findByUserId(userId);
+        }
+        return flashcardRepository.findByUserIdAndTopicId(userId, topicId);
+    }
+
+    private List<Flashcard> findSystem(UUID topicId) {
+        if (topicId == null) {
+            return flashcardRepository.findByUserEmail(SeedData.SYSTEM_USER_EMAIL);
+        }
+        return flashcardRepository.findByUserEmailAndTopicId(SeedData.SYSTEM_USER_EMAIL, topicId);
+    }
+
+    private List<Flashcard> findPersonalDue(UUID userId, UUID topicId) {
         LocalDate today = LocalDate.now();
-        List<Flashcard> due = new java.util.ArrayList<>(flashcardRepository.findByUserIdAndNextReviewIsNull(userId));
-        due.addAll(flashcardRepository.findByUserIdAndNextReviewLessThanEqual(userId, today));
+        List<Flashcard> due = topicId == null
+            ? new java.util.ArrayList<>(flashcardRepository.findByUserIdAndNextReviewIsNull(userId))
+            : new java.util.ArrayList<>(flashcardRepository.findByUserIdAndTopicIdAndNextReviewIsNull(userId, topicId));
+        due.addAll(topicId == null
+            ? flashcardRepository.findByUserIdAndNextReviewLessThanEqual(userId, today)
+            : flashcardRepository.findByUserIdAndTopicIdAndNextReviewLessThanEqual(userId, topicId, today));
         return due;
     }
 
-    private List<Flashcard> findSystemDue() {
+    private List<Flashcard> findSystemDue(UUID topicId) {
         LocalDate today = LocalDate.now();
-        List<Flashcard> due = new java.util.ArrayList<>(
-            flashcardRepository.findByUserEmailAndNextReviewIsNull(SeedData.SYSTEM_USER_EMAIL)
-        );
-        due.addAll(flashcardRepository.findByUserEmailAndNextReviewLessThanEqual(SeedData.SYSTEM_USER_EMAIL, today));
+        List<Flashcard> due = topicId == null
+            ? new java.util.ArrayList<>(flashcardRepository.findByUserEmailAndNextReviewIsNull(SeedData.SYSTEM_USER_EMAIL))
+            : new java.util.ArrayList<>(
+                flashcardRepository.findByUserEmailAndTopicIdAndNextReviewIsNull(SeedData.SYSTEM_USER_EMAIL, topicId)
+            );
+        due.addAll(topicId == null
+            ? flashcardRepository.findByUserEmailAndNextReviewLessThanEqual(SeedData.SYSTEM_USER_EMAIL, today)
+            : flashcardRepository.findByUserEmailAndTopicIdAndNextReviewLessThanEqual(
+                SeedData.SYSTEM_USER_EMAIL,
+                topicId,
+                today
+            ));
         return due;
+    }
+
+    private long countNewCards(UUID userId, UUID topicId, boolean hasPersonalFlashcards) {
+        if (hasPersonalFlashcards) {
+            return topicId == null
+                ? flashcardRepository.countByUserIdAndNextReviewIsNull(userId)
+                : flashcardRepository.countByUserIdAndTopicIdAndNextReviewIsNull(userId, topicId);
+        }
+        return topicId == null
+            ? flashcardRepository.countByUserEmailAndNextReviewIsNull(SeedData.SYSTEM_USER_EMAIL)
+            : flashcardRepository.countByUserEmailAndTopicIdAndNextReviewIsNull(SeedData.SYSTEM_USER_EMAIL, topicId);
+    }
+
+    private long countScheduledDue(UUID userId, UUID topicId, LocalDate today, boolean hasPersonalFlashcards) {
+        if (hasPersonalFlashcards) {
+            return topicId == null
+                ? flashcardRepository.countByUserIdAndNextReviewLessThanEqual(userId, today)
+                : flashcardRepository.countByUserIdAndTopicIdAndNextReviewLessThanEqual(userId, topicId, today);
+        }
+        return topicId == null
+            ? flashcardRepository.countByUserEmailAndNextReviewLessThanEqual(SeedData.SYSTEM_USER_EMAIL, today)
+            : flashcardRepository.countByUserEmailAndTopicIdAndNextReviewLessThanEqual(
+                SeedData.SYSTEM_USER_EMAIL,
+                topicId,
+                today
+            );
+    }
+
+    private long countMastered(UUID userId, UUID topicId, boolean hasPersonalFlashcards) {
+        if (hasPersonalFlashcards) {
+            return topicId == null
+                ? flashcardRepository.countByUserIdAndConfidence(userId, FlashcardConfidence.HIGH)
+                : flashcardRepository.countByUserIdAndTopicIdAndConfidence(userId, topicId, FlashcardConfidence.HIGH);
+        }
+        return topicId == null
+            ? flashcardRepository.countByUserEmailAndConfidence(SeedData.SYSTEM_USER_EMAIL, FlashcardConfidence.HIGH)
+            : flashcardRepository.countByUserEmailAndTopicIdAndConfidence(
+                SeedData.SYSTEM_USER_EMAIL,
+                topicId,
+                FlashcardConfidence.HIGH
+            );
     }
 
     private boolean isSeedFlashcard(Flashcard flashcard) {

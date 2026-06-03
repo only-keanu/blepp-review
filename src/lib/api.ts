@@ -23,7 +23,7 @@ export class ApiRequestError extends Error {
 }
 
 export function isAuthFailureStatus(status: number) {
-  return status === 400 || status === 401 || status === 403;
+  return status === 401;
 }
 
 export function getAccessToken() {
@@ -82,7 +82,9 @@ interface AuthResponse {
   refreshToken: string;
 }
 
-async function refreshAuthTokens(): Promise<RefreshResult> {
+let refreshPromise: Promise<RefreshResult> | null = null;
+
+async function requestTokenRefresh(): Promise<RefreshResult> {
   const refreshToken = getRefreshToken();
   if (!refreshToken) {
     expireAuth();
@@ -102,16 +104,34 @@ async function refreshAuthTokens(): Promise<RefreshResult> {
   }
 
   if (!response.ok) {
-    if (isAuthFailureStatus(response.status)) {
+    if (response.status === 400 || response.status === 401) {
       expireAuth();
       return 'expired';
     }
     return 'failed';
   }
 
-  const auth = await response.json() as AuthResponse;
+  let auth: AuthResponse;
+  try {
+    auth = await response.json() as AuthResponse;
+  } catch {
+    return 'failed';
+  }
+  if (!auth.accessToken || !auth.refreshToken) {
+    expireAuth();
+    return 'expired';
+  }
   setTokens(auth.accessToken, auth.refreshToken);
   return 'refreshed';
+}
+
+async function refreshAuthTokens(): Promise<RefreshResult> {
+  if (!refreshPromise) {
+    refreshPromise = requestTokenRefresh().finally(() => {
+      refreshPromise = null;
+    });
+  }
+  return refreshPromise;
 }
 
 async function sendRequest(path: string, options: RequestInit = {}) {
@@ -134,14 +154,20 @@ async function sendRequest(path: string, options: RequestInit = {}) {
 export async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
   let response = await sendRequest(path, options);
   let transientAuthRefreshFailure = false;
+  let retriedAfterRefresh = false;
 
   if (response.status === 401 && !path.startsWith('/api/auth/')) {
     const refreshResult = await refreshAuthTokens();
     if (refreshResult === 'refreshed') {
+      retriedAfterRefresh = true;
       response = await sendRequest(path, options);
     } else if (refreshResult === 'failed') {
       transientAuthRefreshFailure = true;
     }
+  }
+
+  if (retriedAfterRefresh && response.status === 401) {
+    expireAuth();
   }
 
   if (!response.ok) {

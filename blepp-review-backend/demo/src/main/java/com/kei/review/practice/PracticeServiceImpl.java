@@ -1,5 +1,6 @@
 package com.kei.review.practice;
 
+import com.kei.review.config.SeedData;
 import com.kei.review.lessons.LessonCatalog;
 import com.kei.review.lessons.LessonProgressRepository;
 import com.kei.review.practice.dto.AnswerAttemptRequest;
@@ -82,7 +83,7 @@ public class PracticeServiceImpl implements PracticeService {
             .build();
 
         PracticeSession saved = practiceSessionRepository.save(session);
-        List<Question> pool = questionRepository.findByOwnerIdAndTopicId(userId, topic.getId()).stream()
+        List<Question> pool = findQuestionPool(userId, topic.getId()).stream()
             .filter(question -> request.difficulty() == null || request.difficulty().equals(question.getDifficulty()))
             .toList();
         int assignedCount = assignQuestions(saved, pool, targetCount);
@@ -128,9 +129,6 @@ public class PracticeServiceImpl implements PracticeService {
             throw new IllegalStateException("Completed practice sessions are locked");
         }
 
-        if (!question.getOwner().getId().equals(userId)) {
-            throw new IllegalStateException("Question not found");
-        }
         practiceSessionQuestionRepository.findByPracticeSessionIdAndQuestionId(session.getId(), question.getId())
             .orElseThrow(() -> new IllegalStateException("Question not in practice session"));
 
@@ -318,6 +316,13 @@ public class PracticeServiceImpl implements PracticeService {
             return 10;
         }
         return Math.max(1, Math.min(requested, 100));
+    }
+
+    private List<Question> findQuestionPool(UUID userId, UUID topicId) {
+        if (questionRepository.countByOwnerId(userId) > 0) {
+            return questionRepository.findByOwnerIdAndTopicId(userId, topicId);
+        }
+        return questionRepository.findByOwnerEmailAndTopicId(SeedData.SYSTEM_USER_EMAIL, topicId);
     }
 
     private int assignQuestions(PracticeSession session, List<Question> pool, int targetCount) {

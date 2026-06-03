@@ -114,6 +114,51 @@ class AdminUserControllerIntegrationTest {
     }
 
     @Test
+    void validRefreshTokenCanRefreshOverHttp() throws Exception {
+        AuthResponse learner = register(uniqueEmail("refresh-http"), "Refresh Http");
+
+        mockMvc.perform(post("/api/auth/refresh")
+                .header("Authorization", "Bearer " + learner.refreshToken()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.userId").value(learner.userId().toString()))
+            .andExpect(jsonPath("$.accessToken").isString())
+            .andExpect(jsonPath("$.refreshToken").isString());
+    }
+
+    @Test
+    void validRefreshTokenCanRefreshFromJsonBodyOverHttp() throws Exception {
+        AuthResponse learner = register(uniqueEmail("refresh-body"), "Refresh Body");
+
+        mockMvc.perform(post("/api/auth/refresh")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(Map.of(
+                    "refreshToken", learner.refreshToken()
+                ))))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.userId").value(learner.userId().toString()))
+            .andExpect(jsonPath("$.accessToken").isString())
+            .andExpect(jsonPath("$.refreshToken").isString());
+    }
+
+    @Test
+    void accessTokenCannotRefreshOverHttp() throws Exception {
+        AuthResponse learner = register(uniqueEmail("refresh-access"), "Refresh Access");
+
+        mockMvc.perform(post("/api/auth/refresh")
+                .header("Authorization", bearer(learner)))
+            .andExpect(status().isUnauthorized())
+            .andExpect(jsonPath("$.message").value("Invalid refresh token"));
+    }
+
+    @Test
+    void refreshTokenCannotAccessProtectedRoutes() throws Exception {
+        AuthResponse learner = register(uniqueEmail("refresh-protected"), "Refresh Protected");
+
+        mockMvc.perform(get("/api/me").header("Authorization", "Bearer " + learner.refreshToken()))
+            .andExpect(status().isUnauthorized());
+    }
+
+    @Test
     void adminGrantAndRevokePaidAccessOverHttp() throws Exception {
         AuthResponse admin = admin();
         AuthResponse learner = register(uniqueEmail("paid-target"), "Paid Target");

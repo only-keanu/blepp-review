@@ -3,6 +3,7 @@ package com.kei.review.auth;
 import com.kei.review.auth.dto.AuthResponse;
 import com.kei.review.auth.dto.LoginRequest;
 import com.kei.review.auth.dto.OAuthCodeRequest;
+import com.kei.review.auth.dto.RefreshRequest;
 import com.kei.review.auth.dto.RegisterRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -33,8 +34,12 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<AuthResponse> refresh(@RequestHeader("Authorization") String refreshToken) {
-        return ResponseEntity.ok(authService.refresh(refreshToken));
+    public ResponseEntity<AuthResponse> refresh(
+        @RequestHeader(value = "Authorization", required = false) String refreshToken,
+        @RequestBody(required = false) RefreshRequest request
+    ) {
+        String token = refreshToken != null ? refreshToken : request == null ? null : request.refreshToken();
+        return ResponseEntity.ok(authService.refresh(token));
     }
 
     @PostMapping("/logout")

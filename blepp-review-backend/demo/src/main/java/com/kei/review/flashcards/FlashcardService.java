@@ -9,9 +9,9 @@ import java.util.List;
 import java.util.UUID;
 
 public interface FlashcardService {
-    List<FlashcardResponse> list(UUID userId);
-    List<FlashcardResponse> listDue(UUID userId);
-    FlashcardQueueSummaryResponse summary(UUID userId);
+    List<FlashcardResponse> list(UUID userId, UUID topicId);
+    List<FlashcardResponse> listDue(UUID userId, UUID topicId);
+    FlashcardQueueSummaryResponse summary(UUID userId, UUID topicId);
     FlashcardResponse create(UUID userId, FlashcardCreateRequest request);
     FlashcardResponse update(UUID userId, UUID flashcardId, FlashcardUpdateRequest request);
     void delete(UUID userId, UUID flashcardId);

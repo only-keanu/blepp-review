@@ -48,6 +48,23 @@ public class JwtService {
         }
     }
 
+    public boolean isRefreshToken(String token) {
+        try {
+            return "refresh".equals(parseClaims(token).get("typ", String.class));
+        } catch (Exception ex) {
+            return false;
+        }
+    }
+
+    public boolean isAccessToken(String token) {
+        try {
+            Claims claims = parseClaims(token);
+            return !"refresh".equals(claims.get("typ", String.class));
+        } catch (Exception ex) {
+            return false;
+        }
+    }
+
     private String generateToken(String subject, Map<String, Object> claims, long minutes) {
         Instant now = Instant.now();
         Instant expiry = now.plusSeconds(minutes * 60);

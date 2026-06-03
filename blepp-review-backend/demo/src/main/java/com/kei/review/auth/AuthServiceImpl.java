@@ -109,7 +109,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public AuthResponse refresh(String refreshToken) {
         String token = normalizeToken(refreshToken);
-        if (!jwtService.isTokenValid(token)) {
+        if (!jwtService.isRefreshToken(token)) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid refresh token");
         }
 

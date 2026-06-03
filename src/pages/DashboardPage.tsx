@@ -8,7 +8,7 @@ import { Card } from '../components/ui/Card';
 import { Progress } from '../components/ui/Progress';
 import { BookOpen, Award, Target } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { apiFetch } from '../lib/api';
+import { ApiRequestError, apiFetch } from '../lib/api';
 import { Topic } from '../types';
 import { AccessStatusCard } from '../components/access/AccessStatusCard';
 export function DashboardPage() {
@@ -28,12 +28,17 @@ export function DashboardPage() {
         return;
       }
       try {
-        const [topicsData, readinessData, flashcards, masteryData] = await Promise.all([
+        const [topicsResult, readinessResult, flashcardsResult, masteryResult] = await Promise.allSettled([
           apiFetch<any[]>('/api/topics'),
           apiFetch<any>('/api/analytics/readiness'),
           apiFetch<any[]>('/api/flashcards'),
           apiFetch<any>('/api/analytics/topic-mastery')
         ]);
+        const topicsData = topicsResult.status === 'fulfilled' ? topicsResult.value : [];
+        const readinessData = readinessResult.status === 'fulfilled' ? readinessResult.value : null;
+        const flashcards = flashcardsResult.status === 'fulfilled' ? flashcardsResult.value : [];
+        const masteryData = masteryResult.status === 'fulfilled' ? masteryResult.value : null;
+
         const masteryMap = new Map<string, number>();
         (masteryData?.topics ?? []).forEach((stat: any) => {
           if (stat?.name) {
@@ -53,6 +58,19 @@ export function DashboardPage() {
           return new Date(fc.nextReview) <= today;
         }).length;
         setDueCount(due);
+
+        const failures = [topicsResult, readinessResult, flashcardsResult, masteryResult]
+          .filter((result) => result.status === 'rejected') as PromiseRejectedResult[];
+        if (failures.length > 0) {
+          const accessFailure = failures.find(
+            (result) => result.reason instanceof ApiRequestError && result.reason.status === 403
+          );
+          setError(
+            accessFailure?.reason instanceof Error
+              ? accessFailure.reason.message
+              : 'Some dashboard data could not be loaded.'
+          );
+        }
       } catch (err) {
         setError('Failed to load dashboard data.');
       }

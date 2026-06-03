@@ -17,6 +17,8 @@ class JwtServiceTest {
         String token = jwtService.generateAccessToken("learner@example.com", Map.of("uid", "user-id"));
 
         assertTrue(jwtService.isTokenValid(token));
+        assertTrue(jwtService.isAccessToken(token));
+        assertFalse(jwtService.isRefreshToken(token));
         assertEquals("learner@example.com", jwtService.extractSubject(token));
     }
 
@@ -27,6 +29,8 @@ class JwtServiceTest {
         String token = jwtService.generateRefreshToken("learner@example.com");
 
         assertTrue(jwtService.isTokenValid(token));
+        assertTrue(jwtService.isRefreshToken(token));
+        assertFalse(jwtService.isAccessToken(token));
         assertEquals("learner@example.com", jwtService.extractSubject(token));
     }
 

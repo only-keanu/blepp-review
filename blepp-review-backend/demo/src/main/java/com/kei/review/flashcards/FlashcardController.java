@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -33,21 +34,30 @@ public class FlashcardController {
     }
 
     @GetMapping
-    public ResponseEntity<List<FlashcardResponse>> list(@AuthenticationPrincipal UserPrincipal principal) {
+    public ResponseEntity<List<FlashcardResponse>> list(
+        @RequestParam(required = false) UUID topicId,
+        @AuthenticationPrincipal UserPrincipal principal
+    ) {
         accessService.requireStudyAccess(principal.getId());
-        return ResponseEntity.ok(flashcardService.list(principal.getId()));
+        return ResponseEntity.ok(flashcardService.list(principal.getId(), topicId));
     }
 
     @GetMapping("/due")
-    public ResponseEntity<List<FlashcardResponse>> listDue(@AuthenticationPrincipal UserPrincipal principal) {
+    public ResponseEntity<List<FlashcardResponse>> listDue(
+        @RequestParam(required = false) UUID topicId,
+        @AuthenticationPrincipal UserPrincipal principal
+    ) {
         accessService.requireStudyAccess(principal.getId());
-        return ResponseEntity.ok(flashcardService.listDue(principal.getId()));
+        return ResponseEntity.ok(flashcardService.listDue(principal.getId(), topicId));
     }
 
     @GetMapping("/summary")
-    public ResponseEntity<FlashcardQueueSummaryResponse> summary(@AuthenticationPrincipal UserPrincipal principal) {
+    public ResponseEntity<FlashcardQueueSummaryResponse> summary(
+        @RequestParam(required = false) UUID topicId,
+        @AuthenticationPrincipal UserPrincipal principal
+    ) {
         accessService.requireStudyAccess(principal.getId());
-        return ResponseEntity.ok(flashcardService.summary(principal.getId()));
+        return ResponseEntity.ok(flashcardService.summary(principal.getId(), topicId));
     }
 
     @PostMapping
