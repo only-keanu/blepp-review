@@ -237,6 +237,27 @@ class AdminUserControllerIntegrationTest {
     }
 
     @Test
+    void paidUserGetsClearGenerationConfigFailureWhenOpenAiIsMissing() throws Exception {
+        AuthResponse learner = register(uniqueEmail("generation-config"), "Generation Config");
+        var user = userRepository.findById(learner.userId()).orElseThrow();
+        user.setAccessStatus(UserAccessStatus.PAID);
+        user.setPaidUntil(Instant.now().plus(30, ChronoUnit.DAYS));
+        userRepository.save(user);
+
+        mockMvc.perform(post("/api/generation/run")
+                .header("Authorization", bearer(learner))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(Map.of(
+                    "uploadId", UUID.randomUUID().toString(),
+                    "questionCount", 5
+                ))))
+            .andExpect(status().isServiceUnavailable())
+            .andExpect(jsonPath("$.message").value(
+                "AI generation is not configured. Set APP_OPENAI_API_KEY before enabling this workflow."
+            ));
+    }
+
+    @Test
     void adminSearchCanFilterByEffectiveStatus() throws Exception {
         AuthResponse admin = admin();
         AuthResponse learner = register(uniqueEmail("status-paid"), "Status Paid");

@@ -2,6 +2,7 @@ package com.kei.review.config;
 
 import java.util.Arrays;
 import java.util.List;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
@@ -10,14 +11,16 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
 public class CorsConfig {
+    private final String allowedOrigins;
+
+    public CorsConfig(@Value("${app.cors.allowed-origins}") String allowedOrigins) {
+        this.allowedOrigins = allowedOrigins;
+    }
+
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        String allowed = System.getenv().getOrDefault(
-            "APP_CORS_ALLOWED_ORIGINS",
-            "http://localhost:5173,http://127.0.0.1:5173,https://blepp-review.vercel.app,https://localhost,capacitor://localhost"
-        );
-        List<String> origins = Arrays.stream(allowed.split(","))
+        List<String> origins = Arrays.stream(allowedOrigins.split(","))
             .map(String::trim)
             .filter(s -> !s.isEmpty())
             .toList();

@@ -23,6 +23,9 @@ import java.util.UUID;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -30,20 +33,25 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class GenerationServiceImpl implements GenerationService {
+    private static final Logger log = LoggerFactory.getLogger(GenerationServiceImpl.class);
     private static final int DEFAULT_QUESTION_COUNT = 10;
     private static final int MAX_QUESTION_COUNT = 50;
     private static final int MAX_PDF_CHARS = 12000;
+    private static final String OPENAI_NOT_CONFIGURED_MESSAGE =
+        "AI generation is not configured. Set APP_OPENAI_API_KEY before enabling this workflow.";
 
     private final GenerationJobRepository jobRepository;
     private final UserRepository userRepository;
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
 
     private final String uploadDir;
     private final String openAiApiKey;
@@ -53,6 +61,7 @@ public class GenerationServiceImpl implements GenerationService {
     public GenerationServiceImpl(
         GenerationJobRepository jobRepository,
         UserRepository userRepository,
+        @Qualifier("generationRestTemplate") RestTemplate restTemplate,
         @Value("${app.generation.upload-dir:uploads/generation}") String uploadDir,
         @Value("${app.openai.api-key:}") String openAiApiKey,
         @Value("${app.openai.model:gpt-4o-mini}") String defaultModel,
@@ -60,6 +69,7 @@ public class GenerationServiceImpl implements GenerationService {
     ) {
         this.jobRepository = jobRepository;
         this.userRepository = userRepository;
+        this.restTemplate = restTemplate;
         this.uploadDir = uploadDir;
         this.openAiApiKey = openAiApiKey;
         this.defaultModel = defaultModel;
@@ -117,7 +127,7 @@ public class GenerationServiceImpl implements GenerationService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "uploadId is required.");
         }
         if (openAiApiKey == null || openAiApiKey.isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "OpenAI API key is not configured.");
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, OPENAI_NOT_CONFIGURED_MESSAGE);
         }
 
         GenerationJob job = jobRepository.findById(request.uploadId())
@@ -146,11 +156,14 @@ public class GenerationServiceImpl implements GenerationService {
             jobRepository.save(job);
             return new GenerationRunResponse(job.getId(), job.getStatus(), questionCount, questions, null);
         } catch (Exception e) {
+            String message = generationFailureMessage(e);
             job.setStatus(GenerationStatus.FAILED);
             job.setCompletedAt(Instant.now());
-            job.setErrorMessage(e.getMessage());
+            job.setErrorMessage(message);
             jobRepository.save(job);
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to generate questions.");
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, message);
+        } finally {
+            cleanupUpload(job.getUploadPath());
         }
     }
 
@@ -374,5 +387,26 @@ public class GenerationServiceImpl implements GenerationService {
             }
         }
         return builder.toString();
+    }
+
+    private String generationFailureMessage(Exception exception) {
+        if (exception instanceof ResourceAccessException) {
+            return "AI generation timed out or the provider could not be reached. Please try again.";
+        }
+        if (exception instanceof RestClientResponseException responseException) {
+            return "AI generation provider returned HTTP " + responseException.getStatusCode().value() + ". Please try again.";
+        }
+        return "Failed to generate questions from the uploaded PDF. Please review the file and try again.";
+    }
+
+    private void cleanupUpload(String uploadPath) {
+        if (uploadPath == null || uploadPath.isBlank()) {
+            return;
+        }
+        try {
+            Files.deleteIfExists(Paths.get(uploadPath));
+        } catch (IOException exception) {
+            log.warn("generation_upload_cleanup_failed path={} reason={}", uploadPath, exception.getClass().getSimpleName());
+        }
     }
 }

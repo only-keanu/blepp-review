@@ -193,7 +193,7 @@ export function TopicsPage() {
                   className="h-full hover:shadow-lg hover:border-teal-200 transition-all duration-200 group cursor-pointer"
                   onClick={(event) => {
                     const target = event.target as HTMLElement;
-                    if (target.closest('[data-card-action=\"true\"]')) {
+                    if (target.closest('[data-card-action="true"]')) {
                       return;
                     }
                     navigate(`/dashboard/study/topics/${topic.topicSlug}`);
