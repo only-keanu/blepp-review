@@ -231,7 +231,7 @@ export function RegisterPage() {
 function LegalNotice({ compact = false }: { compact?: boolean }) {
   return (
     <p className={`${compact ? 'mt-3' : ''} text-center text-xs leading-5 text-slate-500 dark:text-slate-400`}>
-      By creating an account, you agree to the{' '}
+      By creating an account or continuing with Google/Facebook, you agree to the{' '}
       <Link to="/terms" className="font-medium text-teal-700 hover:text-teal-800 dark:text-teal-300">
         Terms and Conditions
       </Link>{' '}
