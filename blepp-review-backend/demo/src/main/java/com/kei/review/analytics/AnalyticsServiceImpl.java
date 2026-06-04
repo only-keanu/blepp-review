@@ -46,7 +46,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 
         return new AnalyticsOverviewResponse(
             accuracy + "%",
-            streak + " days",
+            formatStudyStreak(streak),
             hoursStudied,
             String.valueOf(total)
         );
@@ -142,6 +142,10 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             cursor = cursor.minusDays(1);
         }
         return streak;
+    }
+
+    private String formatStudyStreak(int days) {
+        return days == 1 ? "1 day" : days + " days";
     }
 
     private String formatHoursStudied(List<AnswerAttempt> attempts) {

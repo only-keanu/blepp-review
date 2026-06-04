@@ -11,11 +11,33 @@ import { Link } from 'react-router-dom';
 import { ApiRequestError, apiFetch } from '../lib/api';
 import { Topic } from '../types';
 import { AccessStatusCard } from '../components/access/AccessStatusCard';
+
+interface DashboardTopic extends Topic {
+  masteryPct?: number;
+}
+
+interface ReadinessResponse {
+  score?: number;
+}
+
+interface FlashcardResponse {
+  nextReview?: string;
+}
+
+interface TopicMasteryResponse {
+  topics?: { name?: string; masteryPct?: number }[];
+}
+
+interface AnalyticsOverviewResponse {
+  studyStreak?: string;
+}
+
 export function DashboardPage() {
   const { user } = useAuth();
-  const [topics, setTopics] = useState<Topic[]>([]);
+  const [topics, setTopics] = useState<DashboardTopic[]>([]);
   const [readiness, setReadiness] = useState(0);
   const [dueCount, setDueCount] = useState(0);
+  const [studyStreak, setStudyStreak] = useState('0 days');
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -25,32 +47,36 @@ export function DashboardPage() {
         setTopics([]);
         setReadiness(0);
         setDueCount(0);
+        setStudyStreak('0 days');
         return;
       }
       try {
-        const [topicsResult, readinessResult, flashcardsResult, masteryResult] = await Promise.allSettled([
-          apiFetch<any[]>('/api/topics'),
-          apiFetch<any>('/api/analytics/readiness'),
-          apiFetch<any[]>('/api/flashcards'),
-          apiFetch<any>('/api/analytics/topic-mastery')
+        const [topicsResult, readinessResult, flashcardsResult, masteryResult, overviewResult] = await Promise.allSettled([
+          apiFetch<DashboardTopic[]>('/api/topics'),
+          apiFetch<ReadinessResponse>('/api/analytics/readiness'),
+          apiFetch<FlashcardResponse[]>('/api/flashcards'),
+          apiFetch<TopicMasteryResponse>('/api/analytics/topic-mastery'),
+          apiFetch<AnalyticsOverviewResponse>('/api/analytics/overview')
         ]);
         const topicsData = topicsResult.status === 'fulfilled' ? topicsResult.value : [];
         const readinessData = readinessResult.status === 'fulfilled' ? readinessResult.value : null;
         const flashcards = flashcardsResult.status === 'fulfilled' ? flashcardsResult.value : [];
         const masteryData = masteryResult.status === 'fulfilled' ? masteryResult.value : null;
+        const overviewData = overviewResult.status === 'fulfilled' ? overviewResult.value : null;
 
         const masteryMap = new Map<string, number>();
-        (masteryData?.topics ?? []).forEach((stat: any) => {
+        (masteryData?.topics ?? []).forEach((stat) => {
           if (stat?.name) {
             masteryMap.set(stat.name, stat.masteryPct ?? 0);
           }
         });
         const mergedTopics = topicsData.map((topic) => ({
           ...topic,
-          masteryPct: masteryMap.get(topic.name) ?? (topic as any).masteryPct ?? 0
+          masteryPct: masteryMap.get(topic.name) ?? topic.masteryPct ?? 0
         }));
         setTopics(mergedTopics);
-        setReadiness(readinessData.score ?? 0);
+        setReadiness(readinessData?.score ?? 0);
+        setStudyStreak(overviewData?.studyStreak ?? '0 days');
 
         const today = new Date();
         const due = flashcards.filter((fc) => {
@@ -59,7 +85,7 @@ export function DashboardPage() {
         }).length;
         setDueCount(due);
 
-        const failures = [topicsResult, readinessResult, flashcardsResult, masteryResult]
+        const failures = [topicsResult, readinessResult, flashcardsResult, masteryResult, overviewResult]
           .filter((result) => result.status === 'rejected') as PromiseRejectedResult[];
         if (failures.length > 0) {
           const accessFailure = failures.find(
@@ -85,7 +111,7 @@ export function DashboardPage() {
       count: 10,
       type: 'questions' as const,
       completed: false,
-      mastery: (t as any).masteryPct ?? 0
+      mastery: t.masteryPct ?? 0
     }));
     const sorted = [...withMastery].sort((a, b) => a.mastery - b.mastery);
     const base = sorted.slice(0, 3);
@@ -119,7 +145,7 @@ export function DashboardPage() {
               Welcome back, {user?.fullName.split(' ')[0]}!
             </h1>
             <p className="text-slate-500 dark:text-slate-400 mt-1">
-              You're on a 5-day streak. Keep it up!
+              You're on a {studyStreak} streak. Keep it up!
             </p>
           </div>
           <div className="flex items-center gap-4 text-sm text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900 px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm">
@@ -136,6 +162,12 @@ export function DashboardPage() {
         </div>
 
         <AccessStatusCard user={user} />
+
+        {error && (
+          <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-200">
+            {error}
+          </div>
+        )}
 
         {/* Main Grid */}
         {user?.hasStudyAccess ? (
@@ -171,7 +203,7 @@ export function DashboardPage() {
 
               <div className="space-y-6">
                 {topics.map((topic) => {
-                  const progress = (topic as any).masteryPct ?? 0;
+                  const progress = topic.masteryPct ?? 0;
                   return (
                   <div key={topic.name}>
                     <div className="flex justify-between mb-2">

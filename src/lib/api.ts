@@ -84,6 +84,10 @@ interface AuthResponse {
 
 let refreshPromise: Promise<RefreshResult> | null = null;
 
+function backendUnavailableError() {
+  return new ApiRequestError(0, 'Cannot reach the backend. Make sure the API is running.');
+}
+
 async function requestTokenRefresh(): Promise<RefreshResult> {
   const refreshToken = getRefreshToken();
   if (!refreshToken) {
@@ -104,7 +108,7 @@ async function requestTokenRefresh(): Promise<RefreshResult> {
   }
 
   if (!response.ok) {
-    if (response.status === 400 || response.status === 401) {
+    if (response.status === 400 || response.status === 401 || response.status === 403) {
       expireAuth();
       return 'expired';
     }
@@ -152,7 +156,12 @@ async function sendRequest(path: string, options: RequestInit = {}) {
 }
 
 export async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
-  let response = await sendRequest(path, options);
+  let response: Response;
+  try {
+    response = await sendRequest(path, options);
+  } catch {
+    throw backendUnavailableError();
+  }
   let transientAuthRefreshFailure = false;
   let retriedAfterRefresh = false;
 
@@ -160,7 +169,11 @@ export async function apiFetch<T>(path: string, options: RequestInit = {}): Prom
     const refreshResult = await refreshAuthTokens();
     if (refreshResult === 'refreshed') {
       retriedAfterRefresh = true;
-      response = await sendRequest(path, options);
+      try {
+        response = await sendRequest(path, options);
+      } catch {
+        throw backendUnavailableError();
+      }
     } else if (refreshResult === 'failed') {
       transientAuthRefreshFailure = true;
     }

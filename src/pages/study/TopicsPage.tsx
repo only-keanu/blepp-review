@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { AppLayout } from '../../components/layout/AppLayout';
 import { Card } from '../../components/ui/Card';
 import { Progress } from '../../components/ui/Progress';
@@ -7,6 +7,7 @@ import { Badge } from '../../components/ui/Badge';
 import { BookOpen, Brain, Activity, Users, Scale, ChevronRight } from 'lucide-react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { apiFetch } from '../../lib/api';
+import { apiLoaderErrorMessage } from '../../lib/apiErrors';
 import { Question, Topic } from '../../types';
 import { Modal } from '../../components/ui/Modal';
 import { TOPICS_DATA, TOPIC_SLUG_ALIASES } from './TopicLessonsPage';
@@ -43,21 +44,22 @@ export function TopicsPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const loadTopics = async () => {
-      setIsLoading(true);
-      setError('');
-      try {
-        const data = await apiFetch<any[]>('/api/topics');
-        setTopics(data);
-      } catch (err) {
-        setError('Failed to load topics.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    loadTopics();
+  const loadTopics = useCallback(async () => {
+    setIsLoading(true);
+    setError('');
+    try {
+      const data = await apiFetch<any[]>('/api/topics');
+      setTopics(data);
+    } catch (err) {
+      setError(apiLoaderErrorMessage(err, 'Failed to load topics.'));
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    void loadTopics();
+  }, [loadTopics]);
 
   useEffect(() => {
     let isActive = true;
@@ -177,8 +179,17 @@ export function TopicsPage() {
         </div>
 
         {error && (
-          <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-            {error}
+          <div className="flex flex-col gap-3 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-200 sm:flex-row sm:items-center sm:justify-between">
+            <span>{error}</span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => void loadTopics()}
+              isLoading={isLoading}
+              className="self-start border-red-300 text-red-700 hover:bg-red-100 dark:border-red-800 dark:text-red-200 dark:hover:bg-red-950 sm:self-auto"
+            >
+              Retry
+            </Button>
           </div>
         )}
 

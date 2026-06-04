@@ -6,6 +6,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState
 } from 'react';
 import { User } from '../types';
@@ -45,32 +46,43 @@ interface AuthProviderProps {
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const profileRefreshRef = useRef<Promise<void> | null>(null);
 
   const loadProfile = useCallback(async () => {
-    const token = getAccessToken();
-    if (!token) {
-      setUser(null);
-      setIsLoading(false);
-      return;
+    if (profileRefreshRef.current) {
+      return profileRefreshRef.current;
     }
 
-    try {
-      const profile = await apiFetch<User>('/api/me');
-      setUser(profile);
-    } catch (error) {
-      if (
-        error instanceof ApiRequestError &&
-        isAuthFailureStatus(error.status) &&
-        !error.transientAuthRefreshFailure
-      ) {
-        clearTokens();
+    profileRefreshRef.current = (async () => {
+      const token = getAccessToken();
+      if (!token) {
         setUser(null);
-      } else if (!getAccessToken()) {
-        setUser(null);
+        setIsLoading(false);
+        return;
       }
-    } finally {
-      setIsLoading(false);
-    }
+
+      try {
+        const profile = await apiFetch<User>('/api/me');
+        setUser(profile);
+      } catch (error) {
+        if (
+          error instanceof ApiRequestError &&
+          isAuthFailureStatus(error.status) &&
+          !error.transientAuthRefreshFailure
+        ) {
+          clearTokens();
+          setUser(null);
+        } else if (!getAccessToken()) {
+          setUser(null);
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    })().finally(() => {
+      profileRefreshRef.current = null;
+    });
+
+    return profileRefreshRef.current;
   }, []);
 
   useEffect(() => {
@@ -86,6 +98,24 @@ export function AuthProvider({ children }: AuthProviderProps) {
     window.addEventListener(AUTH_EXPIRED_EVENT, handleAuthExpired);
     return () => window.removeEventListener(AUTH_EXPIRED_EVENT, handleAuthExpired);
   }, []);
+
+  useEffect(() => {
+    const refreshProfileOnActiveTab = () => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'hidden') {
+        return;
+      }
+      if (getAccessToken()) {
+        void loadProfile();
+      }
+    };
+
+    window.addEventListener('focus', refreshProfileOnActiveTab);
+    document.addEventListener('visibilitychange', refreshProfileOnActiveTab);
+    return () => {
+      window.removeEventListener('focus', refreshProfileOnActiveTab);
+      document.removeEventListener('visibilitychange', refreshProfileOnActiveTab);
+    };
+  }, [loadProfile]);
 
   const login = useCallback(async (email: string, password: string) => {
     setIsLoading(true);
