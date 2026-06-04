@@ -10,6 +10,7 @@ import com.kei.review.generation.dto.GenerationUploadResponse;
 import com.kei.review.users.User;
 import com.kei.review.users.UserRepository;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -87,8 +88,9 @@ public class GenerationServiceImpl implements GenerationService {
 
         String originalFilename = Optional.ofNullable(file.getOriginalFilename()).orElse("");
         String contentType = Optional.ofNullable(file.getContentType()).orElse("");
-        if (!contentType.equalsIgnoreCase("application/pdf")
-            && !originalFilename.toLowerCase(Locale.ROOT).endsWith(".pdf")) {
+        if ((!contentType.isBlank() && !contentType.equalsIgnoreCase("application/pdf"))
+            || !originalFilename.toLowerCase(Locale.ROOT).endsWith(".pdf")
+            || !hasPdfSignature(file)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Only PDF files are supported.");
         }
 
@@ -103,7 +105,10 @@ public class GenerationServiceImpl implements GenerationService {
         }
 
         String storedName = UUID.randomUUID() + ".pdf";
-        Path targetPath = baseDir.resolve(storedName);
+        Path targetPath = baseDir.resolve(storedName).normalize();
+        if (!targetPath.startsWith(baseDir)) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to prepare upload path.");
+        }
         try {
             file.transferTo(targetPath);
         } catch (IOException e) {
@@ -186,6 +191,21 @@ public class GenerationServiceImpl implements GenerationService {
             return DEFAULT_QUESTION_COUNT;
         }
         return Math.max(1, Math.min(requested, MAX_QUESTION_COUNT));
+    }
+
+    private boolean hasPdfSignature(MultipartFile file) {
+        byte[] signature = new byte[5];
+        try (InputStream inputStream = file.getInputStream()) {
+            int read = inputStream.read(signature);
+            return read == signature.length
+                && signature[0] == '%'
+                && signature[1] == 'P'
+                && signature[2] == 'D'
+                && signature[3] == 'F'
+                && signature[4] == '-';
+        } catch (IOException exception) {
+            return false;
+        }
     }
 
     private String blankToNull(String value) {

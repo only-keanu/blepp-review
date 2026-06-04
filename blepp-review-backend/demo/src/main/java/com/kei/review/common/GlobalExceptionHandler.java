@@ -3,6 +3,9 @@ package com.kei.review.common;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.Instant;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -12,6 +15,8 @@ import org.springframework.web.server.ResponseStatusException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<ApiErrorResponse> handleResponseStatus(
         ResponseStatusException exception,
@@ -40,6 +45,22 @@ public class GlobalExceptionHandler {
             .map(error -> error.getField() + ": " + error.getDefaultMessage())
             .collect(Collectors.joining("; "));
         return ResponseEntity.status(status).body(toError(status, message, request));
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiErrorResponse> handleUnexpected(
+        Exception exception,
+        HttpServletRequest request
+    ) {
+        HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
+        log.error(
+            "unhandled_request_error request_id={} path={} reason={}",
+            MDC.get("request_id"),
+            request.getRequestURI(),
+            exception.getClass().getSimpleName(),
+            exception
+        );
+        return ResponseEntity.status(status).body(toError(status, "Unexpected server error.", request));
     }
 
     private boolean isNotFound(String message) {

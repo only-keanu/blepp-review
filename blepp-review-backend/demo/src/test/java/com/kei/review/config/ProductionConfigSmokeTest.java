@@ -40,8 +40,9 @@ class ProductionConfigSmokeTest {
 
         CorsConfiguration cors = corsConfigurationSource.getCorsConfiguration(new MockHttpServletRequest());
         assertThat(cors).isNotNull();
-        assertThat(cors.getAllowedOriginPatterns()).containsExactly("https://blepp-review.example.com");
+        assertThat(cors.getAllowedOrigins()).containsExactly("https://blepp-review.example.com");
         assertThat(environment.getProperty("app.jwt.secret")).isNotBlank();
         assertThat(environment.getProperty("app.admin.emails")).isEqualTo("admin@example.com");
+        assertThat(environment.getProperty("management.endpoints.web.exposure.include")).isEqualTo("health,info");
     }
 }

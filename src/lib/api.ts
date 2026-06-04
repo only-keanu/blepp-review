@@ -1,4 +1,5 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+const REQUEST_ID_HEADER = 'X-Request-Id';
 
 export const ACCESS_TOKEN_KEY = 'blepp_access_token';
 export const REFRESH_TOKEN_KEY = 'blepp_refresh_token';
@@ -175,6 +176,9 @@ function shouldProactivelyRefresh(path: string) {
 async function sendRequest(path: string, options: RequestInit = {}) {
   const token = getAccessToken();
   const headers = new Headers(options.headers || {});
+  if (!headers.has(REQUEST_ID_HEADER)) {
+    headers.set(REQUEST_ID_HEADER, createRequestId());
+  }
   const isFormData = typeof FormData !== 'undefined' && options.body instanceof FormData;
   if (!headers.has('Content-Type') && options.body && !isFormData) {
     headers.set('Content-Type', 'application/json');
@@ -187,6 +191,13 @@ async function sendRequest(path: string, options: RequestInit = {}) {
     ...options,
     headers
   });
+}
+
+function createRequestId() {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  return `web-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
 export async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
