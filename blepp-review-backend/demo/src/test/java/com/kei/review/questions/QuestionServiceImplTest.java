@@ -47,16 +47,20 @@ class QuestionServiceImplTest {
     }
 
     @Test
-    void searchReturnsOnlyPersonalQuestionsWhenUserHasPersonalQuestions() {
+    void searchReturnsSeedAndPersonalQuestionsWhenUserHasPersonalQuestions() {
         User user = saveUser("personal-bank@example.com");
         Topic topic = topicRepository.findBySlug("general-psychology").orElseThrow();
         Question personal = questionRepository.save(question(user, topic, "Personal question about memory"));
 
         List<QuestionResponse> questions = questionService.search(user.getId(), null);
 
-        assertEquals(1, questions.size());
-        assertEquals(personal.getId(), questions.get(0).id());
-        assertFalse(questions.get(0).readOnly());
+        assertEquals(101, questions.size());
+        QuestionResponse personalResponse = questions.stream()
+            .filter(question -> question.id().equals(personal.getId()))
+            .findFirst()
+            .orElseThrow();
+        assertFalse(personalResponse.readOnly());
+        assertEquals(100, questions.stream().filter(QuestionResponse::readOnly).count());
     }
 
     @Test

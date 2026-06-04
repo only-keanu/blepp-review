@@ -114,6 +114,20 @@ class AdminUserControllerIntegrationTest {
     }
 
     @Test
+    void expiredRefreshTokenIsHandledByRefreshEndpoint() throws Exception {
+        JwtService expiredTokenService = new JwtService(TEST_SECRET, 30, -1);
+        String expiredRefreshToken = expiredTokenService.generateRefreshToken("expired-refresh@example.com");
+
+        mockMvc.perform(post("/api/auth/refresh")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(Map.of(
+                    "refreshToken", expiredRefreshToken
+                ))))
+            .andExpect(status().isUnauthorized())
+            .andExpect(jsonPath("$.message").value("Invalid refresh token"));
+    }
+
+    @Test
     void validRefreshTokenCanRefreshOverHttp() throws Exception {
         AuthResponse learner = register(uniqueEmail("refresh-http"), "Refresh Http");
 
@@ -214,6 +228,10 @@ class AdminUserControllerIntegrationTest {
             .andExpect(jsonPath("$.access.accessStatus").value("EXPIRED"))
             .andExpect(jsonPath("$.hasStudyAccess").value(false))
             .andExpect(jsonPath("$.hasAiAccess").value(false));
+
+        mockMvc.perform(get("/api/topics").header("Authorization", bearer(learner)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$").isArray());
 
         mockMvc.perform(post("/api/practice/session")
                 .header("Authorization", bearer(learner))

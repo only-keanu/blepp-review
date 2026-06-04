@@ -12,6 +12,8 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpEntity;
@@ -28,6 +30,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 @Service
 public class AuthServiceImpl implements AuthService {
+    private static final Logger log = LoggerFactory.getLogger(AuthServiceImpl.class);
+
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
@@ -109,13 +113,18 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public AuthResponse refresh(String refreshToken) {
         String token = normalizeToken(refreshToken);
-        if (!jwtService.isRefreshToken(token)) {
+        JwtService.RefreshTokenFailureReason failureReason = jwtService.refreshTokenFailureReason(token);
+        if (failureReason != JwtService.RefreshTokenFailureReason.NONE) {
+            log.info("Refresh token rejected: {}", failureReason.name().toLowerCase(Locale.ROOT));
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid refresh token");
         }
 
         String subject = jwtService.extractSubject(token);
         User user = userRepository.findByEmailIgnoreCase(normalizeEmail(subject))
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid refresh token"));
+            .orElseThrow(() -> {
+                log.info("Refresh token rejected: user_not_found");
+                return new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid refresh token");
+            });
 
         String accessToken = jwtService.generateAccessToken(
             user.getEmail(),

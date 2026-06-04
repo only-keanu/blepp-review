@@ -5,6 +5,7 @@ export const REFRESH_TOKEN_KEY = 'blepp_refresh_token';
 export const AUTH_EXPIRED_EVENT = 'blepp_auth_expired';
 
 type RefreshResult = 'refreshed' | 'expired' | 'failed';
+const ACCESS_TOKEN_REFRESH_SKEW_SECONDS = 60;
 
 interface ApiRequestErrorOptions {
   transientAuthRefreshFailure?: boolean;
@@ -100,8 +101,9 @@ async function requestTokenRefresh(): Promise<RefreshResult> {
     response = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${refreshToken}`
-      }
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ refreshToken })
     });
   } catch {
     return 'failed';
@@ -138,6 +140,38 @@ async function refreshAuthTokens(): Promise<RefreshResult> {
   return refreshPromise;
 }
 
+function decodeJwtPayload(token: string): { exp?: number } | null {
+  const parts = token.split('.');
+  if (parts.length < 2) {
+    return null;
+  }
+
+  try {
+    const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const padded = base64.padEnd(base64.length + (4 - (base64.length % 4 || 4)), '=');
+    return JSON.parse(atob(padded)) as { exp?: number };
+  } catch {
+    return null;
+  }
+}
+
+function accessTokenExpiresSoon(token: string) {
+  const payload = decodeJwtPayload(token);
+  if (!payload?.exp) {
+    return true;
+  }
+  const nowSeconds = Math.floor(Date.now() / 1000);
+  return payload.exp <= nowSeconds + ACCESS_TOKEN_REFRESH_SKEW_SECONDS;
+}
+
+function shouldProactivelyRefresh(path: string) {
+  if (path.startsWith('/api/auth/')) {
+    return false;
+  }
+  const accessToken = getAccessToken();
+  return !!accessToken && !!getRefreshToken() && accessTokenExpiresSoon(accessToken);
+}
+
 async function sendRequest(path: string, options: RequestInit = {}) {
   const token = getAccessToken();
   const headers = new Headers(options.headers || {});
@@ -156,13 +190,20 @@ async function sendRequest(path: string, options: RequestInit = {}) {
 }
 
 export async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
+  let transientAuthRefreshFailure = false;
+  if (shouldProactivelyRefresh(path)) {
+    const refreshResult = await refreshAuthTokens();
+    if (refreshResult === 'failed') {
+      transientAuthRefreshFailure = true;
+    }
+  }
+
   let response: Response;
   try {
     response = await sendRequest(path, options);
   } catch {
     throw backendUnavailableError();
   }
-  let transientAuthRefreshFailure = false;
   let retriedAfterRefresh = false;
 
   if (response.status === 401 && !path.startsWith('/api/auth/')) {

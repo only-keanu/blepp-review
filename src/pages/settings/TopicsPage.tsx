@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { AppLayout } from '../../components/layout/AppLayout';
 import { Card } from '../../components/ui/Card';
-import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
 import { apiFetch } from '../../lib/api';
+import { apiLoaderErrorMessage } from '../../lib/apiErrors';
 const COLORS = [
   { value: 'blue', label: 'Blue' },
   { value: 'purple', label: 'Purple' },
@@ -35,7 +35,7 @@ export function TopicsSettingsPage() {
           }))
         );
       } catch (err) {
-        setError('Failed to load topics.');
+        setError(apiLoaderErrorMessage(err, 'Failed to load topics.'));
       }
     };
     loadTopics();
@@ -55,7 +55,7 @@ export function TopicsSettingsPage() {
         )
       );
     } catch (err) {
-      setError('Failed to update topic.');
+      setError(apiLoaderErrorMessage(err, 'Failed to update topic.'));
     }
   };
 
@@ -83,7 +83,7 @@ export function TopicsSettingsPage() {
       setColor('blue');
       setError('');
     } catch (err) {
-      setError('Failed to add topic.');
+      setError(apiLoaderErrorMessage(err, 'Failed to add topic.'));
     }
   };
   return (

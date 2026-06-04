@@ -22,6 +22,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -49,13 +50,8 @@ class FlashcardServiceImplTest {
         Flashcard dueSeed = flashcard(UUID.randomUUID(), UUID.randomUUID(), SeedData.SYSTEM_USER_EMAIL);
         dueSeed.setNextReview(LocalDate.now().minusDays(1));
 
-        when(flashcardRepository.countByUserId(userId)).thenReturn(0L);
-        when(flashcardRepository.findByUserEmailAndNextReviewIsNull(SeedData.SYSTEM_USER_EMAIL))
-            .thenReturn(List.of(newSeed));
-        when(flashcardRepository.findByUserEmailAndNextReviewLessThanEqual(
-            SeedData.SYSTEM_USER_EMAIL,
-            LocalDate.now()
-        )).thenReturn(List.of(dueSeed));
+        when(flashcardRepository.findByUserId(userId)).thenReturn(List.of());
+        when(flashcardRepository.findByUserEmail(SeedData.SYSTEM_USER_EMAIL)).thenReturn(List.of(newSeed, dueSeed));
 
         List<FlashcardResponse> due = service.listDue(userId, null);
 
@@ -65,13 +61,15 @@ class FlashcardServiceImplTest {
     @Test
     void summaryReportsSeedFallbackCardsWhenUserHasNoPersonalFlashcards() {
         UUID userId = UUID.randomUUID();
-        LocalDate today = LocalDate.now();
-        when(flashcardRepository.countByUserId(userId)).thenReturn(0L);
-        when(flashcardRepository.countByUserEmailAndNextReviewIsNull(SeedData.SYSTEM_USER_EMAIL)).thenReturn(25L);
-        when(flashcardRepository.countByUserEmailAndNextReviewLessThanEqual(SeedData.SYSTEM_USER_EMAIL, today))
-            .thenReturn(0L);
-        when(flashcardRepository.countByUserEmailAndConfidence(SeedData.SYSTEM_USER_EMAIL, FlashcardConfidence.HIGH))
-            .thenReturn(0L);
+        List<Flashcard> seedCards = IntStream.range(0, 25)
+            .mapToObj(index -> {
+                Flashcard flashcard = flashcard(UUID.randomUUID(), UUID.randomUUID(), SeedData.SYSTEM_USER_EMAIL);
+                flashcard.setFront("Front " + index);
+                return flashcard;
+            })
+            .toList();
+        when(flashcardRepository.findByUserId(userId)).thenReturn(List.of());
+        when(flashcardRepository.findByUserEmail(SeedData.SYSTEM_USER_EMAIL)).thenReturn(seedCards);
 
         FlashcardQueueSummaryResponse summary = service.summary(userId, null);
 
@@ -86,7 +84,7 @@ class FlashcardServiceImplTest {
         UUID topicId = UUID.randomUUID();
         Flashcard seedFlashcard = flashcard(UUID.randomUUID(), UUID.randomUUID(), SeedData.SYSTEM_USER_EMAIL, topicId);
 
-        when(flashcardRepository.countByUserId(userId)).thenReturn(0L);
+        when(flashcardRepository.findByUserIdAndTopicId(userId, topicId)).thenReturn(List.of());
         when(flashcardRepository.findByUserEmailAndTopicId(SeedData.SYSTEM_USER_EMAIL, topicId))
             .thenReturn(List.of(seedFlashcard));
 
@@ -98,6 +96,25 @@ class FlashcardServiceImplTest {
     }
 
     @Test
+    void listSuppressesSeedCardsThatMatchPersonalCardsByTopicAndFront() {
+        UUID userId = UUID.randomUUID();
+        UUID topicId = UUID.randomUUID();
+        Flashcard seedCopy = flashcard(UUID.randomUUID(), UUID.randomUUID(), SeedData.SYSTEM_USER_EMAIL, topicId);
+        seedCopy.setFront("Reviewed Seed");
+        Flashcard otherSeed = flashcard(UUID.randomUUID(), UUID.randomUUID(), SeedData.SYSTEM_USER_EMAIL, topicId);
+        otherSeed.setFront("Unreviewed Seed");
+        Flashcard personalCopy = flashcard(userId, UUID.randomUUID(), "user@example.com", topicId);
+        personalCopy.setFront(" reviewed seed ");
+
+        when(flashcardRepository.findByUserId(userId)).thenReturn(List.of(personalCopy));
+        when(flashcardRepository.findByUserEmail(SeedData.SYSTEM_USER_EMAIL)).thenReturn(List.of(seedCopy, otherSeed));
+
+        List<FlashcardResponse> flashcards = service.list(userId, null);
+
+        assertEquals(List.of(otherSeed.getId(), personalCopy.getId()), flashcards.stream().map(FlashcardResponse::id).toList());
+    }
+
+    @Test
     void listDueAppliesTopicFilterToPersonalCards() {
         UUID userId = UUID.randomUUID();
         UUID topicId = UUID.randomUUID();
@@ -105,11 +122,8 @@ class FlashcardServiceImplTest {
         Flashcard duePersonal = flashcard(userId, UUID.randomUUID(), "user@example.com", topicId);
         duePersonal.setNextReview(LocalDate.now().minusDays(1));
 
-        when(flashcardRepository.countByUserId(userId)).thenReturn(2L);
-        when(flashcardRepository.findByUserIdAndTopicIdAndNextReviewIsNull(userId, topicId))
-            .thenReturn(List.of(newPersonal));
-        when(flashcardRepository.findByUserIdAndTopicIdAndNextReviewLessThanEqual(userId, topicId, LocalDate.now()))
-            .thenReturn(List.of(duePersonal));
+        when(flashcardRepository.findByUserIdAndTopicId(userId, topicId)).thenReturn(List.of(newPersonal, duePersonal));
+        when(flashcardRepository.findByUserEmailAndTopicId(SeedData.SYSTEM_USER_EMAIL, topicId)).thenReturn(List.of());
 
         List<FlashcardResponse> due = service.listDue(userId, topicId);
 
@@ -120,20 +134,37 @@ class FlashcardServiceImplTest {
     void summaryAppliesTopicFilterToSeedFallbackCards() {
         UUID userId = UUID.randomUUID();
         UUID topicId = UUID.randomUUID();
-        LocalDate today = LocalDate.now();
-        when(flashcardRepository.countByUserId(userId)).thenReturn(0L);
-        when(flashcardRepository.countByUserEmailAndTopicIdAndNextReviewIsNull(SeedData.SYSTEM_USER_EMAIL, topicId))
-            .thenReturn(5L);
-        when(flashcardRepository.countByUserEmailAndTopicIdAndNextReviewLessThanEqual(
-            SeedData.SYSTEM_USER_EMAIL,
-            topicId,
-            today
-        )).thenReturn(2L);
-        when(flashcardRepository.countByUserEmailAndTopicIdAndConfidence(
-            SeedData.SYSTEM_USER_EMAIL,
-            topicId,
-            FlashcardConfidence.HIGH
-        )).thenReturn(3L);
+        List<Flashcard> newCards = IntStream.range(0, 5)
+            .mapToObj(index -> {
+                Flashcard flashcard = flashcard(UUID.randomUUID(), UUID.randomUUID(), SeedData.SYSTEM_USER_EMAIL, topicId);
+                flashcard.setFront("New " + index);
+                return flashcard;
+            })
+            .toList();
+        List<Flashcard> scheduledDue = IntStream.range(0, 2)
+            .mapToObj(index -> {
+                Flashcard flashcard = flashcard(UUID.randomUUID(), UUID.randomUUID(), SeedData.SYSTEM_USER_EMAIL, topicId);
+                flashcard.setFront("Due " + index);
+                flashcard.setNextReview(LocalDate.now().minusDays(1));
+                return flashcard;
+            })
+            .toList();
+        List<Flashcard> mastered = IntStream.range(0, 3)
+            .mapToObj(index -> {
+                Flashcard flashcard = flashcard(UUID.randomUUID(), UUID.randomUUID(), SeedData.SYSTEM_USER_EMAIL, topicId);
+                flashcard.setFront("Mastered " + index);
+                flashcard.setNextReview(LocalDate.now().plusDays(7));
+                flashcard.setConfidence(FlashcardConfidence.HIGH);
+                return flashcard;
+            })
+            .toList();
+        List<Flashcard> seedCards = new java.util.ArrayList<Flashcard>();
+        seedCards.addAll(newCards);
+        seedCards.addAll(scheduledDue);
+        seedCards.addAll(mastered);
+        when(flashcardRepository.findByUserIdAndTopicId(userId, topicId)).thenReturn(List.of());
+        when(flashcardRepository.findByUserEmailAndTopicId(SeedData.SYSTEM_USER_EMAIL, topicId))
+            .thenReturn(seedCards);
 
         FlashcardQueueSummaryResponse summary = service.summary(userId, topicId);
 

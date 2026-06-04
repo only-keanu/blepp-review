@@ -319,10 +319,12 @@ public class PracticeServiceImpl implements PracticeService {
     }
 
     private List<Question> findQuestionPool(UUID userId, UUID topicId) {
-        if (questionRepository.countByOwnerId(userId) > 0) {
-            return questionRepository.findByOwnerIdAndTopicId(userId, topicId);
-        }
-        return questionRepository.findByOwnerEmailAndTopicId(SeedData.SYSTEM_USER_EMAIL, topicId);
+        List<Question> pool = new ArrayList<>(questionRepository.findByOwnerEmailAndTopicId(
+            SeedData.SYSTEM_USER_EMAIL,
+            topicId
+        ));
+        pool.addAll(questionRepository.findByOwnerIdAndTopicId(userId, topicId));
+        return pool;
     }
 
     private int assignQuestions(PracticeSession session, List<Question> pool, int targetCount) {

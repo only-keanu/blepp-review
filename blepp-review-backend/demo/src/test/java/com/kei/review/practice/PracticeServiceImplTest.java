@@ -1,6 +1,7 @@
 package com.kei.review.practice;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -68,9 +69,9 @@ class PracticeServiceImplTest {
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(topicRepository.findById(topic.getId())).thenReturn(Optional.of(topic));
-        when(questionRepository.countByOwnerId(userId)).thenReturn(0L);
         when(questionRepository.findByOwnerEmailAndTopicId(SeedData.SYSTEM_USER_EMAIL, topic.getId()))
             .thenReturn(List.of(seedQuestion));
+        when(questionRepository.findByOwnerIdAndTopicId(userId, topic.getId())).thenReturn(List.of());
         when(practiceSessionRepository.save(any(PracticeSession.class)))
             .thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -87,6 +88,37 @@ class PracticeServiceImplTest {
     }
 
     @Test
+    void startSessionUsesSeedAndPersonalQuestionsTogether() {
+        UUID userId = UUID.randomUUID();
+        Topic topic = topic(UUID.randomUUID());
+        User user = user(userId, "user@example.com");
+        Question seedQuestion = question(UUID.randomUUID(), user(UUID.randomUUID(), SeedData.SYSTEM_USER_EMAIL), topic);
+        Question personalQuestion = question(UUID.randomUUID(), user, topic);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(topicRepository.findById(topic.getId())).thenReturn(Optional.of(topic));
+        when(questionRepository.findByOwnerEmailAndTopicId(SeedData.SYSTEM_USER_EMAIL, topic.getId()))
+            .thenReturn(List.of(seedQuestion));
+        when(questionRepository.findByOwnerIdAndTopicId(userId, topic.getId())).thenReturn(List.of(personalQuestion));
+        when(practiceSessionRepository.save(any(PracticeSession.class)))
+            .thenAnswer(invocation -> invocation.getArgument(0));
+
+        PracticeSessionResponse response = service.startSession(
+            userId,
+            new CreatePracticeSessionRequest(topic.getId(), null, 10)
+        );
+
+        ArgumentCaptor<List<PracticeSessionQuestion>> captor = practiceSessionQuestionListCaptor();
+        verify(practiceSessionQuestionRepository).saveAll(captor.capture());
+        List<UUID> assignedQuestionIds = captor.getValue().stream()
+            .map(item -> item.getQuestion().getId())
+            .toList();
+        assertEquals(2, response.questionCount());
+        assertTrue(assignedQuestionIds.contains(seedQuestion.getId()));
+        assertTrue(assignedQuestionIds.contains(personalQuestion.getId()));
+    }
+
+    @Test
     void startSessionAppliesDifficultyFilterToSelectedTopicPool() {
         UUID userId = UUID.randomUUID();
         Topic topic = topic(UUID.randomUUID());
@@ -98,7 +130,8 @@ class PracticeServiceImplTest {
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(topicRepository.findById(topic.getId())).thenReturn(Optional.of(topic));
-        when(questionRepository.countByOwnerId(userId)).thenReturn(2L);
+        when(questionRepository.findByOwnerEmailAndTopicId(SeedData.SYSTEM_USER_EMAIL, topic.getId()))
+            .thenReturn(List.of());
         when(questionRepository.findByOwnerIdAndTopicId(userId, topic.getId())).thenReturn(List.of(easy, hard));
         when(practiceSessionRepository.save(any(PracticeSession.class)))
             .thenAnswer(invocation -> invocation.getArgument(0));

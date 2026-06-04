@@ -1,6 +1,8 @@
 package com.kei.review.auth;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -13,6 +15,13 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class JwtService {
+    public enum RefreshTokenFailureReason {
+        NONE,
+        MISSING,
+        INVALID_TOKEN,
+        EXPIRED_TOKEN
+    }
+
     private final SecretKey signingKey;
     private final long accessTokenMinutes;
     private final long refreshTokenMinutes;
@@ -53,6 +62,22 @@ public class JwtService {
             return "refresh".equals(parseClaims(token).get("typ", String.class));
         } catch (Exception ex) {
             return false;
+        }
+    }
+
+    public RefreshTokenFailureReason refreshTokenFailureReason(String token) {
+        if (token == null || token.isBlank()) {
+            return RefreshTokenFailureReason.MISSING;
+        }
+        try {
+            Claims claims = parseClaims(token);
+            return "refresh".equals(claims.get("typ", String.class))
+                ? RefreshTokenFailureReason.NONE
+                : RefreshTokenFailureReason.INVALID_TOKEN;
+        } catch (ExpiredJwtException ex) {
+            return RefreshTokenFailureReason.EXPIRED_TOKEN;
+        } catch (JwtException | IllegalArgumentException ex) {
+            return RefreshTokenFailureReason.INVALID_TOKEN;
         }
     }
 

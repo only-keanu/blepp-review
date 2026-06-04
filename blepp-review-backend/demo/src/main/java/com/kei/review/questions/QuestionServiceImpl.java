@@ -33,8 +33,7 @@ public class QuestionServiceImpl implements QuestionService {
 
     @Override
     public List<QuestionResponse> search(UUID userId, QuestionSearchParams params) {
-        boolean hasPersonalQuestions = questionRepository.countByOwnerId(userId) > 0;
-        Specification<Question> spec = ownerSpec(userId, hasPersonalQuestions);
+        Specification<Question> spec = ownerSpec(userId);
 
         if (params != null) {
             if (params.query() != null && !params.query().isBlank()) {
@@ -67,15 +66,15 @@ public class QuestionServiceImpl implements QuestionService {
         }
 
         return questionRepository.findAll(spec).stream()
-            .map(question -> toResponse(question, !hasPersonalQuestions))
+            .map(this::toResponse)
             .toList();
     }
 
-    private Specification<Question> ownerSpec(UUID userId, boolean hasPersonalQuestions) {
-        if (hasPersonalQuestions) {
-            return (root, query, cb) -> cb.equal(root.get("owner").get("id"), userId);
-        }
-        return (root, query, cb) -> cb.equal(root.get("owner").get("email"), SeedData.SYSTEM_USER_EMAIL);
+    private Specification<Question> ownerSpec(UUID userId) {
+        return (root, query, cb) -> cb.or(
+            cb.equal(root.get("owner").get("id"), userId),
+            cb.equal(root.get("owner").get("email"), SeedData.SYSTEM_USER_EMAIL)
+        );
     }
 
     @Override
@@ -191,10 +190,6 @@ public class QuestionServiceImpl implements QuestionService {
     }
 
     private QuestionResponse toResponse(Question question) {
-        return toResponse(question, false);
-    }
-
-    private QuestionResponse toResponse(Question question, boolean readOnly) {
         return new QuestionResponse(
             question.getId(),
             question.getTopic().getId(),
@@ -208,8 +203,12 @@ public class QuestionServiceImpl implements QuestionService {
             question.getTags(),
             question.getCategory(),
             question.getCreatedAt(),
-            readOnly
+            isSeedQuestion(question)
         );
+    }
+
+    private boolean isSeedQuestion(Question question) {
+        return question.getOwner() != null && SeedData.SYSTEM_USER_EMAIL.equals(question.getOwner().getEmail());
     }
 
     private void validateChoices(List<String> choices, Integer correctAnswerIndex) {
