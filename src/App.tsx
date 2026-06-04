@@ -121,11 +121,7 @@ export function App() {
 
         <Route
           path="/dashboard/access"
-          element={
-          <ProtectedRoute>
-              <PaymentAccessPage />
-            </ProtectedRoute>
-          } />
+          element={<Navigate to="/dashboard/settings/access" replace />} />
 
         <Route
           path="/dashboard/admin/users"
@@ -315,6 +311,14 @@ export function App() {
           element={
           <ProtectedRoute>
               <TopicsSettingsPage />
+            </ProtectedRoute>
+          } />
+
+        <Route
+          path="/dashboard/settings/access"
+          element={
+          <ProtectedRoute>
+              <PaymentAccessPage />
             </ProtectedRoute>
           } />
 

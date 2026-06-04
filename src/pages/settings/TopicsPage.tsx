@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { AppLayout } from '../../components/layout/AppLayout';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { apiFetch } from '../../lib/api';
 import { apiLoaderErrorMessage } from '../../lib/apiErrors';
+import { SettingsLayout } from './SettingsLayout';
 const COLORS = [
   { value: 'blue', label: 'Blue' },
   { value: 'purple', label: 'Purple' },
@@ -87,8 +87,8 @@ export function TopicsSettingsPage() {
     }
   };
   return (
-    <AppLayout>
-      <div className="max-w-2xl mx-auto space-y-6">
+    <SettingsLayout>
+      <div className="space-y-6">
         <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Study Priorities</h1>
         <p className="text-slate-500 dark:text-slate-400">
           Mark topics as "Weak Areas" to prioritize them in your daily study
@@ -142,6 +142,6 @@ export function TopicsSettingsPage() {
           </div>
         </Card>
       </div>
-    </AppLayout>);
+    </SettingsLayout>);
 
 }

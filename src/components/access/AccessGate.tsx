@@ -51,7 +51,7 @@ export function AccessGate({ children, requires = 'study' }: AccessGateProps) {
                 <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">{message}</p>
               </div>
               {requires !== 'admin' && (
-                <Link to="/dashboard/access">
+                <Link to="/dashboard/settings/access">
                   <Button>View payment instructions</Button>
                 </Link>
               )}

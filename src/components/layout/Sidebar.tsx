@@ -9,7 +9,6 @@ import {
   Settings,
   X,
   Layers,
-  CreditCard,
   Users } from
 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
@@ -86,11 +85,6 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     name: 'Settings',
     href: '/dashboard/settings',
     icon: Settings
-  },
-  {
-    name: 'Access',
-    href: '/dashboard/access',
-    icon: CreditCard
   }];
 
   if (profile?.admin) {

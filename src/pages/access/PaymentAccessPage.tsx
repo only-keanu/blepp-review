@@ -1,10 +1,10 @@
 import React from 'react';
 import { CheckCircle2, Clock, Copy, MessageCircle, RotateCcw, Smartphone } from 'lucide-react';
-import { AppLayout } from '../../components/layout/AppLayout';
 import { AccessStatusCard, formatDateTime } from '../../components/access/AccessStatusCard';
 import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { useAuth } from '../../hooks/useAuth';
+import { SettingsLayout } from '../settings/SettingsLayout';
 
 const paymentMethods = [
   {
@@ -28,8 +28,8 @@ export function PaymentAccessPage() {
   const { user } = useAuth();
 
   return (
-    <AppLayout>
-      <div className="mx-auto max-w-4xl space-y-6">
+    <SettingsLayout maxWidthClassName="max-w-4xl">
+      <div className="space-y-6">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Access and payment</h1>
           <p className="mt-1 text-slate-500 dark:text-slate-400">
@@ -135,7 +135,7 @@ export function PaymentAccessPage() {
           </Card>
         )}
       </div>
-    </AppLayout>
+    </SettingsLayout>
   );
 }
 

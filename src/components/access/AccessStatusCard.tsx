@@ -55,7 +55,7 @@ export function AccessStatusCard({ user, compact = false }: AccessStatusCardProp
           </div>
         </div>
         {!access.admin && (
-          <Link to="/dashboard/access" className="shrink-0">
+          <Link to="/dashboard/settings/access" className="shrink-0">
             <Button variant={isExpired ? 'primary' : 'outline'} leftIcon={<CreditCard className="h-4 w-4" />}>
               Payment details
             </Button>

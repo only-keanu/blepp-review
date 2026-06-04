@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { AppLayout } from '../../components/layout/AppLayout';
 import { Card } from '../../components/ui/Card';
 import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
@@ -7,6 +6,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { applyTheme, getStoredTheme } from '../../lib/theme';
 import { apiFetch } from '../../lib/api';
 import { formatDateTime } from '../../components/access/AccessStatusCard';
+import { SettingsLayout } from './SettingsLayout';
 const SETTINGS_FIELD_CLASS =
   'border border-slate-400 dark:border-slate-600 focus:border-teal-600 focus:ring-2 focus:ring-teal-500/30 disabled:border-slate-300 dark:disabled:border-slate-700';
 
@@ -111,8 +111,8 @@ export function ProfilePage() {
     }
   };
   return (
-    <AppLayout>
-      <div className="max-w-2xl mx-auto space-y-6">
+    <SettingsLayout>
+      <div className="space-y-6">
         <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Profile Settings</h1>
 
         {user?.admin && user.access && (
@@ -261,7 +261,7 @@ export function ProfilePage() {
           </div>
         </Card>
       </div>
-    </AppLayout>);
+    </SettingsLayout>);
 
 }
 
