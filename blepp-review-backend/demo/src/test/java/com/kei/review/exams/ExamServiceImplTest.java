@@ -25,6 +25,7 @@ import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.springframework.data.domain.Pageable;
 
 class ExamServiceImplTest {
     private MockExamRepository mockExamRepository;
@@ -250,6 +251,82 @@ class ExamServiceImplTest {
         org.junit.jupiter.api.Assertions.assertEquals(1, response.correctCount());
         org.junit.jupiter.api.Assertions.assertEquals(1, response.unansweredCount());
         verify(examSessionRepository).save(session);
+    }
+
+    @Test
+    void listRecentSessionsReturnsAllSessionTypesForUser() {
+        UUID userId = UUID.randomUUID();
+        UUID submittedSessionId = UUID.randomUUID();
+        UUID inProgressSessionId = UUID.randomUUID();
+        UUID examId = UUID.randomUUID();
+        User user = user(userId);
+        ExamSession submitted = ExamSession.builder()
+            .id(submittedSessionId)
+            .user(user)
+            .mockExam(MockExam.builder()
+                .id(examId)
+                .title("General Psychology Mock Exam")
+                .totalQuestions(50)
+                .durationMinutes(60)
+                .build())
+            .startedAt(Instant.parse("2026-01-02T00:00:00Z"))
+            .submittedAt(Instant.parse("2026-01-02T01:00:00Z"))
+            .score(82)
+            .timeTakenSeconds(3600)
+            .build();
+        ExamSession inProgress = ExamSession.builder()
+            .id(inProgressSessionId)
+            .user(user)
+            .mockExam(null)
+            .totalQuestions(12)
+            .durationMinutes(30)
+            .startedAt(Instant.parse("2026-01-03T00:00:00Z"))
+            .build();
+
+        when(examSessionRepository.findByUserIdOrderByStartedAtDesc(any(), any()))
+            .thenReturn(List.of(inProgress, submitted));
+        when(examAnswerRepository.countByExamSessionId(inProgressSessionId)).thenReturn(4L);
+        when(examAnswerRepository.countByExamSessionId(submittedSessionId)).thenReturn(50L);
+
+        var sessions = service.listRecentSessions(userId, 5);
+
+        org.junit.jupiter.api.Assertions.assertEquals(2, sessions.size());
+        org.junit.jupiter.api.Assertions.assertEquals(inProgressSessionId, sessions.get(0).id());
+        org.junit.jupiter.api.Assertions.assertNull(sessions.get(0).examId());
+        org.junit.jupiter.api.Assertions.assertEquals("Question Bank Review", sessions.get(0).title());
+        org.junit.jupiter.api.Assertions.assertEquals("IN_PROGRESS", sessions.get(0).status());
+        org.junit.jupiter.api.Assertions.assertEquals(12, sessions.get(0).totalQuestions());
+        org.junit.jupiter.api.Assertions.assertEquals(30, sessions.get(0).durationMinutes());
+        org.junit.jupiter.api.Assertions.assertEquals(4L, sessions.get(0).answeredCount());
+
+        org.junit.jupiter.api.Assertions.assertEquals(submittedSessionId, sessions.get(1).id());
+        org.junit.jupiter.api.Assertions.assertEquals(examId, sessions.get(1).examId());
+        org.junit.jupiter.api.Assertions.assertEquals("General Psychology Mock Exam", sessions.get(1).title());
+        org.junit.jupiter.api.Assertions.assertEquals("SUBMITTED", sessions.get(1).status());
+        org.junit.jupiter.api.Assertions.assertEquals(82, sessions.get(1).score());
+        org.junit.jupiter.api.Assertions.assertEquals(50L, sessions.get(1).answeredCount());
+
+        ArgumentCaptor<UUID> userCaptor = ArgumentCaptor.forClass(UUID.class);
+        ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
+        verify(examSessionRepository).findByUserIdOrderByStartedAtDesc(userCaptor.capture(), pageableCaptor.capture());
+        org.junit.jupiter.api.Assertions.assertEquals(userId, userCaptor.getValue());
+        org.junit.jupiter.api.Assertions.assertEquals(5, pageableCaptor.getValue().getPageSize());
+    }
+
+    @Test
+    void listRecentSessionsDefaultsAndClampsLimit() {
+        UUID userId = UUID.randomUUID();
+        when(examSessionRepository.findByUserIdOrderByStartedAtDesc(any(), any())).thenReturn(List.of());
+
+        service.listRecentSessions(userId, null);
+        service.listRecentSessions(userId, 99);
+        service.listRecentSessions(userId, 0);
+
+        ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
+        verify(examSessionRepository, times(3)).findByUserIdOrderByStartedAtDesc(any(), pageableCaptor.capture());
+        org.junit.jupiter.api.Assertions.assertEquals(10, pageableCaptor.getAllValues().get(0).getPageSize());
+        org.junit.jupiter.api.Assertions.assertEquals(20, pageableCaptor.getAllValues().get(1).getPageSize());
+        org.junit.jupiter.api.Assertions.assertEquals(1, pageableCaptor.getAllValues().get(2).getPageSize());
     }
 
     @Test

@@ -572,24 +572,29 @@ export function TopicLessonsPage() {
   const resolvedSlug = normalizedSlug ? (TOPIC_SLUG_ALIASES[normalizedSlug] ?? normalizedSlug) : '';
   const topicData = resolvedSlug ? TOPICS_DATA[resolvedSlug] : null;
   const [completedSet, setCompletedSet] = useState<Set<string>>(new Set());
+  const [isProgressLoading, setIsProgressLoading] = useState(Boolean(resolvedSlug));
 
   useEffect(() => {
     let isActive = true;
     if (!resolvedSlug) {
+      setIsProgressLoading(false);
       return undefined;
     }
+    setIsProgressLoading(true);
     fetchLessonProgress(resolvedSlug)
       .then((data) => {
         if (!isActive) {
           return;
         }
         setCompletedSet(new Set(data.map((item) => item.lessonId)));
+        setIsProgressLoading(false);
       })
       .catch(() => {
         if (!isActive) {
           return;
         }
         setCompletedSet(new Set());
+        setIsProgressLoading(false);
       });
     return () => {
       isActive = false;
@@ -614,14 +619,14 @@ export function TopicLessonsPage() {
 
   const derivedLessons = topicData.lessons.map((lesson) => ({
     ...lesson,
-    completed: completedSet.has(lesson.id)
+    completed: !isProgressLoading && completedSet.has(lesson.id)
   }));
   const completedLessons = derivedLessons.filter((l) => l.completed).length;
   const totalLessons = derivedLessons.length;
   const progress = Math.round((completedLessons / totalLessons) * 100);
   const totalQuestions = derivedLessons.reduce((sum, l) => sum + l.questionsCount, 0);
   const totalDuration = derivedLessons.reduce((sum, l) => sum + l.duration, 0);
-  const nextLesson = derivedLessons.find((l) => !l.completed);
+  const nextLesson = isProgressLoading ? undefined : derivedLessons.find((l) => !l.completed);
   const colorStyle = COLOR_STYLES[topicData.color] ?? COLOR_STYLES.gray;
 
   return (
@@ -651,15 +656,20 @@ export function TopicLessonsPage() {
               </div>
             </div>
 
-            {nextLesson && (
+            {(isProgressLoading || nextLesson) && (
               <Button
                 size="lg"
-                onClick={() =>
-                  navigate(`/dashboard/study/lesson/${resolvedSlug}/${nextLesson.id}`)
-                }
-                leftIcon={<Play className="h-5 w-5" />}
+                isLoading={isProgressLoading}
+                disabled={isProgressLoading || !nextLesson}
+                onClick={() => {
+                  if (!nextLesson) {
+                    return;
+                  }
+                  navigate(`/dashboard/study/lesson/${resolvedSlug}/${nextLesson.id}`);
+                }}
+                leftIcon={!isProgressLoading ? <Play className="h-5 w-5" /> : undefined}
               >
-                Continue Learning
+                {isProgressLoading ? 'Loading Progress...' : 'Continue Learning'}
               </Button>
             )}
           </div>
@@ -705,10 +715,12 @@ export function TopicLessonsPage() {
           <div className="space-y-3">
             {derivedLessons.map((lesson, index) => {
               const isLocked =
+                isProgressLoading ||
                 index > 0 &&
                 !derivedLessons[index - 1].completed &&
                 !lesson.completed;
               const isCurrent =
+                !isProgressLoading &&
                 !lesson.completed &&
                 (index === 0 || derivedLessons[index - 1].completed);
 

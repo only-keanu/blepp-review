@@ -7,6 +7,7 @@ import com.kei.review.exams.dto.ExamResponse;
 import com.kei.review.exams.dto.ExamResultResponse;
 import com.kei.review.exams.dto.ExamSessionQuestionResponse;
 import com.kei.review.exams.dto.ExamSessionResponse;
+import com.kei.review.exams.dto.ExamSessionSummaryResponse;
 import com.kei.review.exams.dto.ExamSubmitResponse;
 import com.kei.review.exams.dto.QuestionBankExamSessionRequest;
 import com.kei.review.users.AccessService;
@@ -18,6 +19,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -36,6 +38,14 @@ public class ExamController {
     @GetMapping
     public ResponseEntity<List<ExamResponse>> listExams() {
         return ResponseEntity.ok(examService.listExams());
+    }
+
+    @GetMapping("/sessions/recent")
+    public ResponseEntity<List<ExamSessionSummaryResponse>> listRecentSessions(
+        @RequestParam(required = false) Integer limit,
+        @AuthenticationPrincipal UserPrincipal principal
+    ) {
+        return ResponseEntity.ok(examService.listRecentSessions(principal.getId(), limit));
     }
 
     @PostMapping("/question-bank/session")

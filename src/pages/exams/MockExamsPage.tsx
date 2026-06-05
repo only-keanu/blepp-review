@@ -21,9 +21,10 @@ export function MockExamsPage() {
       setIsLoading(true);
       setError('');
       try {
-        const data = await apiFetch<Exam[]>('/api/exams');
-        setExams(data);
+        const examsData = await apiFetch<Exam[]>('/api/exams');
+        setExams(examsData);
       } catch (err) {
+        setExams([]);
         setError('Failed to load exams.');
       } finally {
         setIsLoading(false);
@@ -51,11 +52,14 @@ export function MockExamsPage() {
         {isLoading ?
         <div className="text-center py-16 text-slate-500 dark:text-slate-400">Loading...</div> :
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="space-y-4">
+          <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">Available Mock Exams</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {exams.map((exam) =>
           <MockExamCard key={exam.id} {...exam} />
             )}
           </div>
+        </div>
         }
       </div>
     </AppLayout>);

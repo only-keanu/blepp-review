@@ -4,6 +4,8 @@ import { Card } from '../../components/ui/Card';
 import { Progress } from '../../components/ui/Progress';
 import { TrendingUp, Calendar, Target, Zap } from 'lucide-react';
 import { apiFetch } from '../../lib/api';
+import { RecentExamSessionsWidget } from '../../components/exams/RecentExamSessionsWidget';
+import { fetchRecentExamSessions, RecentExamSession } from '../../lib/examSessionsApi';
 export function AnalyticsPage() {
   const [overview, setOverview] = useState({
     accuracy: '0%',
@@ -17,17 +19,31 @@ export function AnalyticsPage() {
   const [trendPoints, setTrendPoints] = useState<
     { label: string; accuracy: number }[]
   >([]);
+  const [recentSessions, setRecentSessions] = useState<RecentExamSession[]>([]);
+  const [isSessionsLoading, setIsSessionsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [sessionsError, setSessionsError] = useState('');
 
   useEffect(() => {
     const loadAnalytics = async () => {
       setError('');
+      setSessionsError('');
+      setIsSessionsLoading(true);
       try {
-        const [overviewData, masteryData, trendData] = await Promise.all([
+        const [overviewResult, masteryResult, trendResult, sessionsResult] = await Promise.allSettled([
           apiFetch<any>('/api/analytics/overview'),
           apiFetch<any>('/api/analytics/topic-mastery'),
-          apiFetch<any>('/api/analytics/accuracy-trend')
+          apiFetch<any>('/api/analytics/accuracy-trend'),
+          fetchRecentExamSessions(10)
         ]);
+
+        if (overviewResult.status === 'rejected' || masteryResult.status === 'rejected' || trendResult.status === 'rejected') {
+          setError('Failed to load analytics.');
+        }
+
+        const overviewData = overviewResult.status === 'fulfilled' ? overviewResult.value : {};
+        const masteryData = masteryResult.status === 'fulfilled' ? masteryResult.value : {};
+        const trendData = trendResult.status === 'fulfilled' ? trendResult.value : {};
 
         setOverview({
           accuracy: overviewData.accuracy ?? '0%',
@@ -49,8 +65,17 @@ export function AnalyticsPage() {
             accuracy: point.accuracy ?? 0
           }))
         );
+
+        if (sessionsResult.status === 'fulfilled') {
+          setRecentSessions(sessionsResult.value);
+        } else {
+          setRecentSessions([]);
+          setSessionsError('Failed to load recent exam activity.');
+        }
       } catch (err) {
         setError('Failed to load analytics.');
+      } finally {
+        setIsSessionsLoading(false);
       }
     };
 
@@ -209,6 +234,15 @@ export function AnalyticsPage() {
             </div>
           </Card>
         </div>
+
+        <RecentExamSessionsWidget
+          sessions={recentSessions}
+          isLoading={isSessionsLoading}
+          error={sessionsError}
+          title="Recent Exam Activity"
+          description="Completed exam sessions and exams ready to resume"
+          variant="activity"
+        />
       </div>
     </AppLayout>);
 

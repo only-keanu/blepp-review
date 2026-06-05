@@ -7,6 +7,7 @@ import com.kei.review.exams.dto.ExamResponse;
 import com.kei.review.exams.dto.ExamResultResponse;
 import com.kei.review.exams.dto.ExamSessionQuestionResponse;
 import com.kei.review.exams.dto.ExamSessionResponse;
+import com.kei.review.exams.dto.ExamSessionSummaryResponse;
 import com.kei.review.exams.dto.ExamSubmitResponse;
 import com.kei.review.exams.dto.QuestionBankExamSessionRequest;
 import com.kei.review.questions.Question;
@@ -23,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -63,6 +65,15 @@ public class ExamServiceImpl implements ExamService {
                 exam.getDurationMinutes(),
                 exam.getDescription()
             ))
+            .toList();
+    }
+
+    @Override
+    public List<ExamSessionSummaryResponse> listRecentSessions(UUID userId, Integer limit) {
+        int boundedLimit = normalizeRecentSessionLimit(limit);
+        return examSessionRepository.findByUserIdOrderByStartedAtDesc(userId, PageRequest.of(0, boundedLimit))
+            .stream()
+            .map(this::toSessionSummaryResponse)
             .toList();
     }
 
@@ -398,6 +409,24 @@ public class ExamServiceImpl implements ExamService {
         );
     }
 
+    private ExamSessionSummaryResponse toSessionSummaryResponse(ExamSession session) {
+        MockExam exam = session.getMockExam();
+        long answeredCount = examAnswerRepository.countByExamSessionId(session.getId());
+        return new ExamSessionSummaryResponse(
+            session.getId(),
+            exam == null ? null : exam.getId(),
+            exam == null ? "Question Bank Review" : exam.getTitle(),
+            session.getSubmittedAt() == null ? "IN_PROGRESS" : "SUBMITTED",
+            session.getStartedAt(),
+            session.getSubmittedAt(),
+            session.getScore(),
+            totalQuestionsFor(session, 0),
+            durationMinutesFor(session),
+            session.getTimeTakenSeconds(),
+            answeredCount
+        );
+    }
+
     private int totalQuestionsFor(ExamSession session, int fallback) {
         if (session.getTotalQuestions() != null) {
             return session.getTotalQuestions();
@@ -437,5 +466,12 @@ public class ExamServiceImpl implements ExamService {
             return List.of();
         }
         return new ArrayList<>(new LinkedHashSet<>(topicIds));
+    }
+
+    private int normalizeRecentSessionLimit(Integer limit) {
+        if (limit == null) {
+            return 10;
+        }
+        return Math.max(1, Math.min(limit, 20));
     }
 }

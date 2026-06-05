@@ -20,7 +20,23 @@ type SessionQuestion = {
   questionId: string;
   text: string;
   choices: string[];
+  selectedAnswerIndex?: number | null;
+  flagged?: boolean | null;
 };
+
+function buildQuestionState(questions: SessionQuestion[]) {
+  const savedAnswers: Record<number, number> = {};
+  const savedFlagged: number[] = [];
+  questions.forEach((question, index) => {
+    if (typeof question.selectedAnswerIndex === 'number') {
+      savedAnswers[index] = question.selectedAnswerIndex;
+    }
+    if (question.flagged) {
+      savedFlagged.push(index);
+    }
+  });
+  return { savedAnswers, savedFlagged };
+}
 
 export function TakeExamPage() {
   const { id } = useParams();
@@ -38,6 +54,13 @@ export function TakeExamPage() {
   const [sessionExamId, setSessionExamId] = useState<string | null | undefined>(undefined);
 
   useEffect(() => {
+    const hydrateQuestionState = (questions: SessionQuestion[]) => {
+      const { savedAnswers, savedFlagged } = buildQuestionState(questions);
+      setAnswers(savedAnswers);
+      setFlagged(savedFlagged);
+      setCurrentQuestionIndex(0);
+    };
+
     const startSession = async () => {
       if (!id) return;
       setIsLoading(true);
@@ -53,6 +76,7 @@ export function TakeExamPage() {
           setSessionExamId(session.examId);
           setDurationMinutes(session.durationMinutes ?? 45);
           setQuestions(questions);
+          hydrateQuestionState(questions);
           return;
         }
         session = await apiFetch<ExamSessionResponse>(`/api/exams/${id}/session`, {
@@ -65,6 +89,7 @@ export function TakeExamPage() {
           `/api/exams/session/${session.id}/questions`
         );
         setQuestions(qs);
+        hydrateQuestionState(qs);
       } catch (err) {
         setError('Failed to start exam session.');
       } finally {
