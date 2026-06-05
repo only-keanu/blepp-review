@@ -26,11 +26,20 @@ type FlashcardPayload = {
   category?: string;
 };
 
+type StatusFilter = 'all' | 'high' | 'medium' | 'low';
+
+const statusFilterLabels: Record<Exclude<StatusFilter, 'all'>, string> = {
+  high: 'Mastered',
+  medium: 'Learning',
+  low: 'Needs Review'
+};
+
 export function ManageFlashcardsPage() {
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
   const [topics, setTopics] = useState<Topic[]>([]);
   const [search, setSearch] = useState('');
   const [topicFilter, setTopicFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingFlashcard, setEditingFlashcard] = useState<Flashcard | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Flashcard | null>(null);
@@ -90,9 +99,10 @@ export function ManageFlashcardsPage() {
         fc.back.toLowerCase().includes(search.toLowerCase());
       const matchesTopic =
         topicFilter === 'all' || fc.topic === topics.find((t) => t.id === topicFilter)?.name;
-      return matchesSearch && matchesTopic;
+      const matchesStatus = statusFilter === 'all' || fc.confidence === statusFilter;
+      return matchesSearch && matchesTopic && matchesStatus;
     });
-  }, [flashcards, search, topicFilter, topics]);
+  }, [flashcards, search, statusFilter, topicFilter, topics]);
 
   const handleAddFlashcard = async (payload: FlashcardPayload) => {
     setIsLoading(true);
@@ -209,6 +219,19 @@ export function ManageFlashcardsPage() {
     ...topics.map((t) => ({ value: t.id, label: t.name }))
   ];
 
+  const activeStatusLabel = statusFilter === 'all' ? null : statusFilterLabels[statusFilter];
+  const hasActiveFilters = search.trim() !== '' || topicFilter !== 'all' || statusFilter !== 'all';
+  const toggleStatusFilter = (nextFilter: StatusFilter) => {
+    setStatusFilter((current) => current === nextFilter ? 'all' : nextFilter);
+  };
+  const getStatCardClassName = (filter: StatusFilter, accentClassName = '') => {
+    const isActive = statusFilter === filter;
+    const activeClassName = isActive
+      ? 'ring-2 ring-teal-500 border-teal-500 dark:border-teal-400'
+      : 'hover:border-teal-200 dark:hover:border-teal-700';
+    return `text-center py-4 transition-colors focus:outline-none focus:ring-2 focus:ring-teal-500 ${accentClassName} ${activeClassName}`;
+  };
+
   return (
     <AppLayout>
       <div className="space-y-6">
@@ -240,23 +263,29 @@ export function ManageFlashcardsPage() {
         )}
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <Card className="text-center py-4">
+          <Card className={getStatCardClassName('all')} onClick={() => setStatusFilter('all')}>
             <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">{stats.total}</p>
             <p className="text-sm text-slate-500 dark:text-slate-400">Total Cards</p>
           </Card>
-          <Card className="text-center py-4 border-l-4 border-l-green-500">
+          <Card
+            className={getStatCardClassName('high', 'border-l-4 border-l-green-500')}
+            onClick={() => toggleStatusFilter('high')}>
             <p className="text-3xl font-bold text-green-600">
               {stats.mastered}
             </p>
             <p className="text-sm text-slate-500 dark:text-slate-400">Mastered</p>
           </Card>
-          <Card className="text-center py-4 border-l-4 border-l-amber-500">
+          <Card
+            className={getStatCardClassName('medium', 'border-l-4 border-l-amber-500')}
+            onClick={() => toggleStatusFilter('medium')}>
             <p className="text-3xl font-bold text-amber-600">
               {stats.learning}
             </p>
             <p className="text-sm text-slate-500 dark:text-slate-400">Learning</p>
           </Card>
-          <Card className="text-center py-4 border-l-4 border-l-red-500">
+          <Card
+            className={getStatCardClassName('low', 'border-l-4 border-l-red-500')}
+            onClick={() => toggleStatusFilter('low')}>
             <p className="text-3xl font-bold text-red-600">
               {stats.needsReview}
             </p>
@@ -284,6 +313,17 @@ export function ManageFlashcardsPage() {
             />
           </div>
         </div>
+        {activeStatusLabel && (
+          <div className="flex flex-wrap items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+            <Filter className="h-4 w-4 text-teal-600 dark:text-teal-400" />
+            <span>
+              Status filter: <span className="font-medium">{activeStatusLabel}</span>
+            </span>
+            <Button variant="ghost" size="sm" onClick={() => setStatusFilter('all')}>
+              Clear
+            </Button>
+          </div>
+        )}
 
         {isLoading ? (
           <div className="text-center py-16 text-slate-500 dark:text-slate-400">Loading...</div>
@@ -293,16 +333,22 @@ export function ManageFlashcardsPage() {
               <RotateCw className="h-8 w-8 text-slate-400 dark:text-slate-500" />
             </div>
             <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100 mb-2">
-              No flashcards found
+              {flashcards.length > 0 && hasActiveFilters
+                ? 'No flashcards match the selected filters.'
+                : 'No flashcards found'}
             </h3>
             <p className="text-slate-500 dark:text-slate-400 mb-6">
-              Create your first flashcard to start studying!
+              {flashcards.length > 0 && hasActiveFilters
+                ? 'Try clearing a filter or adjusting your search.'
+                : 'Create your first flashcard to start studying!'}
             </p>
-            <Button
-              onClick={() => setIsAddModalOpen(true)}
-              leftIcon={<Plus className="h-4 w-4" />}>
-              Create Flashcard
-            </Button>
+            {flashcards.length === 0 && (
+              <Button
+                onClick={() => setIsAddModalOpen(true)}
+                leftIcon={<Plus className="h-4 w-4" />}>
+                Create Flashcard
+              </Button>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

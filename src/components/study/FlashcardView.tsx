@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { RotateCw, ThumbsUp, ThumbsDown, HelpCircle } from 'lucide-react';
 import { Button } from '../ui/Button';
+type Confidence = 'low' | 'medium' | 'high';
 interface Flashcard {
   id: string;
   front: string;
@@ -9,16 +10,69 @@ interface Flashcard {
 }
 interface FlashcardViewProps {
   card: Flashcard;
-  onRate: (confidence: 'low' | 'medium' | 'high') => void;
+  onRate: (confidence: Confidence) => void | Promise<void>;
 }
 export function FlashcardView({ card, onRate }: FlashcardViewProps) {
   const [isFlipped, setIsFlipped] = useState(false);
-  const handleFlip = () => setIsFlipped(!isFlipped);
+  const [isRating, setIsRating] = useState(false);
+  const handleFlip = useCallback(() => {
+    if (!isRating) {
+      setIsFlipped((prev) => !prev);
+    }
+  }, [isRating]);
+  const handleRate = useCallback(async (confidence: Confidence) => {
+    if (!isFlipped || isRating) return;
+    setIsRating(true);
+    await onRate(confidence);
+    setIsFlipped(false);
+    setIsRating(false);
+  }, [isFlipped, isRating, onRate]);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      const tagName = target?.tagName;
+      const isEditableTarget =
+        target?.isContentEditable ||
+        tagName === 'INPUT' ||
+        tagName === 'TEXTAREA' ||
+        tagName === 'SELECT' ||
+        tagName === 'BUTTON';
+
+      if (isEditableTarget || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) {
+        return;
+      }
+
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        handleFlip();
+        return;
+      }
+
+      if (!isFlipped) return;
+
+      if (event.key === '1') {
+        event.preventDefault();
+        void handleRate('low');
+      } else if (event.key === '2') {
+        event.preventDefault();
+        void handleRate('medium');
+      } else if (event.key === '3') {
+        event.preventDefault();
+        void handleRate('high');
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleFlip, handleRate, isFlipped]);
+
   return (
     <div className="w-full max-w-2xl mx-auto perspective-1000">
       <div
         className="relative h-96 w-full cursor-pointer transition-all duration-500 transform-style-3d"
         onClick={handleFlip}
+        aria-keyshortcuts="Enter"
         style={{
           transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)'
         }}>
@@ -62,10 +116,11 @@ export function FlashcardView({ card, onRate }: FlashcardViewProps) {
           <Button
             variant="outline"
             className="border-red-200 hover:bg-red-50 text-red-700 hover:border-red-300"
+            disabled={isRating}
+            aria-keyshortcuts="1"
             onClick={(e) => {
               e.stopPropagation();
-              onRate('low');
-              setIsFlipped(false);
+              void handleRate('low');
             }}
             leftIcon={<ThumbsDown className="h-4 w-4" />}>
 
@@ -74,10 +129,11 @@ export function FlashcardView({ card, onRate }: FlashcardViewProps) {
           <Button
             variant="outline"
             className="border-amber-200 hover:bg-amber-50 text-amber-700 hover:border-amber-300"
+            disabled={isRating}
+            aria-keyshortcuts="2"
             onClick={(e) => {
               e.stopPropagation();
-              onRate('medium');
-              setIsFlipped(false);
+              void handleRate('medium');
             }}
             leftIcon={<HelpCircle className="h-4 w-4" />}>
 
@@ -86,10 +142,11 @@ export function FlashcardView({ card, onRate }: FlashcardViewProps) {
           <Button
             variant="outline"
             className="border-green-200 hover:bg-green-50 text-green-700 hover:border-green-300"
+            disabled={isRating}
+            aria-keyshortcuts="3"
             onClick={(e) => {
               e.stopPropagation();
-              onRate('high');
-              setIsFlipped(false);
+              void handleRate('high');
             }}
             leftIcon={<ThumbsUp className="h-4 w-4" />}>
 

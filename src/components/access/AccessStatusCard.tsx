@@ -9,9 +9,10 @@ import { Button } from '../ui/Button';
 interface AccessStatusCardProps {
   user: User | null;
   compact?: boolean;
+  hidePaidAccess?: boolean;
 }
 
-export function AccessStatusCard({ user, compact = false }: AccessStatusCardProps) {
+export function AccessStatusCard({ user, compact = false, hidePaidAccess = false }: AccessStatusCardProps) {
   if (!user?.access) {
     return null;
   }
@@ -20,6 +21,10 @@ export function AccessStatusCard({ user, compact = false }: AccessStatusCardProp
   const isTrial = access.accessStatus === 'TRIAL';
   const isPaid = access.accessStatus === 'PAID';
   const isExpired = access.accessStatus === 'EXPIRED';
+  if (hidePaidAccess && isPaid && !access.admin) {
+    return null;
+  }
+
   const expiry = isPaid ? access.paidUntil : access.trialEndsAt;
   const expiryLabel = formatDateTime(expiry);
   const title = access.admin
