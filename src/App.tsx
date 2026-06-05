@@ -41,6 +41,7 @@ import { ReadinessPage } from './pages/progress/ReadinessPage';
 // Settings Pages
 import { ProfilePage } from './pages/settings/ProfilePage';
 import { TopicsSettingsPage } from './pages/settings/TopicsPage';
+import { KeyboardShortcutsPage } from './pages/settings/KeyboardShortcutsPage';
 // Protected Route Wrapper
 function ProtectedRoute({ children }: {children: React.ReactNode;}) {
   const { user, isLoading } = useAuth();
@@ -319,6 +320,14 @@ export function App() {
           element={
           <ProtectedRoute>
               <PaymentAccessPage />
+            </ProtectedRoute>
+          } />
+
+        <Route
+          path="/dashboard/settings/shortcuts"
+          element={
+          <ProtectedRoute>
+              <KeyboardShortcutsPage />
             </ProtectedRoute>
           } />
 

@@ -7,6 +7,7 @@ import { Card } from '../../components/ui/Card';
 import { Modal } from '../../components/ui/Modal';
 import { ArrowLeft, ArrowRight, Flag } from 'lucide-react';
 import { apiFetch } from '../../lib/api';
+import { KeyboardShortcuts } from '../../components/shortcuts/KeyboardShortcuts';
 
 type ExamSessionResponse = {
   id: string;
@@ -128,8 +129,53 @@ export function TakeExamPage() {
     }
   };
 
+  const examShortcuts = [
+    {
+      keys: 'ArrowLeft',
+      label: 'Previous question',
+      group: 'Exam',
+      enabled: Boolean(currentQuestion),
+      action: () => setCurrentQuestionIndex((prev) => Math.max(prev - 1, 0))
+    },
+    {
+      keys: 'ArrowRight',
+      label: 'Next question',
+      group: 'Exam',
+      enabled: Boolean(currentQuestion),
+      action: () => setCurrentQuestionIndex((prev) => Math.min(prev + 1, totalQuestions - 1))
+    },
+    ...[0, 1, 2, 3].map((choiceIndex) => ({
+      keys: String(choiceIndex + 1),
+      label: `Answer choice ${choiceIndex + 1}`,
+      group: 'Exam',
+      enabled: Boolean(currentQuestion?.choices[choiceIndex]),
+      action: () => {
+        if (currentQuestion?.choices[choiceIndex]) {
+          void handleAnswer(choiceIndex);
+        }
+      }
+    })),
+    {
+      keys: 'f',
+      label: 'Flag or unflag question',
+      group: 'Exam',
+      enabled: Boolean(currentQuestion),
+      action: () => {
+        void toggleFlag();
+      }
+    },
+    {
+      keys: 's',
+      label: 'Open submit confirmation',
+      group: 'Exam',
+      enabled: Boolean(currentQuestion),
+      action: () => setIsSubmitModalOpen(true)
+    }
+  ];
+
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col">
+    <KeyboardShortcuts includeGlobal={false} pageShortcuts={examShortcuts}>
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col">
       <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 py-3 sticky top-0 z-10">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <h1 className="font-bold text-slate-900 dark:text-slate-100">BLEPP Simulation</h1>
@@ -316,6 +362,7 @@ export function TakeExamPage() {
           </p>
         )}
       </Modal>
-    </div>
+      </div>
+    </KeyboardShortcuts>
   );
 }

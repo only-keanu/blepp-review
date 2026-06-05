@@ -9,6 +9,7 @@ import { Plus, Search, Filter, Sparkles, PenLine, PlayCircle } from 'lucide-reac
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Question, Topic } from '../../types';
 import { apiFetch } from '../../lib/api';
+import { useAuth } from '../../hooks/useAuth';
 
 type QuestionPayload = {
   text: string;
@@ -42,6 +43,7 @@ export function BankPage() {
   const [isStartingReview, setIsStartingReview] = useState(false);
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   useEffect(() => {
     const queryParam = searchParams.get('query') || '';
@@ -228,8 +230,43 @@ export function BankPage() {
     }
   };
 
+  const isModalOpen =
+    isAddModalOpen ||
+    Boolean(editingQuestion) ||
+    Boolean(viewQuestion) ||
+    Boolean(deleteTarget) ||
+    isReviewModalOpen;
+  const pageShortcuts = React.useMemo(
+    () => [
+      {
+        keys: 'n',
+        label: 'Add question manually',
+        group: 'Question Bank',
+        enabled: !isModalOpen,
+        action: () => {
+          setEditingQuestion(null);
+          setIsAddModalOpen(true);
+        }
+      },
+      {
+        keys: 'r',
+        label: 'Review questions',
+        group: 'Question Bank',
+        enabled: !isModalOpen,
+        action: () => setIsReviewModalOpen(true)
+      },
+      {
+        keys: 'a',
+        label: 'Generate questions with AI',
+        group: 'Question Bank',
+        enabled: !isModalOpen && Boolean(user?.hasAiAccess),
+        action: () => navigate('/dashboard/questions/generate')
+      }
+    ],
+    [isModalOpen, navigate, user?.hasAiAccess]
+  );
   return (
-    <AppLayout>
+    <AppLayout pageShortcuts={pageShortcuts}>
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>

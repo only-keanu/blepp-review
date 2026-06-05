@@ -5,6 +5,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { apiFetch } from '../../lib/api';
 interface HeaderProps {
   onMenuClick: () => void;
+  searchInputRef?: React.RefObject<HTMLInputElement>;
 }
 type SearchResult = {
   id: string;
@@ -13,7 +14,7 @@ type SearchResult = {
   subtitle?: string;
   href: string;
 };
-export function Header({ onMenuClick }: HeaderProps) {
+export function Header({ onMenuClick, searchInputRef }: HeaderProps) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -161,6 +162,7 @@ export function Header({ onMenuClick }: HeaderProps) {
           <div className="hidden md:flex items-center relative" ref={containerRef}>
             <Search className="absolute left-3 h-4 w-4 text-slate-400 dark:text-slate-500" />
             <input
+              ref={searchInputRef}
               type="text"
               placeholder="Search topics, flashcards, or questions..."
               className="pl-9 pr-4 py-1.5 w-72 text-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"

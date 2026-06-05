@@ -10,7 +10,8 @@ interface SettingsLayoutProps {
 const settingsTabs = [
   { name: 'Profile', href: '/dashboard/settings' },
   { name: 'Study Priorities', href: '/dashboard/settings/topics' },
-  { name: 'Access', href: '/dashboard/settings/access' }
+  { name: 'Access', href: '/dashboard/settings/access' },
+  { name: 'Keyboard Shortcuts', href: '/dashboard/settings/shortcuts' }
 ];
 
 export function SettingsLayout({ children, maxWidthClassName = 'max-w-2xl' }: SettingsLayoutProps) {
@@ -30,7 +31,7 @@ export function SettingsLayout({ children, maxWidthClassName = 'max-w-2xl' }: Se
           <div>
             <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Settings</h1>
             <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-              Manage your profile, study priorities, and account access.
+              Manage your profile, study priorities, account access, and shortcuts.
             </p>
           </div>
           <nav className="flex gap-2 overflow-x-auto border-b border-slate-200 dark:border-slate-800">

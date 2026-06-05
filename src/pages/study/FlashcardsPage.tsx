@@ -211,9 +211,38 @@ export function FlashcardsPage() {
     [topics]
   );
 
+  const pageShortcuts = useMemo(
+    () => [
+      {
+        keys: 'Enter',
+        label: 'Flip card',
+        group: 'Flashcard Review',
+        enabled: !isComplete && Boolean(currentCard)
+      },
+      {
+        keys: '1',
+        label: 'Forgot',
+        group: 'Flashcard Review',
+        enabled: !isComplete && Boolean(currentCard)
+      },
+      {
+        keys: '2',
+        label: 'Unsure',
+        group: 'Flashcard Review',
+        enabled: !isComplete && Boolean(currentCard)
+      },
+      {
+        keys: '3',
+        label: 'Knew it',
+        group: 'Flashcard Review',
+        enabled: !isComplete && Boolean(currentCard)
+      }
+    ],
+    [currentCard, isComplete]
+  );
   if (isComplete) {
     return (
-      <AppLayout>
+      <AppLayout pageShortcuts={pageShortcuts}>
         <FlashcardCompletionScreen
           stats={{ ...stats, totalCards }}
           onRestart={handleRestart}
@@ -224,7 +253,7 @@ export function FlashcardsPage() {
   }
 
   return (
-    <AppLayout>
+    <AppLayout pageShortcuts={pageShortcuts}>
       <div className="max-w-4xl mx-auto h-[calc(100vh-8rem)] flex flex-col">
         <div className="flex items-center justify-between mb-8">
           <Link

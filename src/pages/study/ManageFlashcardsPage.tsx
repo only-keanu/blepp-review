@@ -221,6 +221,7 @@ export function ManageFlashcardsPage() {
 
   const activeStatusLabel = statusFilter === 'all' ? null : statusFilterLabels[statusFilter];
   const hasActiveFilters = search.trim() !== '' || topicFilter !== 'all' || statusFilter !== 'all';
+  const isModalOpen = isAddModalOpen || Boolean(deleteTarget);
   const toggleStatusFilter = (nextFilter: StatusFilter) => {
     setStatusFilter((current) => current === nextFilter ? 'all' : nextFilter);
   };
@@ -232,8 +233,23 @@ export function ManageFlashcardsPage() {
     return `text-center py-4 transition-colors focus:outline-none focus:ring-2 focus:ring-teal-500 ${accentClassName} ${activeClassName}`;
   };
 
+  const pageShortcuts = useMemo(
+    () => [
+      {
+        keys: 'n',
+        label: 'Create flashcard',
+        group: 'Flashcards',
+        enabled: !isModalOpen,
+        action: () => {
+          setEditingFlashcard(null);
+          setIsAddModalOpen(true);
+        }
+      }
+    ],
+    [isModalOpen]
+  );
   return (
-    <AppLayout>
+    <AppLayout pageShortcuts={pageShortcuts}>
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>

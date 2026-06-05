@@ -163,8 +163,20 @@ export function TopicsPage() {
     });
   }, [topics, searchParams, progressByTopic, questionCounts]);
 
+  const pageShortcuts = useMemo(
+    () => [
+      {
+        keys: 'n',
+        label: 'Add topic',
+        group: 'Study Topics',
+        enabled: !isAddOpen,
+        action: () => setIsAddOpen(true)
+      }
+    ],
+    [isAddOpen]
+  );
   return (
-    <AppLayout>
+    <AppLayout pageShortcuts={pageShortcuts}>
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
           <div>
