@@ -4,6 +4,7 @@ import com.kei.review.config.SeedData;
 import com.kei.review.flashcards.dto.FlashcardCreateRequest;
 import com.kei.review.flashcards.dto.FlashcardResponse;
 import com.kei.review.flashcards.dto.FlashcardReviewRequest;
+import com.kei.review.flashcards.dto.FlashcardReviewQueueResponse;
 import com.kei.review.flashcards.dto.FlashcardQueueSummaryResponse;
 import com.kei.review.flashcards.dto.FlashcardUpdateRequest;
 import com.kei.review.topics.Topic;
@@ -11,7 +12,7 @@ import com.kei.review.topics.TopicRepository;
 import com.kei.review.users.User;
 import com.kei.review.users.UserRepository;
 import java.time.Instant;
-import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -25,6 +26,7 @@ public class FlashcardServiceImpl implements FlashcardService {
     private final FlashcardRepository flashcardRepository;
     private final TopicRepository topicRepository;
     private final UserRepository userRepository;
+    private final FlashcardScheduler scheduler = new FlashcardScheduler();
 
     public FlashcardServiceImpl(
         FlashcardRepository flashcardRepository,
@@ -46,27 +48,77 @@ public class FlashcardServiceImpl implements FlashcardService {
 
     @Override
     public List<FlashcardResponse> listDue(UUID userId, UUID topicId) {
-        LocalDate today = LocalDate.now();
+        Instant now = Instant.now();
         return effectiveFlashcards(userId, topicId).stream()
-            .filter(flashcard -> flashcard.getNextReview() == null || !flashcard.getNextReview().isAfter(today))
+            .filter(flashcard -> scheduler.isDue(flashcard, now))
+            .sorted(dueComparator())
             .map(this::toResponse)
             .toList();
     }
 
     @Override
+    public FlashcardReviewQueueResponse reviewQueue(UUID userId, UUID topicId, int limit) {
+        Instant now = Instant.now();
+        int effectiveLimit = Math.max(1, Math.min(limit, 100));
+        List<Flashcard> flashcards = effectiveFlashcards(userId, topicId);
+        List<Flashcard> dueCards = flashcards.stream()
+            .filter(flashcard -> scheduler.isDue(flashcard, now))
+            .sorted(dueComparator())
+            .toList();
+        Instant nextDueAt = nextDueAt(flashcards, now);
+
+        if (!dueCards.isEmpty()) {
+            return new FlashcardReviewQueueResponse(
+                FlashcardReviewQueueMode.DUE,
+                dueCards.stream().limit(effectiveLimit).map(this::toResponse).toList(),
+                dueCards.size(),
+                0,
+                nextDueAt
+            );
+        }
+
+        List<Flashcard> fallbackCards = flashcards.stream()
+            .filter(flashcard -> isWeakFallbackCandidate(flashcard, now))
+            .sorted(weakFallbackComparator())
+            .toList();
+
+        return new FlashcardReviewQueueResponse(
+            FlashcardReviewQueueMode.WEAK_FALLBACK,
+            fallbackCards.stream().limit(effectiveLimit).map(this::toResponse).toList(),
+            0,
+            fallbackCards.size(),
+            nextDueAt
+        );
+    }
+
+    @Override
     public FlashcardQueueSummaryResponse summary(UUID userId, UUID topicId) {
-        LocalDate today = LocalDate.now();
+        Instant now = Instant.now();
         List<Flashcard> flashcards = effectiveFlashcards(userId, topicId);
         long newCards = flashcards.stream()
-            .filter(flashcard -> flashcard.getNextReview() == null)
+            .filter(flashcard -> scheduler.reviewState(flashcard) == FlashcardReviewState.NEW)
             .count();
         long scheduledDue = flashcards.stream()
-            .filter(flashcard -> flashcard.getNextReview() != null && !flashcard.getNextReview().isAfter(today))
+            .filter(flashcard -> scheduler.isDue(flashcard, now) && scheduler.reviewState(flashcard) != FlashcardReviewState.NEW)
             .count();
         long mastered = flashcards.stream()
             .filter(flashcard -> FlashcardConfidence.HIGH == flashcard.getConfidence())
             .count();
-        return new FlashcardQueueSummaryResponse(newCards + scheduledDue, newCards, mastered);
+        long learningCards = flashcards.stream()
+            .filter(flashcard -> scheduler.reviewState(flashcard) == FlashcardReviewState.LEARNING
+                || scheduler.reviewState(flashcard) == FlashcardReviewState.RELEARNING)
+            .count();
+        long reviewCards = flashcards.stream()
+            .filter(flashcard -> scheduler.reviewState(flashcard) == FlashcardReviewState.REVIEW)
+            .count();
+        long overdueCards = flashcards.stream()
+            .filter(flashcard -> {
+                Instant dueAt = scheduler.effectiveDueAt(flashcard);
+                return dueAt != null && dueAt.isBefore(now);
+            })
+            .count();
+        return new FlashcardQueueSummaryResponse(newCards + scheduledDue, newCards, mastered, learningCards, reviewCards,
+            overdueCards);
     }
 
     @Override
@@ -86,6 +138,7 @@ public class FlashcardServiceImpl implements FlashcardService {
             .nextReview(null)
             .createdAt(Instant.now())
             .build();
+        scheduler.initializeNewCard(flashcard);
 
         return toResponse(flashcardRepository.save(flashcard));
     }
@@ -132,8 +185,7 @@ public class FlashcardServiceImpl implements FlashcardService {
             flashcard = copySeedFlashcard(userId, flashcard);
         }
 
-        flashcard.setConfidence(request.confidence());
-        flashcard.setNextReview(calculateNextReview(request.confidence()));
+        scheduler.applyReview(flashcard, effectiveRating(request), Instant.now());
         return toResponse(flashcardRepository.save(flashcard));
     }
 
@@ -183,7 +235,7 @@ public class FlashcardServiceImpl implements FlashcardService {
     private Flashcard copySeedFlashcard(UUID userId, Flashcard seedFlashcard) {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new IllegalStateException("User not found"));
-        return Flashcard.builder()
+        Flashcard flashcard = Flashcard.builder()
             .user(user)
             .topic(seedFlashcard.getTopic())
             .front(seedFlashcard.getFront())
@@ -193,17 +245,74 @@ public class FlashcardServiceImpl implements FlashcardService {
             .nextReview(null)
             .createdAt(Instant.now())
             .build();
+        scheduler.initializeNewCard(flashcard);
+        return flashcard;
     }
 
-    private LocalDate calculateNextReview(FlashcardConfidence confidence) {
-        LocalDate today = LocalDate.now();
-        if (confidence == null) {
-            return today.plusDays(1);
+    private Comparator<Flashcard> dueComparator() {
+        return Comparator
+            .comparingInt((Flashcard flashcard) -> scheduler.duePriority(flashcard))
+            .thenComparingInt(scheduler::easeFactor)
+            .thenComparing(Comparator.comparingInt((Flashcard flashcard) -> scheduler.lapseCount(flashcard)).reversed())
+            .thenComparing(flashcard -> {
+                Instant dueAt = scheduler.effectiveDueAt(flashcard);
+                return dueAt == null ? Instant.MAX : dueAt;
+            })
+            .thenComparing(flashcard -> flashcard.getCreatedAt() == null ? Instant.MAX : flashcard.getCreatedAt());
+    }
+
+    private Comparator<Flashcard> weakFallbackComparator() {
+        return Comparator
+            .comparingInt((Flashcard flashcard) -> confidencePriority(flashcard.getConfidence()))
+            .thenComparingInt(scheduler::easeFactor)
+            .thenComparing(Comparator.comparingInt((Flashcard flashcard) -> scheduler.lapseCount(flashcard)).reversed())
+            .thenComparing(flashcard -> {
+                Instant dueAt = scheduler.effectiveDueAt(flashcard);
+                return dueAt == null ? Instant.MAX : dueAt;
+            })
+            .thenComparing(flashcard -> flashcard.getLastReviewedAt() == null ? Instant.MAX : flashcard.getLastReviewedAt())
+            .thenComparing(flashcard -> flashcard.getCreatedAt() == null ? Instant.MAX : flashcard.getCreatedAt());
+    }
+
+    private boolean isWeakFallbackCandidate(Flashcard flashcard, Instant now) {
+        Instant dueAt = scheduler.effectiveDueAt(flashcard);
+        return scheduler.reviewState(flashcard) != FlashcardReviewState.NEW
+            && dueAt != null
+            && dueAt.isAfter(now);
+    }
+
+    private Instant nextDueAt(List<Flashcard> flashcards, Instant now) {
+        return flashcards.stream()
+            .map(scheduler::effectiveDueAt)
+            .filter(dueAt -> dueAt != null && dueAt.isAfter(now))
+            .min(Instant::compareTo)
+            .orElse(null);
+    }
+
+    private int confidencePriority(FlashcardConfidence confidence) {
+        if (confidence == FlashcardConfidence.LOW) {
+            return 0;
         }
-        return switch (confidence) {
-            case LOW -> today.plusDays(1);
-            case MEDIUM -> today.plusDays(3);
-            case HIGH -> today.plusDays(7);
+        if (confidence == FlashcardConfidence.MEDIUM) {
+            return 1;
+        }
+        if (confidence == FlashcardConfidence.HIGH) {
+            return 2;
+        }
+        return 3;
+    }
+
+    private FlashcardRating effectiveRating(FlashcardReviewRequest request) {
+        if (request.rating() != null) {
+            return request.rating();
+        }
+        if (request.confidence() == null) {
+            throw new IllegalArgumentException("rating is required");
+        }
+        return switch (request.confidence()) {
+            case LOW -> FlashcardRating.AGAIN;
+            case MEDIUM -> FlashcardRating.GOOD;
+            case HIGH -> FlashcardRating.EASY;
         };
     }
 
@@ -216,7 +325,14 @@ public class FlashcardServiceImpl implements FlashcardService {
             flashcard.getBack(),
             flashcard.getCategory(),
             flashcard.getConfidence(),
-            flashcard.getNextReview()
+            flashcard.getNextReview(),
+            scheduler.reviewState(flashcard),
+            scheduler.effectiveDueAt(flashcard),
+            flashcard.getIntervalDays(),
+            scheduler.easeFactor(flashcard),
+            flashcard.getRepetitionCount(),
+            scheduler.lapseCount(flashcard),
+            flashcard.getLastReviewedAt()
         );
     }
 }

@@ -14,10 +14,12 @@ import com.kei.review.config.SeedData;
 import com.kei.review.flashcards.dto.FlashcardQueueSummaryResponse;
 import com.kei.review.flashcards.dto.FlashcardResponse;
 import com.kei.review.flashcards.dto.FlashcardReviewRequest;
+import com.kei.review.flashcards.dto.FlashcardReviewQueueResponse;
 import com.kei.review.topics.Topic;
 import com.kei.review.topics.TopicRepository;
 import com.kei.review.users.User;
 import com.kei.review.users.UserRepository;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -55,7 +57,7 @@ class FlashcardServiceImplTest {
 
         List<FlashcardResponse> due = service.listDue(userId, null);
 
-        assertEquals(List.of(newSeed.getId(), dueSeed.getId()), due.stream().map(FlashcardResponse::id).toList());
+        assertEquals(List.of(dueSeed.getId(), newSeed.getId()), due.stream().map(FlashcardResponse::id).toList());
     }
 
     @Test
@@ -127,7 +129,7 @@ class FlashcardServiceImplTest {
 
         List<FlashcardResponse> due = service.listDue(userId, topicId);
 
-        assertEquals(List.of(newPersonal.getId(), duePersonal.getId()), due.stream().map(FlashcardResponse::id).toList());
+        assertEquals(List.of(duePersonal.getId(), newPersonal.getId()), due.stream().map(FlashcardResponse::id).toList());
     }
 
     @Test
@@ -193,8 +195,10 @@ class FlashcardServiceImplTest {
         assertEquals(seedFlashcard.getFront(), saved.getFront());
         assertEquals(seedFlashcard.getBack(), saved.getBack());
         assertEquals(FlashcardConfidence.MEDIUM, saved.getConfidence());
+        assertEquals(FlashcardReviewState.REVIEW, saved.getReviewState());
+        assertEquals(1, saved.getIntervalDays());
         assertNotNull(saved.getNextReview());
-        assertTrue(!saved.getNextReview().isBefore(LocalDate.now().plusDays(3)));
+        assertTrue(!saved.getNextReview().isBefore(LocalDate.now().plusDays(1)));
     }
 
     @Test
@@ -211,8 +215,129 @@ class FlashcardServiceImplTest {
         verify(flashcardRepository).save(captor.capture());
         Flashcard saved = captor.getValue();
         assertEquals(FlashcardConfidence.HIGH, saved.getConfidence());
+        assertEquals(FlashcardReviewState.REVIEW, saved.getReviewState());
+        assertEquals(4, saved.getIntervalDays());
         assertNotNull(saved.getNextReview());
-        assertTrue(!saved.getNextReview().isBefore(LocalDate.now().plusDays(7)));
+        assertTrue(!saved.getNextReview().isBefore(LocalDate.now().plusDays(4)));
+    }
+
+    @Test
+    void listDuePrioritizesLearningThenWeakOverdueReviewCardsThenNewCards() {
+        UUID userId = UUID.randomUUID();
+        Flashcard newPersonal = flashcard(userId, UUID.randomUUID(), "user@example.com");
+        newPersonal.setFront("New");
+        newPersonal.setReviewState(FlashcardReviewState.NEW);
+
+        Flashcard normalDue = flashcard(userId, UUID.randomUUID(), "user@example.com");
+        normalDue.setFront("Normal");
+        normalDue.setReviewState(FlashcardReviewState.REVIEW);
+        normalDue.setDueAt(java.time.Instant.now().minusSeconds(60 * 60));
+        normalDue.setEaseFactor(2500);
+
+        Flashcard weakDue = flashcard(userId, UUID.randomUUID(), "user@example.com");
+        weakDue.setFront("Weak");
+        weakDue.setReviewState(FlashcardReviewState.REVIEW);
+        weakDue.setDueAt(java.time.Instant.now().minusSeconds(60));
+        weakDue.setEaseFactor(1600);
+        weakDue.setLapseCount(2);
+
+        Flashcard relearningDue = flashcard(userId, UUID.randomUUID(), "user@example.com");
+        relearningDue.setFront("Relearning");
+        relearningDue.setReviewState(FlashcardReviewState.RELEARNING);
+        relearningDue.setDueAt(java.time.Instant.now().minusSeconds(30));
+        relearningDue.setEaseFactor(1300);
+
+        when(flashcardRepository.findByUserId(userId)).thenReturn(List.of(newPersonal, normalDue, weakDue, relearningDue));
+        when(flashcardRepository.findByUserEmail(SeedData.SYSTEM_USER_EMAIL)).thenReturn(List.of());
+
+        List<FlashcardResponse> due = service.listDue(userId, null);
+
+        assertEquals(
+            List.of(relearningDue.getId(), weakDue.getId(), normalDue.getId(), newPersonal.getId()),
+            due.stream().map(FlashcardResponse::id).toList()
+        );
+    }
+
+    @Test
+    void reviewQueueReturnsDueCardsWithoutFallbackWhenDueCardsExist() {
+        UUID userId = UUID.randomUUID();
+        Flashcard dueCard = flashcard(userId, UUID.randomUUID(), "user@example.com");
+        dueCard.setReviewState(FlashcardReviewState.REVIEW);
+        dueCard.setDueAt(Instant.now().minusSeconds(60));
+        dueCard.setConfidence(FlashcardConfidence.MEDIUM);
+
+        Flashcard futureWeakCard = flashcard(userId, UUID.randomUUID(), "user@example.com");
+        futureWeakCard.setReviewState(FlashcardReviewState.REVIEW);
+        futureWeakCard.setDueAt(Instant.now().plusSeconds(3600));
+        futureWeakCard.setConfidence(FlashcardConfidence.LOW);
+        futureWeakCard.setEaseFactor(1600);
+
+        when(flashcardRepository.findByUserId(userId)).thenReturn(List.of(futureWeakCard, dueCard));
+        when(flashcardRepository.findByUserEmail(SeedData.SYSTEM_USER_EMAIL)).thenReturn(List.of());
+
+        FlashcardReviewQueueResponse queue = service.reviewQueue(userId, null, 20);
+
+        assertEquals(FlashcardReviewQueueMode.DUE, queue.mode());
+        assertEquals(1L, queue.dueCount());
+        assertEquals(0L, queue.fallbackCount());
+        assertEquals(List.of(dueCard.getId()), queue.cards().stream().map(FlashcardResponse::id).toList());
+        assertEquals(futureWeakCard.getDueAt(), queue.nextDueAt());
+    }
+
+    @Test
+    void reviewQueueFallsBackToWeakestFutureCardsWhenNothingIsDue() {
+        UUID userId = UUID.randomUUID();
+        Instant now = Instant.now();
+        Flashcard highConfidence = flashcard(userId, UUID.randomUUID(), "user@example.com");
+        highConfidence.setReviewState(FlashcardReviewState.REVIEW);
+        highConfidence.setDueAt(now.plusSeconds(60));
+        highConfidence.setConfidence(FlashcardConfidence.HIGH);
+        highConfidence.setEaseFactor(2500);
+
+        Flashcard lowConfidence = flashcard(userId, UUID.randomUUID(), "user@example.com");
+        lowConfidence.setReviewState(FlashcardReviewState.REVIEW);
+        lowConfidence.setDueAt(now.plusSeconds(3600));
+        lowConfidence.setConfidence(FlashcardConfidence.LOW);
+        lowConfidence.setEaseFactor(1600);
+        lowConfidence.setLapseCount(2);
+
+        Flashcard mediumConfidence = flashcard(userId, UUID.randomUUID(), "user@example.com");
+        mediumConfidence.setReviewState(FlashcardReviewState.REVIEW);
+        mediumConfidence.setDueAt(now.plusSeconds(1800));
+        mediumConfidence.setConfidence(FlashcardConfidence.MEDIUM);
+        mediumConfidence.setEaseFactor(2000);
+
+        when(flashcardRepository.findByUserId(userId)).thenReturn(List.of(highConfidence, lowConfidence, mediumConfidence));
+        when(flashcardRepository.findByUserEmail(SeedData.SYSTEM_USER_EMAIL)).thenReturn(List.of());
+
+        FlashcardReviewQueueResponse queue = service.reviewQueue(userId, null, 2);
+
+        assertEquals(FlashcardReviewQueueMode.WEAK_FALLBACK, queue.mode());
+        assertEquals(0L, queue.dueCount());
+        assertEquals(3L, queue.fallbackCount());
+        assertEquals(
+            List.of(lowConfidence.getId(), mediumConfidence.getId()),
+            queue.cards().stream().map(FlashcardResponse::id).toList()
+        );
+        assertEquals(highConfidence.getDueAt(), queue.nextDueAt());
+    }
+
+    @Test
+    void reviewQueueFallbackRespectsTopicFilter() {
+        UUID userId = UUID.randomUUID();
+        UUID selectedTopicId = UUID.randomUUID();
+        Flashcard selectedTopicCard = flashcard(userId, UUID.randomUUID(), "user@example.com", selectedTopicId);
+        selectedTopicCard.setReviewState(FlashcardReviewState.REVIEW);
+        selectedTopicCard.setDueAt(Instant.now().plusSeconds(3600));
+        selectedTopicCard.setConfidence(FlashcardConfidence.LOW);
+
+        when(flashcardRepository.findByUserIdAndTopicId(userId, selectedTopicId)).thenReturn(List.of(selectedTopicCard));
+        when(flashcardRepository.findByUserEmailAndTopicId(SeedData.SYSTEM_USER_EMAIL, selectedTopicId)).thenReturn(List.of());
+
+        FlashcardReviewQueueResponse queue = service.reviewQueue(userId, selectedTopicId, 20);
+
+        assertEquals(FlashcardReviewQueueMode.WEAK_FALLBACK, queue.mode());
+        assertEquals(List.of(selectedTopicCard.getId()), queue.cards().stream().map(FlashcardResponse::id).toList());
     }
 
     @Test

@@ -42,6 +42,10 @@ class PostgresMigrationIntegrationTest {
             "SELECT COUNT(*) FROM flyway_schema_history WHERE version = '10' AND success = true",
             Integer.class
         );
+        Integer schedulerMigrationCount = jdbcTemplate.queryForObject(
+            "SELECT COUNT(*) FROM flyway_schema_history WHERE version = '12' AND success = true",
+            Integer.class
+        );
         List<String> examSessionColumns = jdbcTemplate.queryForList(
             "SELECT column_name FROM information_schema.columns WHERE table_name = 'exam_sessions'",
             String.class
@@ -59,13 +63,20 @@ class PostgresMigrationIntegrationTest {
             "SELECT column_name FROM information_schema.columns WHERE table_name = 'users'",
             String.class
         );
+        List<String> flashcardColumns = jdbcTemplate.queryForList(
+            "SELECT column_name FROM information_schema.columns WHERE table_name = 'flashcards'",
+            String.class
+        );
 
         assertThat(accessMigrationCount).isEqualTo(1);
+        assertThat(schedulerMigrationCount).isEqualTo(1);
         assertThat(indexes).contains(
             "idx_questions_owner_topic",
             "idx_answer_attempts_user_created_at",
             "idx_exam_session_questions_session_order",
             "idx_flashcards_user_next_review",
+            "idx_flashcards_user_due_at",
+            "idx_flashcards_user_review_state_due_at",
             "idx_lesson_progress_user_topic",
             "idx_generation_jobs_user_created_at"
         );
@@ -79,6 +90,15 @@ class PostgresMigrationIntegrationTest {
             "access_updated_at",
             "access_notes",
             "payment_reference"
+        );
+        assertThat(flashcardColumns).contains(
+            "review_state",
+            "due_at",
+            "interval_days",
+            "ease_factor",
+            "repetition_count",
+            "lapse_count",
+            "last_reviewed_at"
         );
     }
 }

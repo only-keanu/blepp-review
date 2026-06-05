@@ -11,6 +11,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -53,4 +55,44 @@ public class Flashcard {
     private LocalDate nextReview;
 
     private Instant createdAt;
+
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    private FlashcardReviewState reviewState = FlashcardReviewState.NEW;
+
+    private Instant dueAt;
+
+    @Builder.Default
+    private Integer intervalDays = 0;
+
+    @Builder.Default
+    private Integer easeFactor = FlashcardScheduler.INITIAL_EASE_FACTOR;
+
+    @Builder.Default
+    private Integer repetitionCount = 0;
+
+    @Builder.Default
+    private Integer lapseCount = 0;
+
+    private Instant lastReviewedAt;
+
+    @PrePersist
+    @PreUpdate
+    void ensureSchedulerDefaults() {
+        if (reviewState == null) {
+            reviewState = FlashcardReviewState.NEW;
+        }
+        if (intervalDays == null) {
+            intervalDays = 0;
+        }
+        if (easeFactor == null) {
+            easeFactor = FlashcardScheduler.INITIAL_EASE_FACTOR;
+        }
+        if (repetitionCount == null) {
+            repetitionCount = 0;
+        }
+        if (lapseCount == null) {
+            lapseCount = 0;
+        }
+    }
 }

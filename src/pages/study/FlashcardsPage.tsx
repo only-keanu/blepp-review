@@ -32,6 +32,15 @@ type FlashcardApi = {
   category?: string;
   confidence?: 'LOW' | 'MEDIUM' | 'HIGH';
   nextReview?: string;
+  dueAt?: string;
+};
+
+type FlashcardReviewQueueApi = {
+  mode: 'DUE' | 'WEAK_FALLBACK';
+  cards: FlashcardApi[];
+  dueCount: number;
+  fallbackCount: number;
+  nextDueAt?: string;
 };
 
 type FlashcardViewModel = {
@@ -69,6 +78,8 @@ export function FlashcardsPage() {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [queueMode, setQueueMode] = useState<'DUE' | 'WEAK_FALLBACK' | null>(null);
+  const [nextDueAt, setNextDueAt] = useState<string | undefined>();
 
   useEffect(() => {
     const loadTopics = async () => {
@@ -92,24 +103,28 @@ export function FlashcardsPage() {
       setIsLoading(true);
       setError('');
       try {
-        const data = await apiFetch<FlashcardApi[]>('/api/flashcards/due');
-        const mapped = data.map((card) => ({
+        const params = new URLSearchParams();
+        params.set('limit', '20');
+        if (selectedTopic !== 'all') {
+          params.set('topicId', selectedTopic);
+        }
+        const data = await apiFetch<FlashcardReviewQueueApi>(`/api/flashcards/review-queue?${params.toString()}`);
+        const mapped = data.cards.map((card) => ({
           id: card.id,
           front: card.front,
           back: card.back,
           topic: card.topicName,
           topicId: card.topicId
         }));
-        const filtered = selectedTopic === 'all'
-          ? mapped
-          : mapped.filter((card) => card.topicId === selectedTopic);
-        setCards(filtered);
+        setCards(mapped);
+        setQueueMode(data.mode);
+        setNextDueAt(data.nextDueAt);
         setCurrentIndex(0);
         setCompleted(0);
         setIsComplete(false);
         setStartTime(Date.now());
         setStats({
-          totalCards: filtered.length,
+          totalCards: mapped.length,
           knewIt: 0,
           unsure: 0,
           forgot: 0,
@@ -127,6 +142,14 @@ export function FlashcardsPage() {
   const currentCard = cards[currentIndex];
   const totalCards = cards.length;
   const progress = totalCards === 0 ? 0 : (completed / totalCards) * 100;
+  const formattedNextDue = nextDueAt
+    ? new Date(nextDueAt).toLocaleString(undefined, {
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit'
+      })
+    : undefined;
 
   const handleRate = async (confidence: 'low' | 'medium' | 'high') => {
     if (!currentCard) return;
@@ -234,6 +257,12 @@ export function FlashcardsPage() {
           </div>
         )}
 
+        {!error && queueMode === 'WEAK_FALLBACK' && cards.length > 0 && (
+          <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 mb-4">
+            No cards are due right now. Reviewing your weakest scheduled cards instead.
+          </div>
+        )}
+
         <div className="mb-12">
           <Progress value={progress} size="sm" />
         </div>
@@ -243,8 +272,23 @@ export function FlashcardsPage() {
             Loading...
           </div>
         ) : !currentCard ? (
-          <div className="flex-1 flex items-center justify-center text-slate-500 dark:text-slate-400">
-            No flashcards available.
+          <div className="flex-1 flex flex-col items-center justify-center text-center text-slate-500 dark:text-slate-400 px-6">
+            <p className="text-base font-medium text-slate-700 dark:text-slate-200">
+              No cards are due yet.
+            </p>
+            <p className="mt-2 text-sm">
+              {formattedNextDue
+                ? `Your next scheduled card is due ${formattedNextDue}.`
+                : 'Create or review flashcards to start building your schedule.'}
+            </p>
+            <Button
+              variant="outline"
+              className="mt-6"
+              onClick={() => navigate('/dashboard/flashcards')}
+              leftIcon={<BookOpen className="h-4 w-4" />}
+            >
+              Manage Cards
+            </Button>
           </div>
         ) : (
           <div className="flex-1 flex items-center justify-center">

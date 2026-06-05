@@ -4,6 +4,7 @@ import com.kei.review.auth.UserPrincipal;
 import com.kei.review.flashcards.dto.FlashcardCreateRequest;
 import com.kei.review.flashcards.dto.FlashcardResponse;
 import com.kei.review.flashcards.dto.FlashcardReviewRequest;
+import com.kei.review.flashcards.dto.FlashcardReviewQueueResponse;
 import com.kei.review.flashcards.dto.FlashcardQueueSummaryResponse;
 import com.kei.review.flashcards.dto.FlashcardUpdateRequest;
 import com.kei.review.users.AccessService;
@@ -49,6 +50,16 @@ public class FlashcardController {
     ) {
         accessService.requireStudyAccess(principal.getId());
         return ResponseEntity.ok(flashcardService.listDue(principal.getId(), topicId));
+    }
+
+    @GetMapping("/review-queue")
+    public ResponseEntity<FlashcardReviewQueueResponse> reviewQueue(
+        @RequestParam(required = false) UUID topicId,
+        @RequestParam(defaultValue = "20") int limit,
+        @AuthenticationPrincipal UserPrincipal principal
+    ) {
+        accessService.requireStudyAccess(principal.getId());
+        return ResponseEntity.ok(flashcardService.reviewQueue(principal.getId(), topicId, limit));
     }
 
     @GetMapping("/summary")
