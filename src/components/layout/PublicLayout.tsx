@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '../ui/Button';
 import { BookOpen } from 'lucide-react';
+import { ContactBubble } from '../contact/ContactBubble';
 
 interface PublicLayoutProps {
   children: React.ReactNode;
@@ -122,6 +123,7 @@ export function PublicLayout({ children }: PublicLayoutProps) {
           </div>
         </div>
       </footer>
+      <ContactBubble />
     </div>
   );
 }
