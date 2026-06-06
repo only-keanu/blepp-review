@@ -46,6 +46,10 @@ class PostgresMigrationIntegrationTest {
             "SELECT COUNT(*) FROM flyway_schema_history WHERE version = '12' AND success = true",
             Integer.class
         );
+        Integer notificationMigrationCount = jdbcTemplate.queryForObject(
+            "SELECT COUNT(*) FROM flyway_schema_history WHERE version = '13' AND success = true",
+            Integer.class
+        );
         List<String> examSessionColumns = jdbcTemplate.queryForList(
             "SELECT column_name FROM information_schema.columns WHERE table_name = 'exam_sessions'",
             String.class
@@ -67,9 +71,22 @@ class PostgresMigrationIntegrationTest {
             "SELECT column_name FROM information_schema.columns WHERE table_name = 'flashcards'",
             String.class
         );
+        List<String> notificationDismissalColumns = jdbcTemplate.queryForList(
+            "SELECT column_name FROM information_schema.columns " +
+                "WHERE table_name = 'notification_dismissals'",
+            String.class
+        );
+        Integer notificationUniqueConstraintCount = jdbcTemplate.queryForObject(
+            "SELECT COUNT(*) FROM information_schema.table_constraints " +
+                "WHERE table_name = 'notification_dismissals' " +
+                "AND constraint_name = 'uk_notification_dismissals_user_key' " +
+                "AND constraint_type = 'UNIQUE'",
+            Integer.class
+        );
 
         assertThat(accessMigrationCount).isEqualTo(1);
         assertThat(schedulerMigrationCount).isEqualTo(1);
+        assertThat(notificationMigrationCount).isEqualTo(1);
         assertThat(indexes).contains(
             "idx_questions_owner_topic",
             "idx_answer_attempts_user_created_at",
@@ -78,7 +95,8 @@ class PostgresMigrationIntegrationTest {
             "idx_flashcards_user_due_at",
             "idx_flashcards_user_review_state_due_at",
             "idx_lesson_progress_user_topic",
-            "idx_generation_jobs_user_created_at"
+            "idx_generation_jobs_user_created_at",
+            "idx_notification_dismissals_user"
         );
         assertThat(examSessionColumns).contains("total_questions", "duration_minutes");
         assertThat(mockExamNullable).isEqualTo("YES");
@@ -100,5 +118,12 @@ class PostgresMigrationIntegrationTest {
             "lapse_count",
             "last_reviewed_at"
         );
+        assertThat(notificationDismissalColumns).contains(
+            "id",
+            "user_id",
+            "notification_key",
+            "dismissed_at"
+        );
+        assertThat(notificationUniqueConstraintCount).isEqualTo(1);
     }
 }

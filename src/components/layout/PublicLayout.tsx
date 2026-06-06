@@ -13,7 +13,11 @@ export function PublicLayout({ children }: PublicLayoutProps) {
       <nav className="bg-white dark:bg-slate-950 border-b border-slate-100 dark:border-slate-800 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16 items-center">
-            <Link to="/" className="flex items-center gap-2">
+            <Link
+              to="/"
+              className="flex items-center gap-2"
+              aria-label="BLEPP Review home"
+            >
               <div className="bg-teal-600 p-2 rounded-lg">
                 <BookOpen className="h-6 w-6 text-white" />
               </div>
@@ -21,7 +25,13 @@ export function PublicLayout({ children }: PublicLayoutProps) {
                 BLEPP Review
               </span>
             </Link>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3 sm:gap-4">
+              <Link
+                to="/"
+                className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100"
+              >
+                Home
+              </Link>
               <Link
                 to="/features"
                 className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100"
@@ -34,6 +44,12 @@ export function PublicLayout({ children }: PublicLayoutProps) {
               >
                 Pricing
               </Link>
+              <a
+                href="/#faqs"
+                className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100"
+              >
+                FAQs
+              </a>
               <Link
                 to="/auth/login"
                 className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100"

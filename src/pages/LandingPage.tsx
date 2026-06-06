@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import {
@@ -7,24 +7,36 @@ import {
   Clock,
   BarChart3,
   CheckCircle2,
+  ChevronDown,
   Shield } from
 'lucide-react';
 export function LandingPage() {
+  const [openFaqId, setOpenFaqId] = useState<string | null>(null);
+
   return (
     <div className="min-h-screen bg-white dark:bg-slate-950">
       {/* Navigation */}
       <nav className="bg-white dark:bg-slate-950 border-b border-slate-100 dark:border-slate-800 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
-            <div className="flex items-center gap-2">
+            <Link
+              to="/"
+              className="flex items-center gap-2"
+              aria-label="BLEPP Review home">
               <div className="bg-teal-600 p-2 rounded-lg">
                 <BookOpen className="h-6 w-6 text-white" />
               </div>
               <span className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
                 BLEPP Review
               </span>
-            </div>
-            <div className="flex items-center gap-4">
+            </Link>
+            <div className="flex items-center gap-3 sm:gap-4">
+              <Link
+                to="/"
+                className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100">
+
+                Home
+              </Link>
               <Link
                 to="/features"
                 className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100">
@@ -37,6 +49,12 @@ export function LandingPage() {
 
                 Pricing
               </Link>
+              <a
+                href="#faqs"
+                className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100">
+
+                FAQs
+              </a>
               <Link
                 to="/auth/login"
                 className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100">
@@ -199,6 +217,65 @@ export function LandingPage() {
         </div>
       </div>
 
+      {/* Frequently Asked Questions */}
+      <section
+        id="faqs"
+        className="scroll-mt-16 border-t border-slate-100 bg-slate-50 py-20 dark:border-slate-800 dark:bg-slate-900">
+        <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+          <div className="mb-12 text-center">
+            <p className="mb-3 text-sm font-semibold uppercase tracking-wider text-teal-600 dark:text-teal-400">
+              Need to know more?
+            </p>
+            <h2 className="text-3xl font-bold text-slate-900 dark:text-slate-100">
+              Frequently Asked Questions
+            </h2>
+            <p className="mt-4 text-lg text-slate-600 dark:text-slate-300">
+              Quick answers about access, payment, and the BLEPP Review study tools.
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            {faqs.map((faq) => {
+              const isOpen = openFaqId === faq.id;
+              const answerId = `faq-answer-${faq.id}`;
+              const questionId = `faq-question-${faq.id}`;
+
+              return (
+                <div
+                  key={faq.id}
+                  className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-colors dark:border-slate-700 dark:bg-slate-950">
+                  <h3>
+                    <button
+                      id={questionId}
+                      type="button"
+                      onClick={() => setOpenFaqId(isOpen ? null : faq.id)}
+                      className="flex w-full items-center justify-between gap-4 px-5 py-5 text-left font-semibold text-slate-900 transition-colors hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-teal-500 dark:text-slate-100 dark:hover:bg-slate-900"
+                      aria-expanded={isOpen}
+                      aria-controls={answerId}>
+                      <span>{faq.question}</span>
+                      <ChevronDown
+                        aria-hidden="true"
+                        className={`h-5 w-5 shrink-0 text-teal-600 transition-transform duration-200 dark:text-teal-400 ${
+                          isOpen ? 'rotate-180' : ''
+                        }`} />
+                    </button>
+                  </h3>
+                  {isOpen && (
+                    <div
+                      id={answerId}
+                      role="region"
+                      aria-labelledby={questionId}
+                      className="border-t border-slate-100 px-5 py-5 text-sm leading-7 text-slate-600 dark:border-slate-800 dark:text-slate-300">
+                      {faq.answer}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className="bg-slate-900 text-slate-400 py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-4 gap-8">
@@ -259,6 +336,52 @@ export function LandingPage() {
     </div>);
 
 }
+
+const faqs = [
+  {
+    id: 'launch-pass-inclusions',
+    question: 'What is included in the PHP 299 launch pass?',
+    answer:
+      'The launch pass includes practice questions, mistake review, flashcards with spaced repetition, mock exams, results review, progress and readiness analytics, lesson tracking, and question bank access.'
+  },
+  {
+    id: 'pass-duration',
+    question: 'How long does the BLEPP Review Pass last?',
+    answer:
+      'Each PHP 299 pass gives you 30 days of access to the core BLEPP Review study tools after your payment has been verified and your access has been activated.'
+  },
+  {
+    id: 'gcash-activation',
+    question: 'How does GCash payment and activation work?',
+    answer:
+      'Pay through GCash, then message the BLEPP Review Facebook page with your account email, GCash reference number, sender name or screenshot, and payment date and time. Access is activated within 24 hours after verification.'
+  },
+  {
+    id: 'trial',
+    question: 'Can I try BLEPP Review before paying?',
+    answer:
+      'Yes. Create an account to start the trial and explore the available study experience. You can then unlock 30 days of core study-tool access with the PHP 299 launch pass.'
+  },
+  {
+    id: 'ai-generation',
+    question: 'Is AI question generation available?',
+    answer:
+      'AI question generation is coming soon and is not included in the current launch pass. The available pass focuses on practice, flashcards, mock exams, lessons, mistake review, and analytics.'
+  },
+  {
+    id: 'mobile',
+    question: 'Can I use BLEPP Review on my phone or tablet?',
+    answer:
+      'Yes. BLEPP Review has a responsive, mobile-friendly design so you can study from a phone, tablet, laptop, or desktop browser.'
+  },
+  {
+    id: 'refunds',
+    question: 'What is the refund policy?',
+    answer:
+      'A 7-day refund window applies to the launch pass. Review the Terms and Conditions for the full policy and eligibility details.'
+  }
+] as const;
+
 function FeatureCard({
   icon,
   title,
