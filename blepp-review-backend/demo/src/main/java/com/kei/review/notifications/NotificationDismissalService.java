@@ -49,4 +49,10 @@ public class NotificationDismissalService {
             // A concurrent duplicate dismissal is already the desired final state.
         }
     }
+
+    public void dismissAll(UUID userId, List<String> notificationIds) {
+        notificationIds.stream()
+            .distinct()
+            .forEach(notificationId -> dismiss(userId, notificationId));
+    }
 }

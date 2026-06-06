@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { AlertTriangle, Bell, BookOpen, Clock, FileText, Layers, LogOut, Menu, PlayCircle, RotateCw, Search, X } from 'lucide-react';
+import { AlertTriangle, Bell, BookOpen, Clock, FileText, Layers, LogOut, Menu, PlayCircle, RotateCw, Search, Trash2, X } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { Link, useNavigate } from 'react-router-dom';
 import { apiFetch } from '../../lib/api';
@@ -40,6 +40,7 @@ export function Header({ onMenuClick, searchInputRef }: HeaderProps) {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [notifications, setNotifications] = useState<HeaderNotification[]>([]);
   const [isNotificationsLoading, setIsNotificationsLoading] = useState(false);
+  const [isClearingNotifications, setIsClearingNotifications] = useState(false);
   const [notificationsError, setNotificationsError] = useState('');
   const [seenNotificationIds, setSeenNotificationIds] = useState<Set<string>>(() => new Set());
   const [dismissedNotificationIds, setDismissedNotificationIds] = useState<Set<string>>(() => new Set());
@@ -303,6 +304,35 @@ export function Header({ onMenuClick, searchInputRef }: HeaderProps) {
       setNotificationsError('Could not dismiss notification. Please try again.');
     }
   };
+  const clearAllNotifications = async () => {
+    const notificationIds = visibleNotifications.map((notification) => notification.id);
+    if (notificationIds.length === 0 || isClearingNotifications) {
+      return;
+    }
+
+    setNotificationsError('');
+    setIsClearingNotifications(true);
+    setDismissedNotificationIds((previous) => new Set([
+      ...previous,
+      ...notificationIds
+    ]));
+
+    try {
+      await apiFetch<void>('/api/notification-dismissals/bulk', {
+        method: 'POST',
+        body: JSON.stringify({ notificationIds })
+      });
+    } catch {
+      setDismissedNotificationIds((previous) => {
+        const next = new Set(previous);
+        notificationIds.forEach((notificationId) => next.delete(notificationId));
+        return next;
+      });
+      setNotificationsError('Could not clear notifications. Please try again.');
+    } finally {
+      setIsClearingNotifications(false);
+    }
+  };
   const toggleNotifications = () => {
     setNotificationsOpen((current) => {
       const nextOpen = !current;
@@ -470,15 +500,26 @@ export function Header({ onMenuClick, searchInputRef }: HeaderProps) {
                       Study reminders and account alerts
                     </p>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => void loadNotifications()}
-                    className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 disabled:cursor-not-allowed disabled:opacity-60 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-300"
-                    disabled={isNotificationsLoading}
-                    aria-label="Refresh notifications"
-                    title="Refresh notifications">
-                    <RotateCw className={`h-4 w-4 ${isNotificationsLoading ? 'animate-spin' : ''}`} />
-                  </button>
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => void clearAllNotifications()}
+                      className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 disabled:cursor-not-allowed disabled:opacity-60 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-300"
+                      disabled={visibleNotifications.length === 0 || isNotificationsLoading || isClearingNotifications}
+                      aria-label="Clear all notifications"
+                      title="Clear all notifications">
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void loadNotifications()}
+                      className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 disabled:cursor-not-allowed disabled:opacity-60 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-300"
+                      disabled={isNotificationsLoading || isClearingNotifications}
+                      aria-label="Refresh notifications"
+                      title="Refresh notifications">
+                      <RotateCw className={`h-4 w-4 ${isNotificationsLoading ? 'animate-spin' : ''}`} />
+                    </button>
+                  </div>
                 </div>
 
                 <div className="max-h-96 overflow-y-auto py-2">
@@ -530,6 +571,7 @@ export function Header({ onMenuClick, searchInputRef }: HeaderProps) {
                                   void dismissNotification(notification.id);
                                 }}
                                 className="mt-1 rounded-full p-1 text-slate-300 opacity-100 hover:bg-slate-100 hover:text-slate-500 dark:text-slate-600 dark:hover:bg-slate-700 dark:hover:text-slate-300 sm:opacity-0 sm:group-hover:opacity-100"
+                                disabled={isClearingNotifications}
                                 aria-label={`Dismiss ${notification.title}`}
                                 title="Dismiss">
                                 <X className="h-3.5 w-3.5" />

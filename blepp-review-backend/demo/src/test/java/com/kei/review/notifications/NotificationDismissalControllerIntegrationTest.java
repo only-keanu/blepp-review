@@ -61,6 +61,26 @@ class NotificationDismissalControllerIntegrationTest {
     }
 
     @Test
+    void authenticatedUserCanPersistBulkDismissalsIdempotently() throws Exception {
+        AuthResponse user = register("bulk-dismiss");
+        Map<String, Object> request = Map.of(
+            "notificationIds",
+            java.util.List.of("flashcards-due-3", "exam-session-123", "flashcards-due-3")
+        );
+
+        dismissBulk(user, request);
+        dismissBulk(user, request);
+
+        mockMvc.perform(get("/api/notification-dismissals")
+                .header("Authorization", bearer(user)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.notificationIds", contains(
+                "flashcards-due-3",
+                "exam-session-123"
+            )));
+    }
+
+    @Test
     void dismissalsAreIsolatedByUser() throws Exception {
         AuthResponse firstUser = register("first");
         AuthResponse secondUser = register("second");
@@ -85,6 +105,26 @@ class NotificationDismissalControllerIntegrationTest {
     }
 
     @Test
+    void bulkNotificationIdsAreValidated() throws Exception {
+        AuthResponse user = register("invalid-bulk");
+
+        mockMvc.perform(post("/api/notification-dismissals/bulk")
+                .header("Authorization", bearer(user))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(Map.of("notificationIds", java.util.List.of()))))
+            .andExpect(status().isBadRequest());
+
+        mockMvc.perform(post("/api/notification-dismissals/bulk")
+                .header("Authorization", bearer(user))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(Map.of(
+                    "notificationIds",
+                    java.util.List.of(" ")
+                ))))
+            .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void endpointsRequireAuthentication() throws Exception {
         mockMvc.perform(get("/api/notification-dismissals"))
             .andExpect(status().isForbidden());
@@ -93,6 +133,14 @@ class NotificationDismissalControllerIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(Map.of("notificationId", "access-expired"))))
             .andExpect(status().isForbidden());
+
+        mockMvc.perform(post("/api/notification-dismissals/bulk")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(Map.of(
+                    "notificationIds",
+                    java.util.List.of("access-expired")
+                ))))
+            .andExpect(status().isForbidden());
     }
 
     private void dismiss(AuthResponse user, String notificationId) throws Exception {
@@ -100,6 +148,14 @@ class NotificationDismissalControllerIntegrationTest {
                 .header("Authorization", bearer(user))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(Map.of("notificationId", notificationId))))
+            .andExpect(status().isNoContent());
+    }
+
+    private void dismissBulk(AuthResponse user, Map<String, Object> request) throws Exception {
+        mockMvc.perform(post("/api/notification-dismissals/bulk")
+                .header("Authorization", bearer(user))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
             .andExpect(status().isNoContent());
     }
 

@@ -1,6 +1,7 @@
 package com.kei.review.notifications;
 
 import com.kei.review.auth.UserPrincipal;
+import com.kei.review.notifications.dto.BulkNotificationDismissalRequest;
 import com.kei.review.notifications.dto.NotificationDismissalListResponse;
 import com.kei.review.notifications.dto.NotificationDismissalRequest;
 import jakarta.validation.Valid;
@@ -36,6 +37,15 @@ public class NotificationDismissalController {
         @AuthenticationPrincipal UserPrincipal principal
     ) {
         notificationDismissalService.dismiss(principal.getId(), request.notificationId());
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/bulk")
+    public ResponseEntity<Void> dismissBulk(
+        @Valid @RequestBody BulkNotificationDismissalRequest request,
+        @AuthenticationPrincipal UserPrincipal principal
+    ) {
+        notificationDismissalService.dismissAll(principal.getId(), request.notificationIds());
         return ResponseEntity.noContent().build();
     }
 }

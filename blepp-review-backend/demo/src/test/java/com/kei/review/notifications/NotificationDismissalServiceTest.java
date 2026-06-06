@@ -98,6 +98,30 @@ class NotificationDismissalServiceTest {
         assertDoesNotThrow(() -> service.dismiss(userId, "access-expired"));
     }
 
+    @Test
+    void bulkDismissalDeduplicatesNotificationIds() {
+        UUID userId = UUID.randomUUID();
+        when(notificationDismissalRepository.existsByUserIdAndNotificationKey(
+            org.mockito.ArgumentMatchers.eq(userId),
+            org.mockito.ArgumentMatchers.anyString()
+        )).thenReturn(true);
+
+        service.dismissAll(userId, List.of(
+            "flashcards-due-3",
+            "exam-session-123",
+            "flashcards-due-3"
+        ));
+
+        verify(notificationDismissalRepository).existsByUserIdAndNotificationKey(
+            userId,
+            "flashcards-due-3"
+        );
+        verify(notificationDismissalRepository).existsByUserIdAndNotificationKey(
+            userId,
+            "exam-session-123"
+        );
+    }
+
     private NotificationDismissal dismissal(String notificationKey) {
         return NotificationDismissal.builder()
             .notificationKey(notificationKey)
