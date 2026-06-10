@@ -8,6 +8,8 @@ This folder provides developer-facing documentation for the backend. It is inten
 - `setup.md` - local setup (Postgres + JWT)
 - `api.md` - endpoint guide and sample flows
 - `deployment-checklist.md` - production deploy checklist
+- `environment-deployment-workflow.md` - dev, feature preview, staging, and
+  production workflow
 - `railway-deployment.md` - Railway frontend/backend/PostgreSQL setup
 - `incident-runbook.md` - launch incident response steps
 - `load-smoke-500-users.md` - small-scale load-smoke plan
